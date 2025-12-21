@@ -1,0 +1,1033 @@
+"""Containerized async game engine for TraitorSim.
+
+This engine communicates with player agents running in Docker containers
+via HTTP REST APIs, enabling resource isolation and parallel execution.
+"""
+
+import asyncio
+import httpx
+from typing import List, Dict, Optional, Tuple
+from collections import Counter
+
+from ..agents.game_master_interactions import GameMasterInteractions
+from ..core.game_state import GameState, Player, Role, TrustMatrix
+from ..core.config import GameConfig
+from ..core.enums import GamePhase
+from ..missions.skill_check import SkillCheckMission
+from ..utils.logger import setup_logger
+
+
+class GameEngineContainerized:
+    """Game engine that orchestrates containerized player agents via HTTP.
+
+    Each player agent runs in its own Docker container with isolated resources.
+    The engine communicates via REST API calls for parallel execution.
+    """
+
+    def __init__(self, config: Optional[GameConfig] = None, agent_base_url: str = "http://localhost"):
+        """Initialize containerized game engine.
+
+        Args:
+            config: Game configuration (uses defaults if None)
+            agent_base_url: Base URL for agent containers (default: localhost)
+        """
+        self.config = config or GameConfig()
+        self.game_state = GameState()
+        self.logger = setup_logger("game_engine")
+        self.agent_base_url = agent_base_url
+
+        # Initialize Game Master (runs on host, not containerized)
+        self.gm = GameMasterInteractions(
+            self.game_state,
+            api_key=self.config.gemini_api_key,
+            model_name=self.config.gemini_model,
+            world_bible_path=self.config.world_bible_path,
+        )
+
+        # Agent URLs (port mapping: 8000-8009 for agents 0-9)
+        self.agent_urls: Dict[str, str] = {}
+
+    def _initialize_players(self) -> None:
+        """Initialize players and assign roles."""
+        import random
+
+        # Create players with Big Five personalities
+        for i in range(self.config.total_players):
+            player = Player(
+                id=f"player_{i:02d}",
+                name=f"Player{i+1}",
+                role=Role.FAITHFUL,  # Default, will reassign
+                personality={
+                    "openness": random.uniform(0.2, 0.8),
+                    "conscientiousness": random.uniform(0.2, 0.8),
+                    "extraversion": random.uniform(0.2, 0.8),
+                    "agreeableness": random.uniform(0.2, 0.8),
+                    "neuroticism": random.uniform(0.2, 0.8),
+                },
+                stats={
+                    "intellect": random.uniform(0.3, 0.9),
+                    "dexterity": random.uniform(0.3, 0.9),
+                    "social_influence": random.uniform(0.3, 0.9),
+                },
+            )
+            self.game_state.players.append(player)
+
+        # Assign traitor roles
+        traitor_indices = random.sample(
+            range(self.config.total_players), self.config.num_traitors
+        )
+        for idx in traitor_indices:
+            self.game_state.players[idx].role = Role.TRAITOR
+
+        # Initialize trust matrix
+        player_ids = [p.id for p in self.game_state.players]
+        self.game_state.trust_matrix = TrustMatrix(player_ids)
+
+        # Setup agent URLs - use Docker service names for internal networking
+        for i, player in enumerate(self.game_state.players):
+            # When running inside orchestrator, use container names
+            # Format: http://traitorsim-agent-0:5000
+            self.agent_urls[player.id] = f"http://traitorsim-agent-{i}:5000"
+
+        self.logger.info(f"Initialized {len(self.game_state.players)} players")
+        self.logger.info(
+            f"Traitors: {[p.name for p in self.game_state.players if p.role == Role.TRAITOR]}"
+        )
+
+    async def _initialize_agent_containers(self) -> None:
+        """Initialize all agent containers with player data via HTTP."""
+        self.logger.info("Initializing agent containers...")
+
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            tasks = []
+            for player in self.game_state.players:
+                url = self.agent_urls[player.id]
+                payload = {
+                    "player": {
+                        "id": player.id,
+                        "name": player.name,
+                        "role": player.role.value,
+                        "alive": player.alive,
+                        "personality": player.personality,
+                        "stats": player.stats
+                    }
+                }
+                tasks.append(client.post(f"{url}/initialize", json=payload))
+
+            responses = await asyncio.gather(*tasks, return_exceptions=True)
+
+            for player, response in zip(self.game_state.players, responses):
+                if isinstance(response, Exception):
+                    self.logger.error(f"Failed to initialize {player.name}: {response}")
+                else:
+                    self.logger.info(f"Initialized container for {player.name}")
+
+    def _serialize_game_state(self) -> Dict:
+        """Serialize GameState for HTTP transmission."""
+        return {
+            "day": self.game_state.day,
+            "phase": self.game_state.phase.value,
+            "prize_pot": self.game_state.prize_pot,
+            "players": [
+                {
+                    "id": p.id,
+                    "name": p.name,
+                    "role": p.role.value,
+                    "alive": p.alive,
+                    "personality": p.personality,
+                    "stats": p.stats
+                }
+                for p in self.game_state.players
+            ],
+            "trust_matrix": True,  # Agents manage their own trust values
+            "murdered_players": self.game_state.murdered_players,
+            "banished_players": self.game_state.banished_players,
+            "last_murder_victim": self.game_state.last_murder_victim
+        }
+
+    async def run_game_async(self) -> str:
+        """Run complete game asynchronously with containerized agents.
+
+        Returns:
+            Winner ("FAITHFUL" or "TRAITOR")
+        """
+        self.logger.info("=== TraitorSim Game Starting (Containerized) ===")
+
+        # Initialize players
+        self._initialize_players()
+
+        # Initialize agent containers
+        await self._initialize_agent_containers()
+
+        # Game start announcement
+        all_names = [p.name for p in self.game_state.players]
+        traitor_names = [p.name for p in self.game_state.players if p.role == Role.TRAITOR]
+        faithful_names = [p.name for p in self.game_state.players if p.role == Role.FAITHFUL]
+
+        opening = await self.gm.announce_game_start_async(
+            all_names, traitor_names, faithful_names
+        )
+        self.logger.info(f"\n{opening}\n")
+
+        # Main game loop
+        while self.game_state.day <= self.config.max_days:
+            self.game_state.day += 1
+            self.logger.info(f"\n{'='*60}")
+            self.logger.info(f"DAY {self.game_state.day}")
+            self.logger.info(f"{'='*60}\n")
+
+            # Run 5-phase cycle
+            await self._run_breakfast_phase_async()
+
+            winner = self.game_state.check_win_condition()
+            if winner:
+                break
+
+            await self._run_mission_phase_async()
+
+            await self._run_social_phase_async()
+
+            await self._run_roundtable_phase_async()
+
+            winner = self.game_state.check_win_condition()
+            if winner:
+                break
+
+            await self._run_turret_phase_async()
+
+            # Check win condition
+            winner = self.game_state.check_win_condition()
+            if winner:
+                break
+
+            # Check for end game trigger (Final N players)
+            alive_count = len(self.game_state.alive_players)
+            if alive_count <= self.config.final_player_count and alive_count > 0:
+                # Trigger end game
+                winner = await self._run_end_game_async()
+                if winner:
+                    break
+
+        # Finale
+        winner = self.game_state.check_win_condition()
+        if not winner:
+            self.logger.warning(f"Game reached max days ({self.config.max_days})")
+            winner = Role.FAITHFUL if len(self.game_state.alive_traitors) == 0 else Role.TRAITOR
+
+        survivors = [p.name for p in self.game_state.alive_players]
+        finale = await self.gm.announce_finale_async(winner.value.upper(), survivors)
+
+        self.logger.info(f"\n{'='*60}")
+        self.logger.info(finale)
+        self.logger.info(f"🏆 WINNERS: {winner.value.upper()}")
+        self.logger.info(f"{'='*60}\n")
+
+        return winner.value.upper()
+
+    async def _run_breakfast_phase_async(self) -> None:
+        """Breakfast phase: Announce murder victim and track entry order."""
+        self.game_state.phase = GamePhase.BREAKFAST
+        self.logger.info("--- Breakfast Phase ---")
+
+        # Generate breakfast entry order (dramatic if enabled)
+        breakfast_order = self._generate_breakfast_entry_order()
+        self.game_state.breakfast_order_history.append(breakfast_order)
+
+        if self.config.enable_dramatic_entry and len(breakfast_order) > 0:
+            self.logger.info(f"Breakfast entry order: {', '.join([self.game_state.get_player(pid).name for pid in breakfast_order])}")
+
+        if self.game_state.last_murder_victim:
+            narrative = await self.gm.announce_murder_async(
+                self.game_state.last_murder_victim, self.game_state.day
+            )
+            self.logger.info(narrative)
+
+            # Agents reflect on murder and entry order
+            events = [f"{self.game_state.last_murder_victim} was murdered"]
+            if self.config.enable_dramatic_entry and len(breakfast_order) > 0:
+                last_player_id = breakfast_order[-1]
+                last_player = self.game_state.get_player(last_player_id)
+                events.append(f"{last_player.name} entered breakfast last (potential Tell)")
+
+            await self._parallel_reflection_async(events)
+        else:
+            self.logger.info("No murder last night (first day).")
+
+    def _generate_breakfast_entry_order(self) -> List[str]:
+        """Generate breakfast entry order (dramatic or random).
+
+        If enable_dramatic_entry is True, puts murder discussion targets last
+        (the "at-risk" Faithfuls discussed in the Turret), with occasional Traitor misdirection.
+
+        This creates a meta-tell where smart agents can track who enters last.
+
+        Returns:
+            List of player IDs in entry order
+        """
+        import random
+
+        alive = self.game_state.alive_players
+        if len(alive) == 0:
+            return []
+
+        player_ids = [p.id for p in alive]
+
+        if not self.config.enable_dramatic_entry:
+            # Random order
+            random.shuffle(player_ids)
+            return player_ids
+
+        # Dramatic entry: Put murder discussion targets last
+        # Based on who the Traitors discussed for murder in the Turret
+
+        discussion_targets = self.game_state.last_murder_discussion.copy()
+
+        # Occasionally (30% chance) throw in a Traitor for misdirection
+        alive_traitors = [p for p in alive if p.role == Role.TRAITOR]
+        if alive_traitors and random.random() < 0.3:
+            traitor_to_add = random.choice(alive_traitors)
+            if traitor_to_add.id not in discussion_targets:
+                discussion_targets.append(traitor_to_add.id)
+
+        # Separate into early arrivals and late arrivals
+        early_arrivals = [pid for pid in player_ids if pid not in discussion_targets]
+        late_arrivals = [pid for pid in discussion_targets if pid in player_ids]
+
+        # Shuffle both groups
+        random.shuffle(early_arrivals)
+        random.shuffle(late_arrivals)
+
+        # Early arrivals first, then the "at-risk" players last
+        return early_arrivals + late_arrivals
+
+    async def _run_mission_phase_async(self) -> None:
+        """Mission phase: Execute mission challenge."""
+        self.game_state.phase = GamePhase.MISSION
+        self.logger.info("\n--- Mission Phase ---")
+
+        # Create mission
+        mission = SkillCheckMission(self.game_state, self.config)
+
+        # GM describes mission
+        narrative = await self.gm.describe_mission_async(
+            "Skill Check", self.config.mission_difficulty, self.game_state.day
+        )
+        self.logger.info(narrative)
+
+        # Execute mission
+        result = mission.execute()
+
+        # Update prize pot
+        self.game_state.prize_pot += result.earnings
+
+        # GM announces results
+        success_rate = sum(result.performance_scores.values()) / len(
+            result.performance_scores
+        )
+        result_narrative = await self.gm.announce_mission_result_async(
+            success_rate, result.earnings, self.game_state.day
+        )
+        self.logger.info(result_narrative)
+        self.logger.info(f"Prize pot: ${self.game_state.prize_pot:,.0f}")
+
+        # Award Shield and Dagger based on performance
+        if self.config.enable_shields:
+            await self._award_shield_and_dagger(result.performance_scores)
+
+        # Agents reflect on mission
+        events = [
+            f"Mission {'succeeded' if success_rate >= 0.5 else 'failed'}",
+            f"${result.earnings:,.0f} added to pot",
+        ]
+        await self._parallel_reflection_async(events)
+
+    async def _award_shield_and_dagger(self, performance_scores: Dict[str, float]) -> None:
+        """Award Shield and Dagger to top performers.
+
+        Shield: Grants murder immunity for the night
+        Dagger: Grants double voting power at Round Table
+
+        Args:
+            performance_scores: Dict mapping player_id -> performance (0.0-1.0)
+        """
+        if len(performance_scores) < 2:
+            return
+
+        # Sort players by performance (descending)
+        sorted_performers = sorted(
+            performance_scores.items(),
+            key=lambda x: x[1],
+            reverse=True
+        )
+
+        # Top performer gets Shield
+        shield_winner_id = sorted_performers[0][0]
+        shield_winner = self.game_state.get_player(shield_winner_id)
+        if shield_winner:
+            shield_winner.has_shield = True
+            self.game_state.shield_holder = shield_winner.name
+
+            if self.config.shield_visibility == "public":
+                self.logger.info(f"🛡️  {shield_winner.name} won the SHIELD!")
+            else:
+                self.logger.info(f"🛡️  Shield awarded (secret)")
+
+        # Second-best performer gets Dagger
+        if len(sorted_performers) >= 2:
+            dagger_winner_id = sorted_performers[1][0]
+            dagger_winner = self.game_state.get_player(dagger_winner_id)
+            if dagger_winner:
+                dagger_winner.has_dagger = True
+                self.game_state.dagger_holder = dagger_winner.name
+                self.logger.info(f"🗡️  {dagger_winner.name} won the DAGGER!")
+
+    async def _run_social_phase_async(self) -> None:
+        """Social phase: Agents reflect privately."""
+        self.game_state.phase = GamePhase.SOCIAL
+        self.logger.info("\n--- Social Phase ---")
+
+        events = ["Private reflection time"]
+        await self._parallel_reflection_async(events)
+
+    async def _run_roundtable_phase_async(self) -> None:
+        """Round Table phase: Voting and banishment."""
+        self.game_state.phase = GamePhase.ROUNDTABLE
+        self.logger.info("\n--- Round Table Phase ---")
+
+        # Collect votes in parallel via HTTP
+        votes = await self._collect_votes_parallel_async()
+
+        # Tally votes (accounting for Dagger double-vote)
+        vote_counts = Counter()
+        for voter_id, target_id in votes.items():
+            voter = self.game_state.get_player(voter_id)
+            # Dagger gives double vote weight
+            vote_weight = 2 if (voter and voter.has_dagger) else 1
+            vote_counts[target_id] += vote_weight
+
+            if voter and voter.has_dagger:
+                self.logger.info(f"🗡️  {voter.name} used the DAGGER for double vote!")
+
+        # Check for ties and resolve using configured method
+        banished_id = await self._resolve_vote_tie_async(vote_counts, votes)
+
+        # Get player
+        banished_player = self.game_state.get_player(banished_id)
+        if not banished_player:
+            self.logger.error(f"Invalid banished player: {banished_id}")
+            return
+
+        # Banish player
+        banished_player.alive = False
+        self.game_state.banished_players.append(banished_player.name)
+
+        # Consume all Daggers after use
+        for player in self.game_state.players:
+            if player.has_dagger:
+                player.has_dagger = False
+
+        # GM announces banishment
+        narrative = await self.gm.announce_banishment_async(
+            banished_player.name,
+            banished_player.role.value,
+            dict(vote_counts),
+            self.game_state.day,
+        )
+        self.logger.info(narrative)
+
+        # Record votes in history (for countback tie-breaking)
+        self.game_state.vote_history.append(votes.copy())
+
+        # Log votes
+        for voter_id, target_id in votes.items():
+            voter = self.game_state.get_player(voter_id)
+            target = self.game_state.get_player(target_id)
+            if voter and target:
+                self.logger.info(f"  {voter.name} voted for {target.name}")
+
+        # Agents reflect
+        events = [
+            f"{banished_player.name} was banished",
+            f"They were a {banished_player.role.value.upper()}",
+        ]
+        await self._parallel_reflection_async(events)
+
+        # Check for recruitment (if a Traitor was banished)
+        if self.config.enable_recruitment and banished_player.role == Role.TRAITOR:
+            await self._handle_recruitment_async()
+
+    async def _handle_recruitment_async(self) -> None:
+        """Handle Traitor recruitment after a Traitor is banished.
+
+        Two modes:
+        - Standard: Traitors offer recruitment, Faithful can refuse
+        - Ultimatum: Last Traitor forces "Join or Die"
+        """
+        alive_traitors = self.game_state.alive_traitors
+        alive_faithful = self.game_state.alive_faithful
+
+        if not alive_faithful:
+            return  # No one to recruit
+
+        is_ultimatum = (self.config.recruitment_type == "ultimatum" and
+                       len(alive_traitors) == 1)
+
+        # Traitors choose who to recruit
+        if alive_traitors:
+            # First traitor selects recruit target
+            recruiter = alive_traitors[0]
+            recruit_target_id = await self._choose_recruit_target_http(recruiter.id)
+            recruit_target = self.game_state.get_player(recruit_target_id)
+
+            if not recruit_target or recruit_target.role == Role.TRAITOR:
+                self.logger.warning(f"Invalid recruitment target: {recruit_target_id}")
+                return
+
+            # Announce recruitment offer
+            offer_type = "ULTIMATUM" if is_ultimatum else "RECRUITMENT OFFER"
+            self.logger.info(f"\n🎭 {offer_type}: {recruit_target.name}")
+
+            # Ask Faithful if they accept
+            accepts = await self._offer_recruitment_http(recruit_target.id, is_ultimatum)
+
+            if accepts:
+                # Convert to Traitor
+                recruit_target.role = Role.TRAITOR
+                recruit_target.was_recruited = True
+                self.game_state.recruited_players.append(recruit_target.name)
+
+                self.logger.info(f"✅ {recruit_target.name} ACCEPTED recruitment!")
+
+                # Notify all agents
+                events = [f"{recruit_target.name} has been recruited as a Traitor!"]
+                await self._parallel_reflection_async(events)
+            else:
+                if is_ultimatum:
+                    # Ultimatum refused = immediate murder
+                    recruit_target.alive = False
+                    self.game_state.murdered_players.append(recruit_target.name)
+                    self.logger.info(f"❌ {recruit_target.name} REFUSED ultimatum and was murdered!")
+
+                    events = [f"{recruit_target.name} refused the ultimatum and was murdered!"]
+                    await self._parallel_reflection_async(events)
+                else:
+                    # Standard refusal
+                    self.logger.info(f"❌ {recruit_target.name} REFUSED recruitment")
+
+    async def _choose_recruit_target_http(self, traitor_id: str) -> str:
+        """Have traitor choose who to recruit via HTTP.
+
+        Args:
+            traitor_id: ID of the traitor making the choice
+
+        Returns:
+            Player ID of recruitment target
+        """
+        try:
+            url = self.agent_urls[traitor_id]
+            game_state_data = self._serialize_game_state()
+
+            async with httpx.AsyncClient(timeout=120.0) as client:
+                response = await client.post(
+                    f"{url}/choose_recruit_target",
+                    json={"game_state": game_state_data}
+                )
+                response.raise_for_status()
+                data = response.json()
+                return data['target_player_id']
+        except Exception as e:
+            self.logger.error(f"Error choosing recruit target: {e}")
+            # Fallback: choose random faithful
+            faithful = self.game_state.alive_faithful
+            return faithful[0].id if faithful else None
+
+    async def _offer_recruitment_http(self, faithful_id: str, is_ultimatum: bool) -> bool:
+        """Offer recruitment to a Faithful via HTTP.
+
+        Args:
+            faithful_id: ID of the Faithful being recruited
+            is_ultimatum: True if this is forced ultimatum
+
+        Returns:
+            True if Faithful accepts, False otherwise
+        """
+        try:
+            url = self.agent_urls[faithful_id]
+            game_state_data = self._serialize_game_state()
+
+            async with httpx.AsyncClient(timeout=120.0) as client:
+                response = await client.post(
+                    f"{url}/decide_recruitment",
+                    json={
+                        "game_state": game_state_data,
+                        "is_ultimatum": is_ultimatum
+                    }
+                )
+                response.raise_for_status()
+                data = response.json()
+                return data.get('accepts', False)
+        except Exception as e:
+            self.logger.error(f"Error offering recruitment: {e}")
+            # Personality-based fallback
+            player = self.game_state.get_player(faithful_id)
+            if player:
+                # High agreeableness = more likely to accept
+                agreeableness = player.personality.get('agreeableness', 0.5)
+                # If ultimatum, always accept (survival)
+                if is_ultimatum:
+                    return True
+                return agreeableness > 0.6
+            return False
+
+    async def _run_turret_phase_async(self) -> None:
+        """Turret phase: Traitors murder a Faithful."""
+        self.game_state.phase = GamePhase.TURRET
+        self.logger.info("\n--- Turret Phase ---")
+
+        # Get alive traitors
+        alive_traitors = [p for p in self.game_state.alive_players if p.role == Role.TRAITOR]
+
+        if not alive_traitors:
+            self.logger.info("No traitors alive to murder.")
+            return
+
+        # First traitor chooses (simplified - no conferencing in MVP)
+        traitor = alive_traitors[0]
+        victim_id = await self._choose_murder_victim_http(traitor.id)
+
+        if not victim_id:
+            self.logger.warning("No murder victim chosen")
+            return
+
+        victim = self.game_state.get_player(victim_id)
+        if not victim:
+            self.logger.error(f"Invalid victim: {victim_id}")
+            return
+
+        # Generate murder discussion shortlist (for breakfast order "tell")
+        # This simulates the Traitors discussing 2-3 potential targets
+        import random
+        alive_faithful = [p for p in self.game_state.alive_players if p.role == Role.FAITHFUL]
+
+        shortlist = [victim_id]  # Chosen victim always on list
+        if len(alive_faithful) > 1:
+            # Add 1-2 other Faithfuls to discussion list
+            other_faithful = [p.id for p in alive_faithful if p.id != victim_id]
+            num_others = min(random.randint(1, 2), len(other_faithful))
+            shortlist.extend(random.sample(other_faithful, num_others))
+
+        self.game_state.last_murder_discussion = shortlist
+        self.logger.info(f"Murder discussion targets: {[self.game_state.get_player(pid).name for pid in shortlist]}")
+
+        # Check for Shield protection
+        if victim.has_shield:
+            victim.has_shield = False  # Shield consumed
+            self.logger.info(f"🛡️  {victim.name} was PROTECTED by the Shield!")
+            self.logger.info("The murder attempt failed!")
+            # No murder happened - victim survives
+            return
+
+        # Murder victim
+        victim.alive = False
+        self.game_state.murdered_players.append(victim.name)
+        self.game_state.last_murder_victim = victim.name
+
+        self.logger.info(f"Traitors murdered: {victim.name}")
+
+    async def _collect_votes_parallel_async(self) -> Dict[str, str]:
+        """Collect votes from all alive players in parallel via HTTP.
+
+        Returns:
+            Dict mapping player_id -> voted_player_id
+        """
+        alive_players = [p for p in self.game_state.alive_players]
+        game_state_data = self._serialize_game_state()
+
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            async def vote_via_http(player: Player) -> Tuple[str, str]:
+                """Get vote from agent container via HTTP."""
+                try:
+                    url = self.agent_urls[player.id]
+                    response = await client.post(
+                        f"{url}/vote",
+                        json={"game_state": game_state_data}
+                    )
+                    response.raise_for_status()
+                    data = response.json()
+                    return (player.id, data['target_player_id'])
+                except Exception as e:
+                    self.logger.error(f"Error getting vote from {player.name}: {e}")
+                    return (player.id, self._emergency_vote(player.id))
+
+            # Execute votes in parallel
+            vote_tasks = [vote_via_http(p) for p in alive_players]
+            vote_results = await asyncio.gather(*vote_tasks)
+
+            # Convert to dict
+            votes = {pid: target for pid, target in vote_results}
+
+            return votes
+
+    async def _resolve_vote_tie_async(self, vote_counts: Counter, original_votes: Dict[str, str]) -> str:
+        """Resolve voting ties using configured tie-breaking method.
+
+        Args:
+            vote_counts: Counter of votes per player
+            original_votes: Dict of voter_id -> target_id
+
+        Returns:
+            Player ID of banished player
+        """
+        if len(vote_counts) == 0:
+            self.logger.error("No votes cast!")
+            return list(self.game_state.alive_players)[0].id
+
+        # Get max vote count
+        max_votes = vote_counts.most_common(1)[0][1]
+
+        # Get all players with max votes (tied players)
+        tied_players = [pid for pid, count in vote_counts.items() if count == max_votes]
+
+        if len(tied_players) == 1:
+            # No tie, clear winner
+            return tied_players[0]
+
+        # TIE - Apply tie-breaking method
+        tied_names = [self.game_state.get_player(pid).name for pid in tied_players]
+        self.logger.info(f"\n⚖️  TIE: {len(tied_players)} players with {max_votes} votes each: {', '.join(tied_names)}")
+
+        if self.config.tie_break_method == "random":
+            return self._tie_break_random(tied_players)
+        elif self.config.tie_break_method == "revote":
+            return await self._tie_break_revote_async(tied_players)
+        elif self.config.tie_break_method == "countback":
+            return self._tie_break_countback(tied_players)
+        else:
+            self.logger.warning(f"Unknown tie-break method: {self.config.tie_break_method}, using random")
+            return self._tie_break_random(tied_players)
+
+    def _tie_break_random(self, tied_players: List[str]) -> str:
+        """Break tie with random selection.
+
+        Args:
+            tied_players: List of player IDs in the tie
+
+        Returns:
+            Randomly selected player ID
+        """
+        import random
+        selected = random.choice(tied_players)
+        selected_player = self.game_state.get_player(selected)
+        self.logger.info(f"🎲 Random tie-break: {selected_player.name}")
+        return selected
+
+    async def _tie_break_revote_async(self, tied_players: List[str]) -> str:
+        """Break tie with revote (tied players immune).
+
+        Args:
+            tied_players: List of player IDs in the tie
+
+        Returns:
+            Player ID selected in revote
+        """
+        self.logger.info(f"🔄 REVOTE: Tied players are immune, others vote again")
+
+        # Temporarily remove tied players from alive list for voting
+        original_alive = self.game_state.alive_players.copy()
+        eligible_voters = [p for p in original_alive if p.id not in tied_players]
+
+        if len(eligible_voters) == 0:
+            self.logger.warning("No eligible voters for revote, using random")
+            return self._tie_break_random(tied_players)
+
+        # Collect revotes (only from non-tied players)
+        game_state_data = self._serialize_game_state()
+        revotes = {}
+
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            for voter in eligible_voters:
+                try:
+                    url = self.agent_urls[voter.id]
+                    response = await client.post(
+                        f"{url}/vote",
+                        json={"game_state": game_state_data}
+                    )
+                    response.raise_for_status()
+                    data = response.json()
+                    target_id = data['target_player_id']
+
+                    # Ignore votes for tied players (they're immune)
+                    if target_id not in tied_players:
+                        revotes[voter.id] = target_id
+                except Exception as e:
+                    self.logger.error(f"Error in revote from {voter.name}: {e}")
+
+        if len(revotes) == 0:
+            self.logger.warning("No valid revotes, using random")
+            return self._tie_break_random(tied_players)
+
+        # Tally revotes
+        revote_counts = Counter(revotes.values())
+        winner_id = revote_counts.most_common(1)[0][0]
+        winner = self.game_state.get_player(winner_id)
+
+        self.logger.info(f"✅ Revote result: {winner.name} selected")
+        return winner_id
+
+    def _tie_break_countback(self, tied_players: List[str]) -> str:
+        """Break tie with countback (cumulative season votes).
+
+        Args:
+            tied_players: List of player IDs in the tie
+
+        Returns:
+            Player ID with most cumulative votes
+        """
+        self.logger.info(f"📊 COUNTBACK: Checking cumulative season votes")
+
+        # Count total votes each tied player has received all season
+        cumulative_votes = {pid: 0 for pid in tied_players}
+
+        for vote_record in self.game_state.vote_history:
+            for voter_id, target_id in vote_record.items():
+                if target_id in tied_players:
+                    cumulative_votes[target_id] += 1
+
+        # Player with MOST cumulative votes is banished
+        max_cumulative = max(cumulative_votes.values())
+        candidates = [pid for pid, count in cumulative_votes.items() if count == max_cumulative]
+
+        if len(candidates) > 1:
+            # Still tied on countback, use random
+            self.logger.info(f"⚠️  Countback also tied, using random selection")
+            return self._tie_break_random(candidates)
+
+        selected = candidates[0]
+        selected_player = self.game_state.get_player(selected)
+        self.logger.info(f"✅ Countback result: {selected_player.name} ({cumulative_votes[selected]} cumulative votes)")
+        return selected
+
+    async def _choose_murder_victim_http(self, traitor_id: str) -> Optional[str]:
+        """Have traitor choose murder victim via HTTP.
+
+        Args:
+            traitor_id: ID of the traitor making the choice
+
+        Returns:
+            Player ID of victim, or None if failed
+        """
+        try:
+            url = self.agent_urls[traitor_id]
+            game_state_data = self._serialize_game_state()
+
+            async with httpx.AsyncClient(timeout=120.0) as client:
+                response = await client.post(
+                    f"{url}/choose_murder_victim",
+                    json={"game_state": game_state_data}
+                )
+                response.raise_for_status()
+                data = response.json()
+                return data['target_player_id']
+        except Exception as e:
+            self.logger.error(f"Error choosing murder victim: {e}")
+            return None
+
+    async def _run_end_game_async(self) -> Optional[Role]:
+        """Run end game mechanics (Vote to End or Traitor's Dilemma).
+
+        Returns:
+            Winner role if game ends, None to continue
+        """
+        alive_count = len(self.game_state.alive_players)
+        traitor_count = len(self.game_state.alive_traitors)
+
+        self.logger.info(f"\n{'='*60}")
+        self.logger.info(f"END GAME TRIGGERED: {alive_count} players remaining")
+        self.logger.info(f"{'='*60}\n")
+
+        # Check if Traitor's Dilemma should trigger (exactly 2 Traitors, no Faithful)
+        if (self.config.end_game_type == "traitors_dilemma" and
+            traitor_count == 2 and len(self.game_state.alive_faithful) == 0):
+            return await self._run_traitors_dilemma_async()
+
+        # Otherwise, run Vote to End
+        return await self._run_vote_to_end_async()
+
+    async def _run_vote_to_end_async(self) -> Optional[Role]:
+        """Run Vote to End mechanic (Final N vote).
+
+        Players vote whether to END or BANISH again.
+        Requires unanimous END vote to finish.
+
+        Returns:
+            Winner role if unanimous END, None to continue
+        """
+        self.logger.info("\n--- Vote to End ---")
+        self.logger.info("Players must decide: END the game or BANISH again?")
+        self.logger.info("Unanimous END required to finish.\n")
+
+        # Collect votes via HTTP
+        votes = {}
+        game_state_data = self._serialize_game_state()
+
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            for player in self.game_state.alive_players:
+                try:
+                    url = self.agent_urls[player.id]
+                    response = await client.post(
+                        f"{url}/vote_to_end",
+                        json={"game_state": game_state_data}
+                    )
+                    response.raise_for_status()
+                    data = response.json()
+                    vote = data['vote']
+                    reasoning = data.get('reasoning', '')
+                    votes[player.id] = vote
+                    self.logger.info(f"{player.name} votes {vote}: {reasoning}")
+                except Exception as e:
+                    self.logger.error(f"Error getting vote from {player.name}: {e}")
+                    votes[player.id] = "BANISH"  # Default to BANISH on error
+
+        # Check for unanimity
+        end_votes = sum(1 for v in votes.values() if v == "END")
+        total_votes = len(votes)
+
+        self.logger.info(f"\nVote Result: {end_votes}/{total_votes} voted END")
+
+        if end_votes == total_votes:
+            # Unanimous END
+            self.logger.info("✅ UNANIMOUS END - Game concludes!")
+
+            # Determine winner
+            if len(self.game_state.alive_traitors) > 0:
+                # Traitors win
+                return Role.TRAITOR
+            else:
+                # Faithful win
+                return Role.FAITHFUL
+        else:
+            self.logger.info("❌ Not unanimous - Continue to next Round Table")
+            return None
+
+    async def _run_traitors_dilemma_async(self) -> Role:
+        """Run Traitor's Dilemma (Prisoner's Dilemma with 2 Traitors).
+
+        Each Traitor chooses SHARE or STEAL:
+        - Both SHARE: Split pot 50/50
+        - One STEAL, one SHARE: Stealer gets 100%
+        - Both STEAL: Both get 0% (pot burned)
+
+        Returns:
+            Winner role (always TRAITOR, but with different outcomes)
+        """
+        self.logger.info("\n" + "="*60)
+        self.logger.info("⚔️  TRAITOR'S DILEMMA")
+        self.logger.info("="*60)
+        self.logger.info("Two Traitors remain. Each must choose: SHARE or STEAL")
+        self.logger.info("")
+
+        traitors = self.game_state.alive_traitors
+        if len(traitors) != 2:
+            self.logger.error(f"Traitor's Dilemma requires exactly 2 Traitors, found {len(traitors)}")
+            return Role.TRAITOR
+
+        # Collect decisions via HTTP
+        decisions = {}
+        game_state_data = self._serialize_game_state()
+
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            for traitor in traitors:
+                try:
+                    url = self.agent_urls[traitor.id]
+                    response = await client.post(
+                        f"{url}/share_or_steal",
+                        json={"game_state": game_state_data}
+                    )
+                    response.raise_for_status()
+                    data = response.json()
+                    decision = data['decision']
+                    reasoning = data.get('reasoning', '')
+                    decisions[traitor.id] = decision
+                    self.logger.info(f"🤫 {traitor.name} decides (secretly): {reasoning}")
+                except Exception as e:
+                    self.logger.error(f"Error getting decision from {traitor.name}: {e}")
+                    decisions[traitor.id] = "STEAL"  # Default to STEAL on error
+
+        # Reveal results
+        t1, t2 = traitors[0], traitors[1]
+        d1, d2 = decisions[t1.id], decisions[t2.id]
+
+        self.logger.info("\n" + "="*60)
+        self.logger.info("THE REVEAL")
+        self.logger.info("="*60)
+        self.logger.info(f"{t1.name} chose: {d1}")
+        self.logger.info(f"{t2.name} chose: {d2}\n")
+
+        # Determine outcome
+        if d1 == "SHARE" and d2 == "SHARE":
+            self.logger.info("💰 Both SHARED - They split the pot 50/50!")
+            self.logger.info(f"{t1.name}: ${self.game_state.prize_pot/2:,.0f}")
+            self.logger.info(f"{t2.name}: ${self.game_state.prize_pot/2:,.0f}")
+        elif d1 == "STEAL" and d2 == "STEAL":
+            self.logger.info("🔥 Both STOLE - The pot is BURNED! Nobody wins!")
+            self.logger.info(f"${self.game_state.prize_pot:,.0f} goes up in flames!")
+        elif d1 == "STEAL":
+            self.logger.info(f"💸 {t1.name} STOLE - Takes everything!")
+            self.logger.info(f"{t1.name}: ${self.game_state.prize_pot:,.0f}")
+            self.logger.info(f"{t2.name}: $0")
+        else:  # d2 == "STEAL"
+            self.logger.info(f"💸 {t2.name} STOLE - Takes everything!")
+            self.logger.info(f"{t2.name}: ${self.game_state.prize_pot:,.0f}")
+            self.logger.info(f"{t1.name}: $0")
+
+        return Role.TRAITOR
+
+    async def _parallel_reflection_async(self, events: List[str]) -> None:
+        """Have all alive agents reflect on events in parallel via HTTP.
+
+        Args:
+            events: List of event descriptions
+        """
+        alive_players = self.game_state.alive_players
+        game_state_data = self._serialize_game_state()
+
+        async with httpx.AsyncClient(timeout=120.0) as client:
+            async def reflect_via_http(player: Player):
+                """Trigger reflection in agent container via HTTP."""
+                try:
+                    url = self.agent_urls[player.id]
+                    response = await client.post(
+                        f"{url}/reflect",
+                        json={
+                            "game_state": game_state_data,
+                            "events": events
+                        }
+                    )
+                    response.raise_for_status()
+                except Exception as e:
+                    self.logger.error(f"Error in reflection for {player.name}: {e}")
+
+            # Execute reflections in parallel
+            reflection_tasks = [reflect_via_http(p) for p in alive_players]
+            await asyncio.gather(*reflection_tasks, return_exceptions=True)
+
+    def _emergency_vote(self, player_id: str) -> str:
+        """Emergency fallback vote.
+
+        Args:
+            player_id: ID of voting player
+
+        Returns:
+            Random valid target
+        """
+        import random
+
+        valid_targets = [
+            p.id for p in self.game_state.alive_players if p.id != player_id
+        ]
+        return random.choice(valid_targets) if valid_targets else player_id
+
+    # Synchronous wrapper
+    def run_game(self) -> str:
+        """Synchronous wrapper for run_game_async."""
+        return asyncio.run(self.run_game_async())

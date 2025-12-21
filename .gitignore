@@ -1,0 +1,64 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Environment variables
+.env
+
+# Project-specific
+data/memories/
+data/games/
+data/personas/jobs/
+data/personas/reports/
+*.log
+
+# Temporary files
+/tmp/
+
+# Claude Code
+.claude/plans/
+
+# Keep directory structure
+!data/memories/.gitkeep
+!data/games/.gitkeep
+!data/configs/.gitkeep
+!data/personas/.gitkeep
+!data/personas/skeletons/.gitkeep
+!data/personas/library/.gitkeep

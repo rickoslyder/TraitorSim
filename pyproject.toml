@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "traitorsim"
+version = "0.1.0"
+description = "AI simulation of The Traitors TV show game"
+requires-python = ">=3.10"
+dependencies = [
+    "anthropic>=0.40.0",                    # Claude API (base)
+    "claude-agent-sdk>=0.1.0",              # Claude Agent SDK for player agents
+    "google-genai>=0.3.0",                  # Google Gen AI SDK (Interactions API)
+    "google-adk>=0.1.0",                    # Gemini Agent Development Kit
+    "numpy>=1.26.0",                        # Trust matrix calculations
+    "python-dotenv>=1.0.0",                 # Environment variable management
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",  # Async test support
+    "pytest-cov>=4.1.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.7.0",
+]
+
+[project.scripts]
+traitorsim = "traitorsim.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 88
+target-version = ['py310']
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+
+[tool.mypy]
+python_version = "3.10"
+warn_return_any = true
+warn_unused_configs = true
