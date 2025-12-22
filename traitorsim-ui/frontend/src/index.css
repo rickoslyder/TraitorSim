@@ -83,7 +83,7 @@
 }
 
 .light .bg-gray-750 {
-  @apply !bg-gray-150;
+  @apply !bg-gray-100;
 }
 
 .light .text-white {

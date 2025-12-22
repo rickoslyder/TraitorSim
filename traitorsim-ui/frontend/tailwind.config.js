@@ -8,6 +8,10 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Custom gray shades
+        gray: {
+          750: '#2d3748',
+        },
         // Traitor theme colors
         traitor: {
           red: '#dc2626',
