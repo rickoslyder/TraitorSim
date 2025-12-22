@@ -205,7 +205,8 @@ async def migrate_json_to_db(json_path: Path) -> str:
                 pid,
                 game_id,
                 player.get('name', pid),
-                player.get('role'),
+                # Normalize role - only FAITHFUL/TRAITOR allowed, Unknown becomes NULL
+                player.get('role') if player.get('role') in ('FAITHFUL', 'TRAITOR') else None,
                 player.get('archetype_id'),
                 player.get('archetype_name'),
                 player.get('alive', True),
