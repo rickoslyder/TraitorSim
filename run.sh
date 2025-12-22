@@ -17,8 +17,10 @@ if [ ! -f .env ]; then
     exit 1
 fi
 
-# Load environment variables
-export $(cat .env | grep -v '^#' | xargs)
+# Load environment variables (handle inline comments)
+set -a
+source <(grep -v '^#' .env | sed 's/#.*//' | grep '=')
+set +a
 
 # Check Docker is running
 if ! docker info > /dev/null 2>&1; then
@@ -28,7 +30,7 @@ if ! docker info > /dev/null 2>&1; then
 fi
 
 echo "📦 Building orchestrator container..."
-docker compose -f docker-compose.orchestrator.yml build
+docker compose build
 
 echo ""
 echo "🚀 Starting orchestrator (this will run the entire game inside)..."
@@ -41,14 +43,14 @@ echo "==========================================="
 echo ""
 
 # Run orchestrator (will stream logs)
-docker compose -f docker-compose.orchestrator.yml up --abort-on-container-exit
+docker compose up --abort-on-container-exit
 
 # Capture exit code
 EXIT_CODE=$?
 
 echo ""
 echo "🧹 Removing orchestrator container..."
-docker compose -f docker-compose.orchestrator.yml down -v
+docker compose down -v
 
 echo ""
 if [ $EXIT_CODE -eq 0 ]; then

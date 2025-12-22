@@ -25,11 +25,24 @@ Each game day follows a structured rhythm [4]:
 
 ### Special Mechanics
 
-**Shields**: Certain missions award partial immunity shields that protect players from murder but not from banishment votes [2]. These shields are given secretly to lucky players [7].
+**Shields**: Mission winners can earn Shields that protect from the next murder attempt, but NOT from banishment votes [2]. In UK/US versions (Season 2+), shields are won through direct mission competition rather than random Armoury draws. Shield holders typically keep possession secret to prevent Traitors from selecting alternative targets [7].
+
+**Regional Shield Variant**: In the Australian version, Shields provide enhanced protection against BOTH murder AND banishment—the only version with this rule.
+
+**Seer Power** (UK Series 3+, US Season 3+): A late-game power that allows one player to privately confirm another contestant's true role (Traitor or Faithful). Won through mission performance, the Seer meets privately with their chosen target who must reveal their role truthfully. However, both players can fabricate any narrative about what happened afterward to other contestants. This power replaced the Dagger in UK/US versions [19].
+
+**Dagger** (International versions only): Grants double voting power at the next Round Table. Used in Canada, France, Netherlands, Norway, and other European versions, but notably ABSENT from UK and US versions. When available, typically offered as a choice: mission winner picks Shield OR Dagger (not both).
 
 **Recruitment**: When a Traitor is banished, remaining Traitors may recruit a Faithful to join them instead of committing a murder that night [1][8]. Face-to-face recruitment occurs when only one Traitor remains—the approached Faithful must either accept (becoming a Traitor) or decline (resulting in immediate murder) [8]. Recruited players become Traitors for the remainder of their time in the game [1].
 
 **No Murder Rule**: When a Traitor is banished, no murder occurs that night if recruitment is exercised [9]. At final five, production typically prevents murders to ensure proper endgame structure [3].
+
+**Death List / On Trial** (Optional mechanic): When Traitors have been "too efficient at murdering," this mechanic restricts their choices. Traitors must pre-select 3-4 murder candidates during their Tower visit—only these nominees can be murdered that night. Shield still protects even if On Trial. Traitors can nominate themselves for strategic complexity. Used in: US, Australia, UK, Canada, Netherlands, Norway.
+
+**Recruitment Variants**:
+- **Standard** (UK/Dutch/US): Faithful can decline; declined recruitment wastes the night (no murder)
+- **Ultimatum** (UK Series 1+): Last Traitor offers "join or die"—declining means immediate murder
+- **Blackmail** (Norway): Forced recruitment with no option to decline
 
 ### Endgame Protocol
 
@@ -40,6 +53,35 @@ When only four players remain, they participate in a final challenge followed by
 - If any Traitors remain, they take the entire prize pot [2]
 
 Production maintains at least two Traitors at final six to ensure compelling endgame drama [3].
+
+**2025 Rule Change**: In the latest seasons, eliminated endgame players NO LONGER reveal their role (Traitor or Faithful). This forces remaining contestants to rely purely on intuition and prior observations when deciding whether to End Game or continue banishing. Previously, seeing eliminations reveal "I was a Faithful" helped remaining players gauge remaining Traitor count.
+
+**International Endgame Variants**:
+- **Vote to End** (UK/US standard): Unanimous vote required to end game. If anyone votes "Banish Again," another Round Table occurs.
+- **Traitor's Dilemma** (Australia Season 2): If final players are both Traitors, they play Share/Steal between themselves before prize division.
+- **Prisoner's Dilemma** (Netherlands original format): ALL finalists (Traitors and Faithfuls) participate in Share/Steal mechanic affecting prize distribution.
+
+**Tie-Breaking Procedures** (when Round Table votes are tied):
+- **Revote** (UK/US default): New vote with ONLY tied players eligible. Original voters can switch allegiances.
+- **Countback** (Netherlands/some international): Player with most cumulative votes across entire season is eliminated.
+- **Random Draw** (fallback): If tie persists after revote, random selection occurs. Rarely used in production.
+
+### Regional Rule Summary
+
+| Region | Players | Traitors | Dagger | Seer | Shield Power | Recruitment | Endgame |
+|--------|---------|----------|--------|------|--------------|-------------|---------|
+| **UK** | 22-25 | 3 | No | Yes (S3+) | Murder only | Standard/Ultimatum | Vote to End |
+| **US** | 20-23 | 3-4 | No | Yes (S3+) | Murder only | Standard | Vote to End |
+| **Australia** | 20-24 | 3-4 | Rare | No | Murder + Banishment | Standard | Traitor's Dilemma |
+| **Canada** | 20 | 3 | Yes | No | Murder only | Ultimatum | Vote to End |
+| **Netherlands** | 20 | 3 | Yes | No | Murder only | Standard | Prisoner's Dilemma |
+| **Norway** | 20 | 3 | Yes | No | Murder only | Blackmail | Vote to End |
+
+**Key Differences**:
+- UK/US use Seer power instead of Dagger for late-game mechanics
+- Australia has most powerful Shield (blocks both murder AND banishment)
+- Netherlands/Norway allow Dagger but have different endgame dynamics
+- UK always uses exactly 3 Traitors; US and Australia may use 4 in larger casts
 
 ***
 

@@ -47,6 +47,7 @@ data/memories/
 data/games/
 data/personas/jobs/
 data/personas/reports/
+reports/
 *.log
 
 # Temporary files
@@ -62,3 +63,4 @@ data/personas/reports/
 !data/personas/.gitkeep
 !data/personas/skeletons/.gitkeep
 !data/personas/library/.gitkeep
+!reports/.gitkeep

@@ -31,30 +31,30 @@ echo ""
 
 # Build agent images inside the orchestrator
 echo "🔨 Building agent container images..."
-docker compose -f /app/docker-compose.yml build
+docker compose -f /app/docker-compose.agents.yml build
 
 echo ""
 echo "🚀 Starting 24 agent containers (in batches to avoid resource spikes)..."
 
 # Start in batches of 5 to avoid overwhelming the system
 echo "  📦 Batch 1: Starting agents 0-4..."
-docker compose -f /app/docker-compose.yml up -d agent-0 agent-1 agent-2 agent-3 agent-4
+docker compose -f /app/docker-compose.agents.yml up -d agent-0 agent-1 agent-2 agent-3 agent-4
 sleep 5
 
 echo "  📦 Batch 2: Starting agents 5-9..."
-docker compose -f /app/docker-compose.yml up -d agent-5 agent-6 agent-7 agent-8 agent-9
+docker compose -f /app/docker-compose.agents.yml up -d agent-5 agent-6 agent-7 agent-8 agent-9
 sleep 5
 
 echo "  📦 Batch 3: Starting agents 10-14..."
-docker compose -f /app/docker-compose.yml up -d agent-10 agent-11 agent-12 agent-13 agent-14
+docker compose -f /app/docker-compose.agents.yml up -d agent-10 agent-11 agent-12 agent-13 agent-14
 sleep 5
 
 echo "  📦 Batch 4: Starting agents 15-19..."
-docker compose -f /app/docker-compose.yml up -d agent-15 agent-16 agent-17 agent-18 agent-19
+docker compose -f /app/docker-compose.agents.yml up -d agent-15 agent-16 agent-17 agent-18 agent-19
 sleep 5
 
 echo "  📦 Batch 5: Starting agents 20-23..."
-docker compose -f /app/docker-compose.yml up -d agent-20 agent-21 agent-22 agent-23
+docker compose -f /app/docker-compose.agents.yml up -d agent-20 agent-21 agent-22 agent-23
 
 echo ""
 echo "⏳ Waiting for agents to become healthy..."
@@ -78,14 +78,14 @@ echo "==========================================="
 echo ""
 
 # Start game engine container (on same network as agents)
-docker compose -f /app/docker-compose.yml up game-engine
+docker compose -f /app/docker-compose.agents.yml up game-engine
 
 # Capture exit code
 GAME_EXIT_CODE=$?
 
 echo ""
 echo "🧹 Cleaning up agent containers..."
-docker compose -f /app/docker-compose.yml down
+docker compose -f /app/docker-compose.agents.yml down
 
 echo ""
 if [ $GAME_EXIT_CODE -eq 0 ]; then

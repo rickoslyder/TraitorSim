@@ -16,6 +16,7 @@ class Player:
     alive: bool = True
     has_shield: bool = False
     has_dagger: bool = False
+    has_seer: bool = False  # Seer power allows checking one player's true role
     was_recruited: bool = False  # True if converted from Faithful to Traitor
 
     # Big Five personality traits (0.0 to 1.0)
@@ -122,6 +123,7 @@ class GameState:
     last_murder_victim: Optional[str] = None
     shield_holder: Optional[str] = None  # Player who won shield this mission
     dagger_holder: Optional[str] = None  # Player who won dagger this mission
+    seer_holder: Optional[str] = None  # Player who holds Seer power (UK/US S3+)
 
     # Mission rewards (set during mission phase)
     shield_available: bool = False  # Is shield up for grabs this mission?

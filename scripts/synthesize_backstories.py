@@ -180,15 +180,17 @@ async def synthesize_batch(
     reports_file: str,
     output_dir: str,
     batch_name: str,
-    model: str = "claude-opus-4-5-20251101"
+    model: str = "claude-opus-4-5-20251101",
+    chunk_size: int = 6
 ):
-    """Synthesize all personas in batch.
+    """Synthesize all personas in smaller batches.
 
     Args:
         reports_file: Path to Deep Research reports JSON
         output_dir: Output directory for persona library
         batch_name: Batch identifier
         model: Claude model to use
+        chunk_size: Number of personas per batch query (default: 6)
     """
     # Verify environment variable for Claude Agent SDK
     oauth_token = os.getenv("CLAUDE_CODE_OAUTH_TOKEN")
@@ -208,26 +210,39 @@ async def synthesize_batch(
     print(f"Loaded {total} research reports")
     print()
 
-    # Synthesize all personas in a single query
-    print(f"Synthesizing {total} persona cards using {model} (single batch query)...")
+    # Process in chunks to avoid response truncation
+    num_chunks = (total + chunk_size - 1) // chunk_size
+    print(f"Synthesizing {total} persona cards using {model}")
+    print(f"Processing {num_chunks} batches of {chunk_size} personas (sequentially)...")
     print()
 
-    try:
-        personas = await synthesize_batch_single_query(reports, model=model)
+    all_personas = []
+    failed = []
 
-        print("✓ Batch synthesis complete!")
-        print()
-        for persona in personas:
-            archetype = persona["archetype_name"]
-            occupation = persona["demographics"]["occupation"]
-            print(f"  ✓ {persona['name']:30s} | {archetype:30s} | {occupation}")
+    for chunk_idx in range(num_chunks):
+        start_idx = chunk_idx * chunk_size
+        end_idx = min(start_idx + chunk_size, total)
+        chunk_reports = reports[start_idx:end_idx]
 
-        failed = []
+        print(f"[Batch {chunk_idx + 1}/{num_chunks}] Processing {len(chunk_reports)} personas ({start_idx + 1}-{end_idx})...")
 
-    except Exception as e:
-        print(f"✗ Batch synthesis failed: {e}")
-        personas = []
-        failed = [{"error": str(e)}]
+        try:
+            personas = await synthesize_batch_single_query(chunk_reports, model=model)
+            all_personas.extend(personas)
+
+            for persona in personas:
+                archetype = persona["archetype_name"]
+                print(f"  ✓ {persona['name']:30s} | {archetype}")
+
+            print()
+
+        except Exception as e:
+            print(f"  ✗ Batch {chunk_idx + 1} failed: {e}")
+            for r in chunk_reports:
+                failed.append({"skeleton_id": r["skeleton_id"], "error": str(e)})
+            print()
+
+    personas = all_personas
 
     print()
     print("=" * 70)

@@ -470,6 +470,203 @@ def share_or_steal():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/choose_seer_target', methods=['POST'])
+def choose_seer_target():
+    """Choose who to investigate with Seer power (UK S3+ mechanic).
+
+    The Seer power is awarded to the top mission performer on Day 8+.
+    The holder can investigate one player to learn their TRUE role.
+    """
+    global agent
+
+    if not agent:
+        return jsonify({'error': 'Agent not initialized'}), 503
+
+    try:
+        data = request.json
+
+        # Update agent's game state
+        agent.game_state = deserialize_game_state(data['game_state'])
+        agent.player = agent.game_state.get_player(agent.player.id)
+
+        # Get valid targets (cannot investigate self)
+        valid_targets = [p for p in agent.game_state.alive_players if p.id != agent.player.id]
+
+        if not valid_targets:
+            return jsonify({'error': 'No valid targets'}), 400
+
+        # Strategy: Investigate the player we're MOST suspicious of
+        # This confirms our suspicion OR clears an innocent
+        suspicions = agent.memory_manager.get_suspicions() if agent.memory_manager else {}
+
+        if suspicions:
+            # Filter to valid targets and find most suspicious
+            target_suspicions = {pid: score for pid, score in suspicions.items()
+                                  if any(p.id == pid for p in valid_targets)}
+            if target_suspicions:
+                target_id = max(target_suspicions.keys(), key=lambda k: target_suspicions[k])
+                reasoning = f"Highest suspicion ({target_suspicions[target_id]:.2f})"
+            else:
+                # No suspicion data for targets, pick random
+                import random
+                target = random.choice(valid_targets)
+                target_id = target.id
+                reasoning = "Random selection (no suspicion data)"
+        else:
+            # No suspicion data, pick player with highest social influence
+            # (they're most dangerous if Traitor)
+            target = max(valid_targets, key=lambda p: p.stats.get('social_influence', 0.5))
+            target_id = target.id
+            reasoning = "Highest social influence (most dangerous if Traitor)"
+
+        target_player = agent.game_state.get_player(target_id)
+        logger.info(f"👁️  {agent.player.name} uses SEER power on {target_player.name}: {reasoning}")
+
+        return jsonify({
+            'target_player_id': target_id,
+            'reasoning': reasoning
+        })
+
+    except Exception as e:
+        logger.error(f"Error in choose_seer_target: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/seer_result', methods=['POST'])
+def seer_result():
+    """Receive the result of Seer investigation.
+
+    This endpoint is called AFTER the Seer uses their power.
+    The true role is revealed privately to the Seer.
+    """
+    global agent
+
+    if not agent:
+        return jsonify({'error': 'Agent not initialized'}), 503
+
+    try:
+        data = request.json
+        target_player_id = data['target_player_id']
+        true_role = data['true_role']  # "TRAITOR" or "FAITHFUL"
+
+        # Get target name for logging
+        target_player = agent.game_state.get_player(target_player_id) if agent.game_state else None
+        target_name = target_player.name if target_player else target_player_id
+
+        logger.info(f"👁️  {agent.player.name} LEARNS: {target_name} is a {true_role}")
+
+        # Update suspicions based on TRUTH
+        if agent.memory_manager:
+            if true_role == "TRAITOR":
+                # Confirmed Traitor - max suspicion
+                agent.memory_manager.update_suspicion(
+                    target_player_id,
+                    target_name,
+                    1.0,  # Absolute certainty
+                    "Seer power revealed: TRAITOR"
+                )
+                logger.info(f"   Suspicion of {target_name} set to 1.0 (CONFIRMED TRAITOR)")
+            else:
+                # Confirmed Faithful - clear suspicion
+                agent.memory_manager.update_suspicion(
+                    target_player_id,
+                    target_name,
+                    0.0,  # Complete trust
+                    "Seer power revealed: FAITHFUL"
+                )
+                logger.info(f"   Suspicion of {target_name} set to 0.0 (CONFIRMED FAITHFUL)")
+
+        return jsonify({
+            'status': 'acknowledged',
+            'player_id': agent.player.id
+        })
+
+    except Exception as e:
+        logger.error(f"Error in seer_result: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/create_death_list', methods=['POST'])
+def create_death_list():
+    """Create Death List - pre-select 3-4 murder candidates (Traitors only).
+
+    This mechanic restricts Traitor murder options. The Death List is created
+    during the turret phase when Traitors have been "too efficient".
+
+    Strategic considerations:
+    - Include players who are suspicious of us (eliminate threats)
+    - Include players who could expose our identity
+    - Can include self for strategic misdirection
+    """
+    global agent
+
+    if not agent:
+        return jsonify({'error': 'Agent not initialized'}), 503
+
+    if agent.player.role != Role.TRAITOR:
+        return jsonify({'error': 'Only Traitors create Death List'}), 403
+
+    try:
+        data = request.json
+        num_candidates = data.get('num_candidates', 3)
+
+        # Update agent's game state
+        agent.game_state = deserialize_game_state(data['game_state'])
+        agent.player = agent.game_state.get_player(agent.player.id)
+
+        # Get alive Faithful (valid death list targets)
+        faithful_players = [p for p in agent.game_state.alive_players if p.role == Role.FAITHFUL]
+
+        if len(faithful_players) == 0:
+            return jsonify({'death_list': []})
+
+        if len(faithful_players) <= num_candidates:
+            # All Faithful go on the list
+            death_list = [p.id for p in faithful_players]
+            reasoning = "All remaining Faithful included"
+        else:
+            # Strategic selection: prioritize threats
+            # 1. Players with high social influence (dangerous accusers)
+            # 2. Players who might be suspicious of us
+
+            # Score each Faithful by threat level
+            threat_scores = {}
+            for p in faithful_players:
+                score = 0.0
+                # High social influence = dangerous accuser
+                score += p.stats.get('social_influence', 0.5) * 2.0
+                # High conscientiousness = methodical, dangerous
+                score += p.personality.get('conscientiousness', 0.5) * 1.0
+                # Low agreeableness = more likely to accuse
+                score += (1.0 - p.personality.get('agreeableness', 0.5)) * 1.0
+                threat_scores[p.id] = score
+
+            # Sort by threat score (highest first)
+            sorted_faithful = sorted(faithful_players, key=lambda p: threat_scores[p.id], reverse=True)
+            death_list = [p.id for p in sorted_faithful[:num_candidates]]
+
+            # Log the names
+            death_list_names = [agent.game_state.get_player(pid).name for pid in death_list]
+            reasoning = f"Highest threat scores: {', '.join(death_list_names)}"
+
+        logger.info(f"📜 {agent.player.name} creates DEATH LIST with {len(death_list)} candidates: {reasoning}")
+
+        return jsonify({
+            'death_list': death_list,
+            'reasoning': reasoning
+        })
+
+    except Exception as e:
+        logger.error(f"Error creating death list: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     # Get port from environment
     port = int(os.environ.get('PORT', 5000))

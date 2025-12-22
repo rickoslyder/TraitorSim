@@ -50,7 +50,7 @@ class GameMasterInteractions:
             if os.path.exists(world_bible_path):
                 try:
                     self.world_bible_file = self.client.files.upload(
-                        path=world_bible_path
+                        file=world_bible_path
                     )
                     print(f"✓ World Bible uploaded for lore grounding: {self.world_bible_file.name}")
                 except Exception as e:
@@ -112,19 +112,22 @@ Generate only the narration requested. Do not add meta-commentary or explanation
             return ""
 
         try:
-            # Prepare tools for World Bible grounding
-            tools = {}
-            if self.world_bible_file:
-                tools["file_search"] = {"files": [self.world_bible_file.name]}
+            # Build input - include World Bible as document on first turn
+            if not self.current_interaction_id and self.world_bible_file:
+                # First turn: include World Bible document for context
+                input_content = [
+                    {"type": "document", "uri": self.world_bible_file.uri},
+                    {"type": "text", "text": prompt}
+                ]
+            else:
+                input_content = prompt
 
             # Create interaction with previous_interaction_id for continuity
             interaction = self.client.interactions.create(
                 model=self.model_name,
-                input=prompt,
+                input=input_content,
                 previous_interaction_id=self.current_interaction_id,
                 system_instruction=self._get_system_instruction() if not self.current_interaction_id else None,
-                # System instruction only needed on first turn
-                tools=tools if tools else None,  # Add file_search grounding
             )
 
             # Update interaction ID for next turn

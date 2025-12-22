@@ -70,9 +70,10 @@ def main():
     logger.info("="*60 + "\n")
 
     # Create config (using persona library for authentic characters)
+    # UK standard: 22 players, 3 Traitors (US uses 3-4)
     config = GameConfig(
-        total_players=15,  # Match our test persona library size
-        num_traitors=3,  # Standard starting traitor count
+        total_players=22,  # UK standard: 22-25 players
+        num_traitors=3,  # UK always uses 3 Traitors
         gemini_api_key=os.getenv("GEMINI_API_KEY"),
         anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
         max_days=20,  # Full season

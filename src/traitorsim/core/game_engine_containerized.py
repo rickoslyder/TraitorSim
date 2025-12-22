@@ -405,6 +405,10 @@ class GameEngineContainerized:
         if self.config.enable_shields:
             await self._award_shield_and_dagger(result.performance_scores)
 
+        # Award Seer power if enabled and available
+        if self.config.enable_seer and self.game_state.day >= self.config.seer_available_day:
+            await self._award_seer_power(result.performance_scores)
+
         # Agents reflect on mission
         events = [
             f"Mission {'succeeded' if success_rate >= 0.5 else 'failed'}",
@@ -413,7 +417,12 @@ class GameEngineContainerized:
         await self._parallel_reflection_async(events)
 
     async def _award_shield_and_dagger(self, performance_scores: Dict[str, float]) -> None:
-        """Award Shield and Dagger to top performers.
+        """Award Shield or Dagger to mission winner based on config.
+
+        Realistic behavior (based on actual show research):
+        - "never": Only Shield awarded (UK/US style)
+        - "rare": On specific days, winner CHOOSES Shield OR Dagger (Canada style)
+        - "every_mission": Old unrealistic behavior (both awarded)
 
         Shield: Grants murder immunity for the night
         Dagger: Grants double voting power at Round Table
@@ -421,7 +430,7 @@ class GameEngineContainerized:
         Args:
             performance_scores: Dict mapping player_id -> performance (0.0-1.0)
         """
-        if len(performance_scores) < 2:
+        if len(performance_scores) < 1:
             return
 
         # Sort players by performance (descending)
@@ -431,31 +440,220 @@ class GameEngineContainerized:
             reverse=True
         )
 
-        # Top performer gets Shield
-        shield_winner_id = sorted_performers[0][0]
-        shield_winner = self.game_state.get_player(shield_winner_id)
-        if shield_winner:
-            shield_winner.has_shield = True
-            self.game_state.shield_holder = shield_winner.name
+        winner_id = sorted_performers[0][0]
+        winner = self.game_state.get_player(winner_id)
+        if not winner:
+            return
 
-            if self.config.shield_visibility == "public":
-                self.logger.info(f"🛡️  {shield_winner.name} won the SHIELD!")
+        dagger_mode = getattr(self.config, 'dagger_mode', 'rare')
+        dagger_days = getattr(self.config, 'dagger_mission_days', (4, 8))
+        current_day = self.game_state.day
+
+        if dagger_mode == "never":
+            # UK/US style: Only Shield, no Dagger
+            self._award_shield(winner)
+
+        elif dagger_mode == "rare":
+            # Canada style: Dagger offered as choice on specific days
+            if current_day in dagger_days:
+                # Winner must choose: Shield OR Dagger
+                choice = self._choose_shield_or_dagger(winner)
+                if choice == "dagger":
+                    self._award_dagger(winner)
+                    self.logger.info(f"🗡️  {winner.name} chose the DAGGER over the Shield!")
+                else:
+                    self._award_shield(winner)
+                    self.logger.info(f"🛡️  {winner.name} chose the SHIELD over the Dagger!")
             else:
-                self.logger.info(f"🛡️  Shield awarded (secret)")
+                # Normal day: Only Shield available
+                self._award_shield(winner)
 
-        # Second-best performer gets Dagger
-        if len(sorted_performers) >= 2:
-            dagger_winner_id = sorted_performers[1][0]
-            dagger_winner = self.game_state.get_player(dagger_winner_id)
-            if dagger_winner:
-                dagger_winner.has_dagger = True
-                self.game_state.dagger_holder = dagger_winner.name
-                self.logger.info(f"🗡️  {dagger_winner.name} won the DAGGER!")
+        elif dagger_mode == "every_mission":
+            # Old unrealistic behavior: both awarded
+            self._award_shield(winner)
+            if len(sorted_performers) >= 2:
+                second_id = sorted_performers[1][0]
+                second_winner = self.game_state.get_player(second_id)
+                if second_winner:
+                    self._award_dagger(second_winner)
+
+    def _award_shield(self, player: Player) -> None:
+        """Award Shield to a player."""
+        player.has_shield = True
+        self.game_state.shield_holder = player.name
+        if self.config.shield_visibility == "public":
+            self.logger.info(f"🛡️  {player.name} won the SHIELD!")
+        else:
+            self.logger.info(f"🛡️  Shield awarded (secret)")
+
+    def _award_dagger(self, player: Player) -> None:
+        """Award Dagger to a player."""
+        player.has_dagger = True
+        self.game_state.dagger_holder = player.name
+        self.logger.info(f"🗡️  {player.name} won the DAGGER!")
+
+    def _choose_shield_or_dagger(self, player: Player) -> str:
+        """AI player chooses between Shield and Dagger.
+
+        Strategic logic:
+        - Traitors prefer Dagger (manipulate votes, they're less likely to be murdered)
+        - Faithful with high neuroticism prefer Shield (fear of death)
+        - Faithful with high extraversion prefer Dagger (influence the vote)
+        - Default: slight preference for Shield (survival instinct)
+
+        Returns:
+            "shield" or "dagger"
+        """
+        import random
+
+        # Traitors: 70% prefer Dagger (they won't murder themselves)
+        if player.role == Role.TRAITOR:
+            return "dagger" if random.random() < 0.70 else "shield"
+
+        # Faithful: personality-based decision
+        neuroticism = player.personality.get("neuroticism", 0.5)
+        extraversion = player.personality.get("extraversion", 0.5)
+
+        # High neuroticism = fear of death = prefer Shield
+        # High extraversion = want influence = prefer Dagger
+        dagger_preference = (extraversion * 0.4) - (neuroticism * 0.3) + 0.3
+
+        return "dagger" if random.random() < dagger_preference else "shield"
+
+    async def _award_seer_power(self, performance_scores: Dict[str, float]) -> None:
+        """Award Seer power to top mission performer.
+
+        Seer power (UK Series 3+, US Season 3+) allows one player to
+        privately confirm another contestant's true role (Traitor or Faithful).
+
+        The Seer can then fabricate any narrative about what happened.
+
+        Args:
+            performance_scores: Dict mapping player_id -> performance (0.0-1.0)
+        """
+        # Only award if no one currently has Seer
+        if self.game_state.seer_holder:
+            return
+
+        if len(performance_scores) < 1:
+            return
+
+        # Top performer gets Seer
+        sorted_performers = sorted(
+            performance_scores.items(),
+            key=lambda x: x[1],
+            reverse=True
+        )
+
+        winner_id = sorted_performers[0][0]
+        winner = self.game_state.get_player(winner_id)
+        if not winner:
+            return
+
+        winner.has_seer = True
+        self.game_state.seer_holder = winner.name
+
+        self.logger.info(f"👁️  {winner.name} won the SEER POWER!")
+        self.logger.info(f"   They can privately confirm one player's true role.")
+
+    async def _use_seer_power_async(self, seer_player: Player) -> None:
+        """Allow Seer holder to use their power.
+
+        The Seer chooses a target and learns their true role.
+        Both players can then fabricate any narrative about the meeting.
+
+        Args:
+            seer_player: Player with Seer power
+        """
+        self.logger.info(f"\n👁️  SEER POWER: {seer_player.name} uses their ability")
+
+        # Seer chooses target via HTTP
+        target_id = await self._choose_seer_target_http(seer_player.id)
+
+        if not target_id:
+            self.logger.warning("Seer failed to choose target")
+            return
+
+        target_player = self.game_state.get_player(target_id)
+        if not target_player:
+            self.logger.error(f"Invalid Seer target: {target_id}")
+            return
+
+        # Reveal the truth to the Seer
+        true_role = target_player.role.value.upper()
+        self.logger.info(f"👁️  {seer_player.name} learns: {target_player.name} is a {true_role}")
+
+        # Notify the Seer agent of the truth via HTTP
+        await self._notify_seer_result_http(seer_player.id, target_id, true_role)
+
+        # Consume the Seer power (one-time use)
+        seer_player.has_seer = False
+        self.game_state.seer_holder = None
+
+        # Public announcement (vague - both can fabricate)
+        self.logger.info(f"   {seer_player.name} and {target_player.name} had a private meeting...")
+        self.logger.info(f"   What was revealed? Only they know for sure.")
+
+    async def _choose_seer_target_http(self, seer_id: str) -> Optional[str]:
+        """Have Seer choose who to investigate via HTTP.
+
+        Args:
+            seer_id: ID of the player with Seer power
+
+        Returns:
+            Player ID of investigation target, or None if failed
+        """
+        try:
+            url = self.agent_urls[seer_id]
+            game_state_data = self._serialize_game_state()
+
+            async with httpx.AsyncClient(timeout=120.0) as client:
+                response = await client.post(
+                    f"{url}/choose_seer_target",
+                    json={"game_state": game_state_data}
+                )
+                response.raise_for_status()
+                data = response.json()
+                return data['target_player_id']
+        except Exception as e:
+            self.logger.error(f"Error choosing Seer target: {e}")
+            # Fallback: choose random player
+            import random
+            valid_targets = [p.id for p in self.game_state.alive_players if p.id != seer_id]
+            return random.choice(valid_targets) if valid_targets else None
+
+    async def _notify_seer_result_http(self, seer_id: str, target_id: str, role: str) -> None:
+        """Notify Seer of investigation result via HTTP.
+
+        Args:
+            seer_id: ID of the Seer
+            target_id: ID of the investigated player
+            role: The true role ("TRAITOR" or "FAITHFUL")
+        """
+        try:
+            url = self.agent_urls[seer_id]
+
+            async with httpx.AsyncClient(timeout=30.0) as client:
+                await client.post(
+                    f"{url}/seer_result",
+                    json={
+                        "target_player_id": target_id,
+                        "true_role": role
+                    }
+                )
+        except Exception as e:
+            self.logger.error(f"Error notifying Seer result: {e}")
 
     async def _run_social_phase_async(self) -> None:
-        """Social phase: Agents reflect privately."""
+        """Social phase: Agents reflect privately. Seer may use power."""
         self.game_state.phase = GamePhase.SOCIAL
         self.logger.info("\n--- Social Phase ---")
+
+        # Check if anyone has Seer power and wants to use it
+        for player in self.game_state.alive_players:
+            if getattr(player, 'has_seer', False):
+                # Seer holder can use their power during social phase
+                await self._use_seer_power_async(player)
 
         events = ["Private reflection time"]
         await self._parallel_reflection_async(events)
@@ -497,13 +695,28 @@ class GameEngineContainerized:
             if player.has_dagger:
                 player.has_dagger = False
 
+        # Determine if we should reveal role (2025 rule: no reveal in endgame)
+        alive_count = len(self.game_state.alive_players)
+        is_endgame = alive_count <= self.config.final_player_count
+        should_reveal_role = self.config.endgame_reveal_roles or not is_endgame
+
         # GM announces banishment
-        narrative = await self.gm.announce_banishment_async(
-            banished_player.name,
-            banished_player.role.value,
-            dict(vote_counts),
-            self.game_state.day,
-        )
+        if should_reveal_role:
+            narrative = await self.gm.announce_banishment_async(
+                banished_player.name,
+                banished_player.role.value,
+                dict(vote_counts),
+                self.game_state.day,
+            )
+        else:
+            # 2025 rule: Don't reveal role in endgame
+            narrative = await self.gm.announce_banishment_async(
+                banished_player.name,
+                "UNKNOWN",  # Role hidden
+                dict(vote_counts),
+                self.game_state.day,
+            )
+            self.logger.info(f"🔒 2025 RULE: {banished_player.name}'s role is NOT revealed!")
         self.logger.info(narrative)
 
         # Record votes in history (for countback tie-breaking)
@@ -516,11 +729,17 @@ class GameEngineContainerized:
             if voter and target:
                 self.logger.info(f"  {voter.name} voted for {target.name}")
 
-        # Agents reflect
-        events = [
-            f"{banished_player.name} was banished",
-            f"They were a {banished_player.role.value.upper()}",
-        ]
+        # Agents reflect - only reveal role if allowed
+        if should_reveal_role:
+            events = [
+                f"{banished_player.name} was banished",
+                f"They were a {banished_player.role.value.upper()}",
+            ]
+        else:
+            events = [
+                f"{banished_player.name} was banished",
+                f"Their role was NOT revealed (2025 endgame rule)",
+            ]
         await self._parallel_reflection_async(events)
 
         # Check for recruitment (if a Traitor was banished)
@@ -651,7 +870,11 @@ class GameEngineContainerized:
             return False
 
     async def _run_turret_phase_async(self) -> None:
-        """Turret phase: Traitors murder a Faithful."""
+        """Turret phase: Traitors murder a Faithful.
+
+        If Death List is enabled, Traitors must pre-select 3-4 murder candidates
+        and can only choose from that list. This mechanic restricts their options.
+        """
         self.game_state.phase = GamePhase.TURRET
         self.logger.info("\n--- Turret Phase ---")
 
@@ -662,9 +885,21 @@ class GameEngineContainerized:
             self.logger.info("No traitors alive to murder.")
             return
 
-        # First traitor chooses (simplified - no conferencing in MVP)
+        import random
+        alive_faithful = [p for p in self.game_state.alive_players if p.role == Role.FAITHFUL]
+
+        # Death List mechanic (optional)
+        death_list = None
+        if self.config.enable_death_list:
+            death_list = await self._create_death_list_async(alive_traitors, alive_faithful)
+            if death_list:
+                death_list_names = [self.game_state.get_player(pid).name for pid in death_list]
+                self.logger.info(f"📜 DEATH LIST: {', '.join(death_list_names)}")
+                self.logger.info("   Traitors can ONLY murder from this list!")
+
+        # First traitor chooses victim (restricted by Death List if enabled)
         traitor = alive_traitors[0]
-        victim_id = await self._choose_murder_victim_http(traitor.id)
+        victim_id = await self._choose_murder_victim_http(traitor.id, death_list)
 
         if not victim_id:
             self.logger.warning("No murder victim chosen")
@@ -675,11 +910,14 @@ class GameEngineContainerized:
             self.logger.error(f"Invalid victim: {victim_id}")
             return
 
+        # Validate victim is on Death List if enabled
+        if death_list and victim_id not in death_list:
+            self.logger.warning(f"Victim {victim.name} not on Death List! Forcing valid selection.")
+            victim_id = random.choice(death_list)
+            victim = self.game_state.get_player(victim_id)
+
         # Generate murder discussion shortlist (for breakfast order "tell")
         # This simulates the Traitors discussing 2-3 potential targets
-        import random
-        alive_faithful = [p for p in self.game_state.alive_players if p.role == Role.FAITHFUL]
-
         shortlist = [victim_id]  # Chosen victim always on list
         if len(alive_faithful) > 1:
             # Add 1-2 other Faithfuls to discussion list
@@ -690,7 +928,7 @@ class GameEngineContainerized:
         self.game_state.last_murder_discussion = shortlist
         self.logger.info(f"Murder discussion targets: {[self.game_state.get_player(pid).name for pid in shortlist]}")
 
-        # Check for Shield protection
+        # Check for Shield protection (works even if On Trial / Death List)
         if victim.has_shield:
             victim.has_shield = False  # Shield consumed
             self.logger.info(f"🛡️  {victim.name} was PROTECTED by the Shield!")
@@ -704,6 +942,50 @@ class GameEngineContainerized:
         self.game_state.last_murder_victim = victim.name
 
         self.logger.info(f"Traitors murdered: {victim.name}")
+
+    async def _create_death_list_async(self, traitors: List[Player], faithful: List[Player]) -> List[str]:
+        """Create Death List - Traitors pre-select 3-4 murder candidates.
+
+        This mechanic restricts Traitor options when they've been "too efficient".
+        Traitors can nominate themselves for strategic complexity.
+
+        Args:
+            traitors: List of alive Traitors
+            faithful: List of alive Faithfuls
+
+        Returns:
+            List of player IDs on the Death List
+        """
+        if len(faithful) == 0:
+            return []
+
+        # Typically 3-4 candidates
+        import random
+        num_candidates = min(random.randint(3, 4), len(faithful))
+
+        # For now, Traitors select the Death List via HTTP (first Traitor decides)
+        if traitors:
+            try:
+                traitor = traitors[0]
+                url = self.agent_urls[traitor.id]
+                game_state_data = self._serialize_game_state()
+
+                async with httpx.AsyncClient(timeout=120.0) as client:
+                    response = await client.post(
+                        f"{url}/create_death_list",
+                        json={
+                            "game_state": game_state_data,
+                            "num_candidates": num_candidates
+                        }
+                    )
+                    response.raise_for_status()
+                    data = response.json()
+                    return data.get('death_list', [])[:num_candidates]
+            except Exception as e:
+                self.logger.error(f"Error creating Death List: {e}")
+
+        # Fallback: random selection from Faithful
+        return random.sample([p.id for p in faithful], num_candidates)
 
     async def _collect_votes_parallel_async(self) -> Dict[str, str]:
         """Collect votes from all alive players in parallel via HTTP.
@@ -878,11 +1160,12 @@ class GameEngineContainerized:
         self.logger.info(f"✅ Countback result: {selected_player.name} ({cumulative_votes[selected]} cumulative votes)")
         return selected
 
-    async def _choose_murder_victim_http(self, traitor_id: str) -> Optional[str]:
+    async def _choose_murder_victim_http(self, traitor_id: str, death_list: Optional[List[str]] = None) -> Optional[str]:
         """Have traitor choose murder victim via HTTP.
 
         Args:
             traitor_id: ID of the traitor making the choice
+            death_list: Optional list of valid victim IDs (Death List mechanic)
 
         Returns:
             Player ID of victim, or None if failed
@@ -891,16 +1174,24 @@ class GameEngineContainerized:
             url = self.agent_urls[traitor_id]
             game_state_data = self._serialize_game_state()
 
+            payload = {"game_state": game_state_data}
+            if death_list:
+                payload["death_list"] = death_list  # Restrict victim choices
+
             async with httpx.AsyncClient(timeout=120.0) as client:
                 response = await client.post(
                     f"{url}/choose_murder_victim",
-                    json={"game_state": game_state_data}
+                    json=payload
                 )
                 response.raise_for_status()
                 data = response.json()
                 return data['target_player_id']
         except Exception as e:
             self.logger.error(f"Error choosing murder victim: {e}")
+            # Fallback: random from death_list or all faithful
+            import random
+            if death_list:
+                return random.choice(death_list) if death_list else None
             return None
 
     async def _run_end_game_async(self) -> Optional[Role]:

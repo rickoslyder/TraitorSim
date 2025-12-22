@@ -5,10 +5,12 @@ Uses Gemini Interactions API with:
 - File Search grounding (World Bible)
 - Background jobs (5-15 min per persona)
 - Batch processing with rate limiting
+- API key rotation to maximize throughput
 
 Usage:
     python scripts/batch_deep_research.py
-    python scripts/batch_deep_research.py --input data/personas/skeletons/test_batch_001.json
+    python scripts/batch_deep_research.py --input data/personas/skeletons/batch_85.json
+    python scripts/batch_deep_research.py --input skeletons.json --rotate-keys
 """
 
 import argparse
@@ -18,6 +20,8 @@ import sys
 import asyncio
 import time
 from pathlib import Path
+from dataclasses import dataclass, field
+from typing import List, Optional
 
 try:
     from google import genai
@@ -25,6 +29,90 @@ except ImportError:
     print("Error: google-genai package not installed")
     print("Install with: pip install google-genai")
     sys.exit(1)
+
+
+@dataclass
+class APIKeyManager:
+    """Manages rotation of multiple Gemini API keys for Deep Research.
+
+    Uses keys 2, 3, 4 for research (preserving main key for game/sim).
+    Tracks usage per key and implements basic quota management.
+    """
+    keys: List[str] = field(default_factory=list)
+    usage_counts: dict = field(default_factory=dict)
+    current_index: int = 0
+    jobs_per_key_limit: int = 12  # Conservative limit per key per batch
+
+    @classmethod
+    def from_env(cls, use_rotation: bool = True) -> 'APIKeyManager':
+        """Load API keys from environment.
+
+        Args:
+            use_rotation: If True, use keys 2,3,4. If False, use main key only.
+        """
+        if use_rotation:
+            # Use keys 2-6 for research (preserve main key for game/sim)
+            keys = []
+            for key_num in [2, 3, 4, 5, 6]:
+                key = os.getenv(f"GEMINI_API_KEY_{key_num}")
+                if key:
+                    keys.append(key)
+                    print(f"✓ Loaded GEMINI_API_KEY_{key_num}")
+
+            if not keys:
+                print("Warning: No rotation keys found, falling back to main key")
+                main_key = os.getenv("GEMINI_API_KEY")
+                if main_key:
+                    keys = [main_key]
+        else:
+            main_key = os.getenv("GEMINI_API_KEY")
+            keys = [main_key] if main_key else []
+
+        if not keys:
+            print("Error: No Gemini API keys found in environment")
+            sys.exit(1)
+
+        usage_counts = {k: 0 for k in keys}
+        return cls(keys=keys, usage_counts=usage_counts)
+
+    def get_next_key(self) -> str:
+        """Get next API key using round-robin rotation."""
+        key = self.keys[self.current_index]
+        self.current_index = (self.current_index + 1) % len(self.keys)
+        return key
+
+    def get_key_with_capacity(self) -> Optional[str]:
+        """Get a key that hasn't exceeded its limit."""
+        for _ in range(len(self.keys)):
+            key = self.get_next_key()
+            if self.usage_counts[key] < self.jobs_per_key_limit:
+                return key
+        return None  # All keys at capacity
+
+    def record_usage(self, key: str):
+        """Record that a job was submitted with this key."""
+        self.usage_counts[key] = self.usage_counts.get(key, 0) + 1
+
+    def get_client(self, key: str) -> genai.Client:
+        """Create a Gemini client for the given key."""
+        return genai.Client(api_key=key)
+
+    def get_capacity_remaining(self) -> int:
+        """Get total remaining capacity across all keys."""
+        return sum(
+            max(0, self.jobs_per_key_limit - count)
+            for count in self.usage_counts.values()
+        )
+
+    def get_status(self) -> str:
+        """Get human-readable status of key usage."""
+        lines = ["API Key Usage:"]
+        for i, key in enumerate(self.keys):
+            count = self.usage_counts[key]
+            remaining = self.jobs_per_key_limit - count
+            key_id = f"KEY_{i+2}" if len(self.keys) > 1 else "MAIN"
+            lines.append(f"  {key_id}: {count}/{self.jobs_per_key_limit} used, {remaining} remaining")
+        return "\n".join(lines)
 
 
 async def upload_world_bible(client: genai.Client, world_bible_path: str):
@@ -131,9 +219,11 @@ async def batch_process_skeletons(
     world_bible_path: str,
     output_dir: str,
     batch_name: str,
-    rate_limit_delay: int = 6
+    rate_limit_delay: int = 6,
+    use_key_rotation: bool = True,
+    max_jobs: int = 0  # 0 = no limit
 ):
-    """Process skeleton batch with rate limiting.
+    """Process skeleton batch with rate limiting and key rotation.
 
     Args:
         skeleton_file: Path to skeleton JSON file
@@ -141,36 +231,64 @@ async def batch_process_skeletons(
         output_dir: Output directory for job tracker
         batch_name: Batch identifier
         rate_limit_delay: Seconds between job submissions (default: 6 = 10/min)
+        use_key_rotation: Use keys 2,3,4 for rotation (preserve main key)
+        max_jobs: Maximum jobs to submit (0 = all)
     """
-    # Initialize Gemini client
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        print("Error: GEMINI_API_KEY environment variable not set")
-        sys.exit(1)
+    # Initialize API Key Manager
+    print("=" * 70)
+    print("TraitorSim Deep Research Batch Processor")
+    print("=" * 70)
+    print()
 
-    client = genai.Client(api_key=api_key)
+    key_manager = APIKeyManager.from_env(use_rotation=use_key_rotation)
+    print(f"Loaded {len(key_manager.keys)} API key(s) for rotation")
+    print(f"Capacity per batch: ~{key_manager.jobs_per_key_limit * len(key_manager.keys)} jobs")
+    print()
 
     # Load skeletons
     print(f"Loading skeletons from: {skeleton_file}")
     with open(skeleton_file) as f:
         skeletons = json.load(f)
 
-    print(f"Loaded {len(skeletons)} skeletons")
-    print()
+    total_available = len(skeletons)
+    print(f"Loaded {total_available} skeletons")
 
-    # Submit jobs with rate limiting
-    job_records = []
+    # Apply max_jobs limit
+    if max_jobs > 0 and max_jobs < total_available:
+        skeletons = skeletons[:max_jobs]
+        print(f"Limiting to first {max_jobs} skeletons (--max-jobs)")
+
     total = len(skeletons)
 
+    # Check capacity
+    capacity = key_manager.get_capacity_remaining()
+    if total > capacity:
+        print(f"\n⚠️  Warning: {total} jobs requested but only {capacity} capacity available")
+        print(f"   Will submit first {capacity} jobs. Re-run later for remaining.")
+        skeletons = skeletons[:capacity]
+        total = len(skeletons)
+
+    print()
     print(f"Submitting {total} Deep Research jobs...")
-    print(f"Rate limit: {rate_limit_delay}s delay between submissions (10 jobs/min)")
-    print("Note: World Bible constraints will be applied during synthesis phase with Claude")
+    print(f"Rate limit: {rate_limit_delay}s delay between submissions")
+    print("API keys will rotate to distribute load")
     print()
 
+    # Submit jobs with rate limiting and key rotation
+    job_records = []
     start_time = time.time()
 
     for i, skeleton in enumerate(skeletons, 1):
-        print(f"[{i:02d}/{total}] {skeleton['archetype_name']:30s} | {skeleton['demographics_template']['occupation']:25s}...", end=" ")
+        # Get next key with capacity
+        api_key = key_manager.get_key_with_capacity()
+        if not api_key:
+            print(f"\n⚠️  All API keys at capacity limit. Stopping at {i-1} jobs.")
+            break
+
+        client = key_manager.get_client(api_key)
+        key_index = key_manager.keys.index(api_key) + 2  # Keys are 2, 3, 4
+
+        print(f"[{i:02d}/{total}] KEY_{key_index} | {skeleton['archetype_name']:25s} | {skeleton['demographics_template']['occupation'][:20]:20s}...", end=" ")
 
         try:
             job_id = await submit_deep_research_job(
@@ -178,22 +296,33 @@ async def batch_process_skeletons(
                 skeleton
             )
 
+            key_manager.record_usage(api_key)
+
             job_records.append({
                 "skeleton_id": skeleton["skeleton_id"],
                 "archetype": skeleton["archetype"],
                 "archetype_name": skeleton["archetype_name"],
                 "demographics": skeleton["demographics_template"],
                 "interaction_id": job_id,
+                "api_key_index": key_index,
                 "submitted_at": time.time()
             })
 
-            print(f"✓ Job ID: {job_id}")
+            print(f"✓ {job_id[:30]}...")
 
         except Exception as e:
-            print(f"✗ FAILED: {e}")
+            error_msg = str(e)
+            print(f"✗ FAILED: {error_msg[:50]}")
+
+            # Check for quota errors
+            if "quota" in error_msg.lower() or "rate" in error_msg.lower():
+                print(f"   → Quota limit hit on KEY_{key_index}, will skip this key")
+                key_manager.usage_counts[api_key] = key_manager.jobs_per_key_limit  # Mark as exhausted
+
             job_records.append({
                 "skeleton_id": skeleton["skeleton_id"],
-                "error": str(e),
+                "archetype": skeleton["archetype"],
+                "error": error_msg,
                 "interaction_id": None
             })
 
@@ -212,16 +341,25 @@ async def batch_process_skeletons(
     with open(output_file, "w") as f:
         json.dump(job_records, f, indent=2)
 
+    # Summary
+    successful = len([j for j in job_records if j.get('interaction_id')])
+    failed = len([j for j in job_records if not j.get('interaction_id')])
+
     print()
     print("=" * 70)
-    print(f"✓ Submitted {len([j for j in job_records if j.get('interaction_id')])} jobs successfully")
-    failed = len([j for j in job_records if not j.get('interaction_id')])
-    if failed > 0:
-        print(f"✗ {failed} jobs failed")
-    print(f"  Elapsed time: {elapsed:.1f}s")
-    print(f"  Job tracker saved to: {output_file}")
+    print("BATCH SUBMISSION COMPLETE")
+    print("=" * 70)
     print()
-    print("Estimated completion time: 10-20 minutes")
+    print(key_manager.get_status())
+    print()
+    print(f"Results:")
+    print(f"  ✓ Submitted: {successful} jobs")
+    if failed > 0:
+        print(f"  ✗ Failed: {failed} jobs")
+    print(f"  ⏱  Elapsed: {elapsed:.1f}s ({elapsed/60:.1f} min)")
+    print(f"  📁 Job tracker: {output_file}")
+    print()
+    print("Estimated completion time: 10-20 minutes per job")
     print()
     print("Next step: Poll jobs for completion")
     print(f"  python scripts/poll_research_jobs.py --input {output_file}")
@@ -230,12 +368,29 @@ async def batch_process_skeletons(
 
 def main():
     """Main entry point."""
-    parser = argparse.ArgumentParser(description="Submit Deep Research batch jobs")
-    parser.add_argument("--input", type=str, default="data/personas/skeletons/test_batch_001.json", help="Skeleton JSON file")
+    parser = argparse.ArgumentParser(
+        description="Submit Deep Research batch jobs with API key rotation",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Submit all skeletons with key rotation (default)
+  python scripts/batch_deep_research.py --input data/personas/skeletons/batch_85.json
+
+  # Submit only first 36 jobs (one wave)
+  python scripts/batch_deep_research.py --input skeletons.json --max-jobs 36
+
+  # Use only main key (no rotation)
+  python scripts/batch_deep_research.py --input skeletons.json --no-rotate
+        """
+    )
+    parser.add_argument("--input", type=str, default="data/personas/skeletons/batch_85.json", help="Skeleton JSON file")
     parser.add_argument("--world-bible", type=str, default="WORLD_BIBLE.md", help="World Bible path")
     parser.add_argument("--output", type=str, default="data/personas/jobs", help="Output directory for job tracker")
-    parser.add_argument("--batch-name", type=str, default="test_batch_001", help="Batch name")
+    parser.add_argument("--batch-name", type=str, default="batch_85", help="Batch name")
     parser.add_argument("--rate-limit", type=int, default=6, help="Seconds between submissions (default: 6)")
+    parser.add_argument("--rotate-keys", action="store_true", default=True, help="Use API keys 2,3,4 for rotation (default)")
+    parser.add_argument("--no-rotate", action="store_true", help="Use only main API key (no rotation)")
+    parser.add_argument("--max-jobs", type=int, default=0, help="Maximum jobs to submit (0 = all)")
 
     args = parser.parse_args()
 
@@ -248,13 +403,18 @@ def main():
         print(f"Error: World Bible not found: {args.world_bible}")
         sys.exit(1)
 
+    # Determine rotation mode
+    use_rotation = not args.no_rotate
+
     # Run batch processor
     asyncio.run(batch_process_skeletons(
         skeleton_file=args.input,
         world_bible_path=args.world_bible,
         output_dir=args.output,
         batch_name=args.batch_name,
-        rate_limit_delay=args.rate_limit
+        rate_limit_delay=args.rate_limit,
+        use_key_rotation=use_rotation,
+        max_jobs=args.max_jobs
     ))
 
 

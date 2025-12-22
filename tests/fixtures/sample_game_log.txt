@@ -1,0 +1,182 @@
+=== TraitorSim Game Starting (Containerized) ===
+Loaded 15 personas from library
+Initialized 15 players
+3 Traitors: Fiona Drummond-Hartley, Dr. Niamh Gallagher, Zara Okonkwo
+Archetypes in play: {The Prodigy, The Charming Sociopath, The Bitter Traitor}
+
+============================================================
+DAY 1
+============================================================
+
+--- Breakfast Phase ---
+Breakfast entry order: Patricia Hollander, Marcus Chen, Fiona Drummond-Hartley
+"It was a peaceful first night at Ardross Castle..."
+No murder last night (first day).
+
+--- Mission Phase ---
+"The contestants gather for their first challenge..."
+Mission succeeded! £8,500 added to the pot.
+Prize pot: £8,500
+🛡️  Marcus Chen won the SHIELD!
+
+--- Social Phase ---
+Agents reflecting on events...
+
+--- Round Table Phase ---
+Patricia Hollander voted for Dr. Niamh Gallagher
+Marcus Chen voted for Fiona Drummond-Hartley
+Fiona Drummond-Hartley voted for Marcus Chen
+Dr. Niamh Gallagher voted for Patricia Hollander
+Zara Okonkwo voted for Patricia Hollander
+Rowan Achebe-Campbell voted for Patricia Hollander
+Keeley Barton voted for Marcus Chen
+Darren Whitmore voted for Patricia Hollander
+Robin Hartley voted for Marcus Chen
+Gemma Ashworth-Clarke voted for Patricia Hollander
+Patricia Hollander has been BANISHED!
+Patricia Hollander was a FAITHFUL
+
+--- Turret Phase ---
+Murder discussion targets: ['Marcus Chen', 'Rowan Achebe-Campbell']
+Traitors murdered: Marcus Chen
+
+============================================================
+DAY 2
+============================================================
+
+--- Breakfast Phase ---
+Breakfast entry order: Keeley Barton, Fiona Drummond-Hartley, Dr. Niamh Gallagher
+"Marcus Chen was found murdered this morning..."
+
+--- Mission Phase ---
+Mission succeeded! £12,000 added to the pot.
+Prize pot: £20,500
+🛡️  Rowan Achebe-Campbell won the SHIELD!
+
+--- Round Table Phase ---
+Keeley Barton voted for Fiona Drummond-Hartley
+Fiona Drummond-Hartley voted for Keeley Barton
+Dr. Niamh Gallagher voted for Keeley Barton
+Zara Okonkwo voted for Rowan Achebe-Campbell
+Rowan Achebe-Campbell voted for Fiona Drummond-Hartley
+Darren Whitmore voted for Keeley Barton
+Robin Hartley voted for Keeley Barton
+Gemma Ashworth-Clarke voted for Fiona Drummond-Hartley
+Keeley Barton has been BANISHED!
+Keeley Barton was a FAITHFUL
+
+--- Turret Phase ---
+Traitors murdered: Rowan Achebe-Campbell
+🛡️  Rowan Achebe-Campbell was PROTECTED by the Shield!
+The murder attempt failed!
+
+============================================================
+DAY 3
+============================================================
+
+--- Breakfast Phase ---
+"No one was murdered last night! The castle stirred with nervous relief..."
+
+--- Mission Phase ---
+Mission succeeded! £10,000 added to the pot.
+Prize pot: £30,500
+🛡️  Darren Whitmore won the SHIELD!
+
+--- Round Table Phase ---
+Rowan Achebe-Campbell voted for Fiona Drummond-Hartley
+Darren Whitmore voted for Dr. Niamh Gallagher
+Robin Hartley voted for Fiona Drummond-Hartley
+Gemma Ashworth-Clarke voted for Fiona Drummond-Hartley
+Fiona Drummond-Hartley voted for Robin Hartley
+Dr. Niamh Gallagher voted for Robin Hartley
+Zara Okonkwo voted for Robin Hartley
+⚖️  TIE: 3 players with 3 votes each: Robin Hartley, Fiona Drummond-Hartley
+🔄 REVOTE: Tied players are immune, others vote again
+✅ Revote result: Fiona Drummond-Hartley selected
+Fiona Drummond-Hartley has been BANISHED!
+Fiona Drummond-Hartley was a TRAITOR
+
+--- Turret Phase ---
+🎭 RECRUITMENT: Darren Whitmore
+❌ Darren Whitmore REFUSED recruitment
+Traitors murdered: Darren Whitmore
+
+============================================================
+DAY 8
+============================================================
+
+--- Breakfast Phase ---
+"Darren Whitmore was found murdered this morning..."
+
+--- Mission Phase ---
+Mission succeeded! £15,000 added to the pot.
+Prize pot: £85,500
+🛡️  Robin Hartley won the SHIELD!
+👁️  Gemma Ashworth-Clarke won the SEER POWER!
+   They can privately confirm one player's true role.
+
+--- Social Phase ---
+
+👁️  SEER POWER: Gemma Ashworth-Clarke uses their ability
+👁️  Gemma Ashworth-Clarke learns: Dr. Niamh Gallagher is a TRAITOR
+   Gemma Ashworth-Clarke and Dr. Niamh Gallagher had a private meeting...
+   What was revealed? Only they know for sure.
+
+--- Round Table Phase ---
+Robin Hartley voted for Dr. Niamh Gallagher
+Gemma Ashworth-Clarke voted for Dr. Niamh Gallagher
+Rowan Achebe-Campbell voted for Zara Okonkwo
+Dr. Niamh Gallagher voted for Robin Hartley
+Zara Okonkwo voted for Robin Hartley
+Dr. Niamh Gallagher has been BANISHED!
+Dr. Niamh Gallagher was a TRAITOR
+
+--- Turret Phase ---
+Traitors murdered: Gemma Ashworth-Clarke
+
+============================================================
+DAY 9
+============================================================
+
+--- Breakfast Phase ---
+"Gemma Ashworth-Clarke was found murdered this morning..."
+
+--- Vote to End ---
+Players must decide: END the game or BANISH again?
+Unanimous END required to finish.
+
+Robin Hartley votes END: Confident all Traitors eliminated
+Rowan Achebe-Campbell votes BANISH: Still suspicious (max=0.45)
+Zara Okonkwo votes END: Confident all Traitors eliminated
+
+Vote Result: 2/3 voted END
+❌ Not unanimous - Continue to next Round Table
+
+--- Round Table Phase ---
+Robin Hartley voted for Zara Okonkwo
+Rowan Achebe-Campbell voted for Zara Okonkwo
+Zara Okonkwo voted for Rowan Achebe-Campbell
+Zara Okonkwo has been BANISHED!
+Zara Okonkwo was a TRAITOR
+
+============================================================
+END GAME TRIGGERED: 2 players remaining
+============================================================
+
+--- Vote to End ---
+Players must decide: END the game or BANISH again?
+Unanimous END required to finish.
+
+Robin Hartley votes END: Confident all Traitors eliminated
+Rowan Achebe-Campbell votes END: Confident all Traitors eliminated
+
+Vote Result: 2/2 voted END
+✅ UNANIMOUS END - Game concludes!
+
+============================================================
+"The Faithful have prevailed! Ardross Castle rejoices!"
+🏆 WINNERS: FAITHFUL
+============================================================
+
+Prize pot: £85,500
+Winners share the pot!

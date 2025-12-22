@@ -67,6 +67,26 @@ async def poll_job_status(
         return ("failed", f"Error: {e}")
 
 
+def get_client_for_key_index(key_index: int) -> genai.Client:
+    """Get Gemini client for a specific API key index.
+
+    Args:
+        key_index: Key index (2-6 for rotation keys, None for main)
+
+    Returns:
+        Gemini client configured with the appropriate key
+    """
+    if key_index and key_index >= 2:
+        key = os.getenv(f"GEMINI_API_KEY_{key_index}")
+    else:
+        key = os.getenv("GEMINI_API_KEY")
+
+    if not key:
+        raise ValueError(f"API key not found for index {key_index}")
+
+    return genai.Client(api_key=key)
+
+
 async def poll_batch(
     job_file: str,
     output_dir: str,
@@ -83,13 +103,22 @@ async def poll_batch(
         poll_interval: Seconds between polling (default: 30)
         timeout_minutes: Maximum wait time (default: 30)
     """
-    # Initialize Gemini client
+    # Build client cache for each API key used
+    clients = {}
+
+    def get_client(key_index):
+        if key_index not in clients:
+            clients[key_index] = get_client_for_key_index(key_index)
+        return clients[key_index]
+
+    # Verify at least main key exists
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         print("Error: GEMINI_API_KEY environment variable not set")
         sys.exit(1)
 
-    client = genai.Client(api_key=api_key)
+    # Default client for jobs without key_index
+    default_client = genai.Client(api_key=api_key)
 
     # Load jobs
     print(f"Loading jobs from: {job_file}")
@@ -138,6 +167,14 @@ async def poll_batch(
                 continue
 
             interaction_id = job["interaction_id"]
+
+            # Use the same API key that submitted this job
+            key_index = job.get("api_key_index")
+            try:
+                client = get_client(key_index) if key_index else default_client
+            except ValueError:
+                client = default_client
+
             status, report = await poll_job_status(client, interaction_id)
 
             if status == "completed":
