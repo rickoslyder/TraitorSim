@@ -10,8 +10,10 @@ services:
     volumes:
       - ./backend/app:/app/app
       - ./backend/data:/app/data
+      - ../reports:/app/reports:ro
     environment:
       - PYTHONUNBUFFERED=1
+      - REPORTS_DIR=/app/reports
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
