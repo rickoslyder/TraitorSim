@@ -249,22 +249,27 @@ class GameEngineContainerized:
 
             # Run 5-phase cycle
             await self._run_breakfast_phase_async()
+            self.game_state.capture_trust_snapshot("breakfast")
 
             winner = self.game_state.check_win_condition()
             if winner:
                 break
 
             await self._run_mission_phase_async()
+            self.game_state.capture_trust_snapshot("mission")
 
             await self._run_social_phase_async()
+            self.game_state.capture_trust_snapshot("social")
 
             await self._run_roundtable_phase_async()
+            self.game_state.capture_trust_snapshot("roundtable")
 
             winner = self.game_state.check_win_condition()
             if winner:
                 break
 
             await self._run_turret_phase_async()
+            self.game_state.capture_trust_snapshot("turret")
 
             # Check win condition
             winner = self.game_state.check_win_condition()
@@ -293,6 +298,13 @@ class GameEngineContainerized:
         self.logger.info(f"🏆 WINNERS: {winner.value.upper()}")
         self.logger.info(f"{'='*60}\n")
 
+        # Save complete game report for UI visualization
+        try:
+            report_path = self.save_game_report()
+            self.logger.info(f"📊 Game report saved: {report_path}")
+        except Exception as e:
+            self.logger.error(f"Failed to save game report: {e}")
+
         return winner.value.upper()
 
     async def _run_breakfast_phase_async(self) -> None:
@@ -306,6 +318,19 @@ class GameEngineContainerized:
 
         if self.config.enable_dramatic_entry and len(breakfast_order) > 0:
             self.logger.info(f"Breakfast entry order: {', '.join([self.game_state.get_player(pid).name for pid in breakfast_order])}")
+
+        # Record structured BREAKFAST_ORDER event for UI
+        last_player_id = breakfast_order[-1] if breakfast_order else None
+        self.game_state.add_event(
+            event_type="BREAKFAST_ORDER",
+            phase="breakfast",
+            data={
+                "order": breakfast_order,
+                "last_to_arrive": last_player_id,
+                "victim_revealed": self.game_state.last_murder_victim,
+            },
+            narrative=f"Players arrived at breakfast. {'Murder discovered!' if self.game_state.last_murder_victim else 'No murder last night.'}",
+        )
 
         if self.game_state.last_murder_victim:
             narrative = await self.gm.announce_murder_async(
@@ -400,6 +425,21 @@ class GameEngineContainerized:
         )
         self.logger.info(result_narrative)
         self.logger.info(f"Prize pot: ${self.game_state.prize_pot:,.0f}")
+
+        # Record structured MISSION_COMPLETE event for UI
+        self.game_state.add_event(
+            event_type="MISSION_COMPLETE",
+            phase="mission",
+            data={
+                "mission_name": "Skill Check",
+                "success": success_rate >= 0.5,
+                "success_rate": success_rate,
+                "earnings": result.earnings,
+                "participants": [p.id for p in self.game_state.alive_players],
+                "performance_scores": result.performance_scores,
+            },
+            narrative=f"Mission {'succeeded' if success_rate >= 0.5 else 'failed'}. £{result.earnings:,.0f} added to prize pot.",
+        )
 
         # Award Shield and Dagger based on performance
         if self.config.enable_shields:
@@ -729,6 +769,21 @@ class GameEngineContainerized:
             if voter and target:
                 self.logger.info(f"  {voter.name} voted for {target.name}")
 
+        # Record structured VOTE_TALLY event for UI
+        self.game_state.add_event(
+            event_type="VOTE_TALLY",
+            phase="roundtable",
+            target=banished_id,
+            data={
+                "votes": votes.copy(),
+                "tally": dict(vote_counts),
+                "eliminated": banished_id,
+                "eliminated_name": banished_player.name,
+                "eliminated_role": banished_player.role.value,
+            },
+            narrative=f"{banished_player.name} was banished with {vote_counts[banished_id]} votes.",
+        )
+
         # Agents reflect - only reveal role if allowed
         if should_reveal_role:
             events = [
@@ -788,6 +843,21 @@ class GameEngineContainerized:
 
                 self.logger.info(f"✅ {recruit_target.name} ACCEPTED recruitment!")
 
+                # Record structured RECRUITMENT event for UI
+                self.game_state.add_event(
+                    event_type="RECRUITMENT",
+                    phase="roundtable",
+                    actor=recruiter.id,
+                    target=recruit_target.id,
+                    data={
+                        "offer_type": "ultimatum" if is_ultimatum else "standard",
+                        "accepted": True,
+                        "recruiter_name": recruiter.name,
+                        "recruit_name": recruit_target.name,
+                    },
+                    narrative=f"{recruit_target.name} accepted recruitment and became a Traitor!",
+                )
+
                 # Notify all agents
                 events = [f"{recruit_target.name} has been recruited as a Traitor!"]
                 await self._parallel_reflection_async(events)
@@ -798,11 +868,42 @@ class GameEngineContainerized:
                     self.game_state.murdered_players.append(recruit_target.name)
                     self.logger.info(f"❌ {recruit_target.name} REFUSED ultimatum and was murdered!")
 
+                    # Record structured RECRUITMENT event for UI (refusal + murder)
+                    self.game_state.add_event(
+                        event_type="RECRUITMENT",
+                        phase="roundtable",
+                        actor=recruiter.id,
+                        target=recruit_target.id,
+                        data={
+                            "offer_type": "ultimatum",
+                            "accepted": False,
+                            "recruiter_name": recruiter.name,
+                            "recruit_name": recruit_target.name,
+                            "consequence": "murdered",
+                        },
+                        narrative=f"{recruit_target.name} refused the ultimatum and was murdered!",
+                    )
+
                     events = [f"{recruit_target.name} refused the ultimatum and was murdered!"]
                     await self._parallel_reflection_async(events)
                 else:
                     # Standard refusal
                     self.logger.info(f"❌ {recruit_target.name} REFUSED recruitment")
+
+                    # Record structured RECRUITMENT event for UI (refusal)
+                    self.game_state.add_event(
+                        event_type="RECRUITMENT",
+                        phase="roundtable",
+                        actor=recruiter.id,
+                        target=recruit_target.id,
+                        data={
+                            "offer_type": "standard",
+                            "accepted": False,
+                            "recruiter_name": recruiter.name,
+                            "recruit_name": recruit_target.name,
+                        },
+                        narrative=f"{recruit_target.name} refused recruitment.",
+                    )
 
     async def _choose_recruit_target_http(self, traitor_id: str) -> str:
         """Have traitor choose who to recruit via HTTP.
@@ -942,6 +1043,21 @@ class GameEngineContainerized:
         self.game_state.last_murder_victim = victim.name
 
         self.logger.info(f"Traitors murdered: {victim.name}")
+
+        # Record structured MURDER event for UI
+        self.game_state.add_event(
+            event_type="MURDER",
+            phase="turret",
+            actor=traitor.id,
+            target=victim.id,
+            data={
+                "victim_name": victim.name,
+                "victim_role": victim.role.value,
+                "traitor_name": traitor.name,
+                "murder_shortlist": shortlist,
+            },
+            narrative=f"{victim.name} was murdered by the Traitors.",
+        )
 
     async def _create_death_list_async(self, traitors: List[Player], faithful: List[Player]) -> List[str]:
         """Create Death List - Traitors pre-select 3-4 murder candidates.
@@ -1388,6 +1504,75 @@ class GameEngineContainerized:
             p.id for p in self.game_state.alive_players if p.id != player_id
         ]
         return random.choice(valid_targets) if valid_targets else player_id
+
+    def save_game_report(self, output_path: str = None) -> str:
+        """Save complete game data to JSON for UI visualization.
+
+        Uses the canonical to_export_dict() method to ensure all data
+        needed by the TraitorSim UI is included.
+
+        Args:
+            output_path: Optional path to save JSON. Defaults to reports/{timestamp}.json
+
+        Returns:
+            Path to the saved JSON file
+        """
+        import json
+        from datetime import datetime
+        from pathlib import Path
+
+        # Default path
+        if output_path is None:
+            reports_dir = Path("reports")
+            reports_dir.mkdir(exist_ok=True)
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            output_path = reports_dir / f"game_{timestamp}.json"
+        else:
+            output_path = Path(output_path)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Build complete game report
+        game_data = self.game_state.to_export_dict()
+
+        # Add game-level metadata
+        game_data["name"] = f"Game {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+        game_data["total_days"] = self.game_state.day
+        game_data["winner"] = (
+            "FAITHFUL" if len(self.game_state.alive_traitors) == 0
+            else "TRAITORS" if len(self.game_state.alive_faithful) == 0
+            else "UNKNOWN"
+        )
+        game_data["rule_variant"] = self.config.rule_set if hasattr(self.config, 'rule_set') else "uk"
+        game_data["config"] = {
+            "total_players": self.config.total_players,
+            "num_traitors": self.config.num_traitors,
+            "max_days": self.config.max_days,
+            "enable_recruitment": self.config.enable_recruitment,
+            "enable_shields": self.config.enable_shields,
+            "enable_death_list": self.config.enable_death_list,
+            "tie_break_method": self.config.tie_break_method,
+        }
+
+        # Convert numpy arrays and other non-JSON-serializable types
+        def make_serializable(obj):
+            if hasattr(obj, 'tolist'):  # numpy array
+                return obj.tolist()
+            elif hasattr(obj, 'value'):  # enum
+                return obj.value
+            elif isinstance(obj, dict):
+                return {k: make_serializable(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [make_serializable(v) for v in obj]
+            return obj
+
+        game_data = make_serializable(game_data)
+
+        # Save to file
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(game_data, f, indent=2, default=str)
+
+        self.logger.info(f"Game report saved: {output_path}")
+        return str(output_path)
 
     # Synchronous wrapper
     def run_game(self) -> str:

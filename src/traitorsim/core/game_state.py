@@ -133,6 +133,12 @@ class GameState:
     breakfast_order_history: List[List[str]] = field(default_factory=list)  # List of player IDs in entry order per day
     last_murder_discussion: List[str] = field(default_factory=list)  # Player IDs discussed for murder in last Turret
 
+    # Trust matrix snapshots for UI visualization
+    trust_snapshots: List[Dict[str, Any]] = field(default_factory=list)  # Captured after each phase
+
+    # Structured events for UI timeline
+    events: List[Dict[str, Any]] = field(default_factory=list)  # All game events with metadata
+
     @property
     def alive_players(self) -> List[Player]:
         """Get list of alive players."""
@@ -175,3 +181,130 @@ class GameState:
             if player.name == name:
                 return player
         return None
+
+    def add_event(
+        self,
+        event_type: str,
+        phase: str,
+        actor: Optional[str] = None,
+        target: Optional[str] = None,
+        data: Optional[Dict[str, Any]] = None,
+        narrative: Optional[str] = None,
+    ) -> None:
+        """
+        Record a structured game event for UI timeline.
+
+        Args:
+            event_type: Type of event (MURDER, BANISHMENT, VOTE_TALLY, MISSION_COMPLETE, etc.)
+            phase: Game phase (breakfast, mission, social, roundtable, turret)
+            actor: Player ID who performed the action (optional)
+            target: Player ID who was affected (optional)
+            data: Additional structured data for the event
+            narrative: Human-readable description
+        """
+        event = {
+            "day": self.day,
+            "phase": phase,
+            "type": event_type,
+            "actor": actor,
+            "target": target,
+            "data": data or {},
+            "narrative": narrative,
+        }
+        self.events.append(event)
+
+    def capture_trust_snapshot(self, phase: str) -> Dict[str, Any]:
+        """
+        Capture current trust matrix state for UI export.
+
+        Creates a snapshot of all alive players' suspicion scores,
+        useful for visualizing trust evolution over the game timeline.
+
+        Args:
+            phase: Current game phase (breakfast, mission, social, roundtable, turret)
+
+        Returns:
+            Dict with day, phase, and nested matrix of suspicion scores
+        """
+        if not self.trust_matrix:
+            return {"day": self.day, "phase": phase, "matrix": {}}
+
+        matrix_data = {}
+        for observer in self.alive_players:
+            matrix_data[observer.id] = {}
+            for target in self.players:  # Include all players (even dead) for historical context
+                if target.id != observer.id:
+                    matrix_data[observer.id][target.id] = self.trust_matrix.get_suspicion(
+                        observer.id, target.id
+                    )
+
+        snapshot = {
+            "day": self.day,
+            "phase": phase,
+            "alive_count": len(self.alive_players),
+            "matrix": matrix_data,
+        }
+
+        # Auto-append to history
+        self.trust_snapshots.append(snapshot)
+
+        return snapshot
+
+    def to_export_dict(self) -> Dict[str, Any]:
+        """
+        Export complete game state for UI visualization.
+
+        This is the canonical export method that ensures all data
+        needed by the TraitorSim UI is included in the JSON output.
+
+        Returns:
+            Dict containing all game data suitable for JSON serialization
+        """
+        return {
+            "day": self.day,
+            "phase": self.phase.value if hasattr(self.phase, 'value') else str(self.phase),
+            "prize_pot": self.prize_pot,
+            "players": {
+                p.id: {
+                    "id": p.id,
+                    "name": p.name,
+                    "role": p.role.value if hasattr(p.role, 'value') else str(p.role),
+                    "alive": p.alive,
+                    "has_shield": p.has_shield,
+                    "has_dagger": p.has_dagger,
+                    "was_recruited": p.was_recruited,
+                    # Archetype and persona data
+                    "archetype_id": p.archetype_id,
+                    "archetype_name": p.archetype_name,
+                    "backstory": p.backstory,
+                    "strategic_profile": p.strategic_profile,
+                    "demographics": p.demographics,
+                    # OCEAN personality traits
+                    "personality": {
+                        "openness": p.personality.get("openness", 0.5),
+                        "conscientiousness": p.personality.get("conscientiousness", 0.5),
+                        "extraversion": p.personality.get("extraversion", 0.5),
+                        "agreeableness": p.personality.get("agreeableness", 0.5),
+                        "neuroticism": p.personality.get("neuroticism", 0.5),
+                    },
+                    # Mission stats
+                    "stats": {
+                        "intellect": p.stats.get("intellect", 0.5),
+                        "dexterity": p.stats.get("dexterity", 0.5),
+                        "social_influence": p.stats.get("social_influence", 0.5),
+                        "composure": p.stats.get("composure", 0.5),
+                    },
+                }
+                for p in self.players
+            },
+            "murdered_players": self.murdered_players,
+            "banished_players": self.banished_players,
+            "recruited_players": self.recruited_players,
+            "vote_history": self.vote_history,
+            "breakfast_order_history": self.breakfast_order_history,
+            "trust_snapshots": self.trust_snapshots,
+            "events": self.events,
+            "shield_holder": self.shield_holder,
+            "dagger_holder": self.dagger_holder,
+            "seer_holder": self.seer_holder,
+        }
