@@ -1,0 +1,170 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar - dark theme */
+.dark ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 4px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Custom scrollbar - light theme */
+.light ::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.light ::-webkit-scrollbar-track {
+  background: #f3f4f6;
+}
+
+.light ::-webkit-scrollbar-thumb {
+  background: #9ca3af;
+  border-radius: 4px;
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Light theme overrides */
+.light {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f3f4f6;
+  --bg-tertiary: #e5e7eb;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --border-color: #d1d5db;
+}
+
+.dark {
+  --bg-primary: #111827;
+  --bg-secondary: #1f2937;
+  --bg-tertiary: #374151;
+  --text-primary: #f9fafb;
+  --text-secondary: #9ca3af;
+  --border-color: #374151;
+}
+
+/* Base styles that adapt to theme */
+.light .bg-gray-900 {
+  @apply !bg-white;
+}
+
+.light .bg-gray-800 {
+  @apply !bg-gray-100;
+}
+
+.light .bg-gray-700 {
+  @apply !bg-gray-200;
+}
+
+.light .bg-gray-750 {
+  @apply !bg-gray-150;
+}
+
+.light .text-white {
+  @apply !text-gray-900;
+}
+
+.light .text-gray-300,
+.light .text-gray-400 {
+  @apply !text-gray-600;
+}
+
+.light .text-gray-500 {
+  @apply !text-gray-500;
+}
+
+.light .border-gray-700 {
+  @apply !border-gray-300;
+}
+
+.light .border-gray-600 {
+  @apply !border-gray-400;
+}
+
+/* Trust network graph styles */
+.trust-graph-container {
+  @apply w-full h-full bg-gray-800 rounded-lg overflow-hidden;
+}
+
+/* Player card styles */
+.player-card {
+  @apply bg-gray-800 rounded-lg p-4 transition-all duration-200;
+}
+
+.player-card:hover {
+  @apply bg-gray-700 transform scale-105;
+}
+
+.player-card.eliminated {
+  @apply opacity-50;
+}
+
+.player-card.selected {
+  @apply ring-2 ring-blue-500;
+}
+
+/* Timeline styles */
+.timeline-container {
+  @apply bg-gray-800 rounded-lg p-4;
+}
+
+.timeline-day {
+  @apply flex items-center gap-2;
+}
+
+.timeline-marker {
+  @apply w-3 h-3 rounded-full;
+}
+
+/* Phase badge colors */
+.phase-breakfast { @apply bg-yellow-500; }
+.phase-mission { @apply bg-green-500; }
+.phase-social { @apply bg-blue-500; }
+.phase-roundtable { @apply bg-purple-500; }
+.phase-turret { @apply bg-red-500; }
+
+/* Role badges */
+.role-faithful { @apply bg-faithful-blue text-white; }
+.role-traitor { @apply bg-traitor-red text-white; }
+
+/* Status badges */
+.status-alive { @apply bg-green-500 text-white; }
+.status-banished { @apply bg-orange-500 text-white; }
+.status-murdered { @apply bg-red-500 text-white; }
+
+/* Event type icons */
+.event-icon {
+  @apply w-6 h-6 flex items-center justify-center rounded-full;
+}
+
+.event-murder { @apply bg-red-500; }
+.event-vote { @apply bg-purple-500; }
+.event-shield { @apply bg-yellow-500; }
+.event-seer { @apply bg-cyan-500; }
+.event-mission { @apply bg-green-500; }
