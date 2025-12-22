@@ -38,6 +38,8 @@ def main():
         num_traitors=3,
         gemini_api_key=os.getenv("GEMINI_API_KEY"),
         anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
+        personality_generation="archetype",
+        persona_library_path="data/personas/library",
     )
 
     # Validate API keys

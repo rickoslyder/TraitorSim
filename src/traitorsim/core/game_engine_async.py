@@ -54,29 +54,55 @@ class GameEngineAsync:
         self.memory_managers: Dict[str, MemoryManager] = {}
 
     def _initialize_players(self) -> None:
-        """Initialize players and assign roles."""
+        """Initialize players and assign roles using persona library."""
         import random
+        from ..persona.persona_loader import PersonaLoader
 
-        # Create players with Big Five personalities
-        for i in range(self.config.total_players):
-            player = Player(
-                id=f"player_{i:02d}",
-                name=f"Player{i+1}",
-                role=Role.FAITHFUL,  # Default, will reassign
-                personality={
-                    "openness": random.uniform(0.2, 0.8),
-                    "conscientiousness": random.uniform(0.2, 0.8),
-                    "extraversion": random.uniform(0.2, 0.8),
-                    "agreeableness": random.uniform(0.2, 0.8),
-                    "neuroticism": random.uniform(0.2, 0.8),
-                },
-                stats={
-                    "intellect": random.uniform(0.3, 0.9),
-                    "dexterity": random.uniform(0.3, 0.9),
-                    "social_influence": random.uniform(0.3, 0.9),
-                },
-            )
-            self.game_state.players.append(player)
+        # Load personas from library
+        if self.config.personality_generation == "archetype":
+            try:
+                loader = PersonaLoader(self.config.persona_library_path)
+                personas = loader.sample_personas(
+                    count=self.config.total_players,
+                    ensure_diversity=True,
+                    max_per_archetype=2
+                )
+                self.logger.info(f"Loaded {len(personas)} personas from library")
+
+                # Create players from persona cards
+                for i, persona in enumerate(personas):
+                    player = Player(
+                        id=f"player_{i:02d}",
+                        name=persona.get("name", f"Player{i+1}"),
+                        role=Role.FAITHFUL,  # Default, will reassign
+                        personality=persona.get("personality", {
+                            "openness": 0.5,
+                            "conscientiousness": 0.5,
+                            "extraversion": 0.5,
+                            "agreeableness": 0.5,
+                            "neuroticism": 0.5,
+                        }),
+                        stats=persona.get("stats", {
+                            "intellect": 0.5,
+                            "dexterity": 0.5,
+                            "social_influence": 0.5,
+                        }),
+                        archetype_id=persona.get("archetype"),
+                        archetype_name=persona.get("archetype_name"),
+                        demographics=persona.get("demographics", {}),
+                        backstory=persona.get("backstory"),
+                        strategic_profile=persona.get("strategic_approach"),
+                    )
+                    self.game_state.players.append(player)
+
+            except (FileNotFoundError, ValueError) as e:
+                self.logger.error(f"Failed to load persona library: {e}")
+                self.logger.error("Falling back to random personality generation")
+                self._initialize_random_players()
+                return
+        else:
+            self._initialize_random_players()
+            return
 
         # Assign traitor roles
         traitor_indices = random.sample(
@@ -106,6 +132,38 @@ class GameEngineAsync:
         self.logger.info(
             f"Traitors: {[p.name for p in self.game_state.players if p.role == Role.TRAITOR]}"
         )
+
+        # Log archetype distribution if using personas
+        if self.config.personality_generation == "archetype":
+            archetypes = [p.archetype_name for p in self.game_state.players if p.archetype_name]
+            if archetypes:
+                self.logger.info(f"Archetypes in play: {set(archetypes)}")
+
+    def _initialize_random_players(self) -> None:
+        """Fallback: Initialize players with random personalities."""
+        import random
+
+        self.logger.warning("Using random personality generation (no persona library)")
+
+        for i in range(self.config.total_players):
+            player = Player(
+                id=f"player_{i:02d}",
+                name=f"Player{i+1}",
+                role=Role.FAITHFUL,
+                personality={
+                    "openness": random.uniform(0.2, 0.8),
+                    "conscientiousness": random.uniform(0.2, 0.8),
+                    "extraversion": random.uniform(0.2, 0.8),
+                    "agreeableness": random.uniform(0.2, 0.8),
+                    "neuroticism": random.uniform(0.2, 0.8),
+                },
+                stats={
+                    "intellect": random.uniform(0.3, 0.9),
+                    "dexterity": random.uniform(0.3, 0.9),
+                    "social_influence": random.uniform(0.3, 0.9),
+                },
+            )
+            self.game_state.players.append(player)
 
     async def run_game_async(self) -> str:
         """Run complete game asynchronously.

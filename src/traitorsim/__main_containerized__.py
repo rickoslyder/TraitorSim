@@ -69,13 +69,15 @@ def main():
     logger.info("TRAITORS SIMULATION - CONTAINERIZED")
     logger.info("="*60 + "\n")
 
-    # Create config (full 24-player game per architectural spec)
+    # Create config (using persona library for authentic characters)
     config = GameConfig(
-        total_players=24,
+        total_players=15,  # Match our test persona library size
         num_traitors=3,  # Standard starting traitor count
         gemini_api_key=os.getenv("GEMINI_API_KEY"),
         anthropic_api_key=os.getenv("ANTHROPIC_API_KEY"),
         max_days=20,  # Full season
+        personality_generation="archetype",
+        persona_library_path="data/personas/library",
     )
 
     # Validate API keys
@@ -112,9 +114,10 @@ def main():
     logger.info("📦 Containerized Architecture:")
     logger.info(f"   - Game Engine: Host process")
     logger.info(f"   - Player Agents: {config.total_players} Docker containers")
-    logger.info(f"   - Agent URLs: {agent_base_url}:18000-18009")
+    logger.info(f"   - Agent URLs: {agent_base_url}:5000 (internal)")
     logger.info(f"   - Memory: 1GB per container ({config.total_players}GB total)")
-    logger.info(f"   - CPU: 1.0 core per container ({config.total_players} cores total)\n")
+    logger.info(f"   - CPU: 1.0 core per container ({config.total_players} cores total)")
+    logger.info(f"   - Personas: {config.persona_library_path}\n")
 
     # Create and run game (containerized engine with HTTP communication)
     engine = GameEngineContainerized(config, agent_base_url=agent_base_url)

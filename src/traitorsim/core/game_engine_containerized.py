@@ -48,15 +48,69 @@ class GameEngineContainerized:
         self.agent_urls: Dict[str, str] = {}
 
     def _initialize_players(self) -> None:
-        """Initialize players and assign roles."""
+        """Initialize players and assign roles using persona library."""
+        import random
+        from ..persona.persona_loader import PersonaLoader
+
+        # Load personas from library
+        if self.config.personality_generation == "archetype":
+            try:
+                loader = PersonaLoader(self.config.persona_library_path)
+                personas = loader.sample_personas(
+                    count=self.config.total_players,
+                    ensure_diversity=True,
+                    max_per_archetype=2
+                )
+                self.logger.info(f"Loaded {len(personas)} personas from library")
+
+                # Create players from persona cards
+                for i, persona in enumerate(personas):
+                    player = Player(
+                        id=f"player_{i:02d}",
+                        name=persona.get("name", f"Player{i+1}"),
+                        role=Role.FAITHFUL,  # Default, will reassign
+                        personality=persona.get("personality", {
+                            "openness": 0.5,
+                            "conscientiousness": 0.5,
+                            "extraversion": 0.5,
+                            "agreeableness": 0.5,
+                            "neuroticism": 0.5,
+                        }),
+                        stats=persona.get("stats", {
+                            "intellect": 0.5,
+                            "dexterity": 0.5,
+                            "social_influence": 0.5,
+                        }),
+                        archetype_id=persona.get("archetype"),
+                        archetype_name=persona.get("archetype_name"),
+                        demographics=persona.get("demographics", {}),
+                        backstory=persona.get("backstory"),
+                        strategic_profile=persona.get("strategic_approach"),
+                    )
+                    self.game_state.players.append(player)
+
+            except (FileNotFoundError, ValueError) as e:
+                self.logger.error(f"Failed to load persona library: {e}")
+                self.logger.error("Falling back to random personality generation")
+                self._initialize_random_players()
+                self._finalize_player_setup()
+                return
+        else:
+            self._initialize_random_players()
+
+        self._finalize_player_setup()
+
+    def _initialize_random_players(self) -> None:
+        """Fallback: Initialize players with random personalities."""
         import random
 
-        # Create players with Big Five personalities
+        self.logger.warning("Using random personality generation (no persona library)")
+
         for i in range(self.config.total_players):
             player = Player(
                 id=f"player_{i:02d}",
                 name=f"Player{i+1}",
-                role=Role.FAITHFUL,  # Default, will reassign
+                role=Role.FAITHFUL,
                 personality={
                     "openness": random.uniform(0.2, 0.8),
                     "conscientiousness": random.uniform(0.2, 0.8),
@@ -72,9 +126,13 @@ class GameEngineContainerized:
             )
             self.game_state.players.append(player)
 
+    def _finalize_player_setup(self) -> None:
+        """Complete player setup: assign roles, trust matrix, and URLs."""
+        import random
+
         # Assign traitor roles
         traitor_indices = random.sample(
-            range(self.config.total_players), self.config.num_traitors
+            range(len(self.game_state.players)), self.config.num_traitors
         )
         for idx in traitor_indices:
             self.game_state.players[idx].role = Role.TRAITOR
@@ -94,6 +152,12 @@ class GameEngineContainerized:
             f"Traitors: {[p.name for p in self.game_state.players if p.role == Role.TRAITOR]}"
         )
 
+        # Log archetype distribution if using personas
+        if self.config.personality_generation == "archetype":
+            archetypes = [p.archetype_name for p in self.game_state.players if p.archetype_name]
+            if archetypes:
+                self.logger.info(f"Archetypes in play: {set(archetypes)}")
+
     async def _initialize_agent_containers(self) -> None:
         """Initialize all agent containers with player data via HTTP."""
         self.logger.info("Initializing agent containers...")
@@ -109,7 +173,13 @@ class GameEngineContainerized:
                         "role": player.role.value,
                         "alive": player.alive,
                         "personality": player.personality,
-                        "stats": player.stats
+                        "stats": player.stats,
+                        # Persona fields for authentic characters
+                        "archetype_id": player.archetype_id,
+                        "archetype_name": player.archetype_name,
+                        "demographics": player.demographics,
+                        "backstory": player.backstory,
+                        "strategic_profile": player.strategic_profile,
                     }
                 }
                 tasks.append(client.post(f"{url}/initialize", json=payload))
@@ -135,7 +205,8 @@ class GameEngineContainerized:
                     "role": p.role.value,
                     "alive": p.alive,
                     "personality": p.personality,
-                    "stats": p.stats
+                    "stats": p.stats,
+                    "archetype_name": p.archetype_name,
                 }
                 for p in self.game_state.players
             ],
