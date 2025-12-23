@@ -372,163 +372,247 @@ The existing 13 archetypes in `core/archetypes.py` map directly to voice profile
 # Maps to existing archetypes from core/archetypes.py
 ARCHETYPE_VOICE_PROFILES = {
     # ===== From core/archetypes.py ARCHETYPE_REGISTRY =====
+    # Voice IDs validated against ElevenLabs library (Dec 2025)
+    # Sources: https://audio-generation-plugin.com/elevenlabs-premade-voices/
+    #          https://help.scenario.com/en/articles/elevenlabs-family-the-essentials/
+    #
+    # Each archetype has BOTH male and female voice options since
+    # personas can be any gender. Use persona.demographics.gender to select.
 
     "prodigy": {
-        # The Prodigy (from archetypes.py): High intellect, low neuroticism
-        "voice_description": "Young, sharp, analytical. Quick speech with occasional hesitation when caught off-guard.",
-        "base_voice_id": "charlotte",  # ElevenLabs young female
+        # The Prodigy: High intellect, low neuroticism
+        "voice_description": "Young, sharp, analytical. Quick speech with occasional hesitation.",
+        "male": {
+            "base_voice_id": "liam",   # Articulate, clear young American
+            "alt_voice_id": "josh",    # Deep, impactful young American
+        },
+        "female": {
+            "base_voice_id": "aria",   # Expressive, young American (2024)
+            "alt_voice_id": "jessica", # Expressive, youthful
+        },
         "stability": 0.6,
         "style": 0.7,
-        "pitch_variation": "medium-high",
-        "speech_rate": "fast",
         "emotional_range": ["confident", "nervous", "excited"],
-        "accent_hint": "educated_neutral"
     },
 
     "charming_sociopath": {
         # The Charming Sociopath: High extraversion, low agreeableness
-        "voice_description": "Smooth, warm, disarming. Perfect control with occasional 'slip' into coldness when alone.",
-        "base_voice_id": "daniel",  # Smooth male
+        "voice_description": "Smooth, warm, disarming. Perfect control with coldness underneath.",
+        "male": {
+            "base_voice_id": "george",  # Warm, trustworthy British - hides malice
+            "alt_voice_id": "roger",    # Confident, persuasive (2024)
+        },
+        "female": {
+            "base_voice_id": "charlotte", # Seductive, playful - manipulation
+            "alt_voice_id": "alice",      # Confident British
+        },
         "stability": 0.75,
         "style": 0.5,
-        "pitch_variation": "steady",
-        "speech_rate": "measured",
         "emotional_range": ["charming", "concerned", "cold"],
-        "accent_hint": "soft_rp"
     },
 
     "bitter_traitor": {
         # The Bitter Traitor: Low agreeableness, high neuroticism
         "voice_description": "Resentful edge, defensive posture. Sarcastic undertone.",
-        "base_voice_id": "adam",  # World-weary male
+        "male": {
+            "base_voice_id": "callum",  # Hoarse, dramatic, intense
+            "alt_voice_id": "clyde",    # War veteran, intense
+        },
+        "female": {
+            "base_voice_id": "lily",    # Raspy, middle-aged British
+            "alt_voice_id": "domi",     # Strong young American
+        },
         "stability": 0.5,
         "style": 0.6,
-        "pitch_variation": "variable",
-        "speech_rate": "clipped",
         "emotional_range": ["bitter", "defensive", "vindictive"],
-        "accent_hint": "regional_working_class"
     },
 
     "misguided_survivor": {
         # The Misguided Survivor: High neuroticism, moderate agreeableness
         "voice_description": "Anxious, overcompensating confidence. Frequently second-guesses.",
-        "base_voice_id": "jessica",  # Vulnerable female
+        "male": {
+            "base_voice_id": "harry",   # Anxious young American - PERFECT
+            "alt_voice_id": "ethan",    # Young American, ASMR-style nervous
+        },
+        "female": {
+            "base_voice_id": "jessica", # Expressive, youthful
+            "alt_voice_id": "freya",    # Young American, versatile
+        },
         "stability": 0.4,
         "style": 0.55,
-        "pitch_variation": "high",
-        "speech_rate": "variable",
         "emotional_range": ["nervous", "hopeful", "panicked"],
-        "accent_hint": "neutral_british"
     },
 
     "zealot": {
         # The Zealot: High conscientiousness, low openness
         "voice_description": "Intense conviction, unwavering certainty. Righteous tone.",
-        "base_voice_id": "arnold",  # Deep authoritative
+        "male": {
+            "base_voice_id": "josh",    # Deep, impactful
+            "alt_voice_id": "bill",     # Strong, documentary-style
+        },
+        "female": {
+            "base_voice_id": "alice",   # Confident British, news presenter
+            "alt_voice_id": "domi",     # Strong young American
+        },
         "stability": 0.8,
         "style": 0.4,
-        "pitch_variation": "low",
-        "speech_rate": "deliberate",
         "emotional_range": ["fervent", "judgmental", "indignant"],
-        "accent_hint": "formal_british"
     },
 
     "infatuated_faithful": {
         # The Infatuated Faithful: High agreeableness, high extraversion
         "voice_description": "Warm, trusting, emotionally open. Eager to connect.",
-        "base_voice_id": "bella",  # Warm female
+        "male": {
+            "base_voice_id": "chris",   # Casual, relatable American
+            "alt_voice_id": "eric",     # Friendly, approachable
+        },
+        "female": {
+            "base_voice_id": "matilda", # Friendly, warm audiobook
+            "alt_voice_id": "rachel",   # Calm, soothing
+        },
         "stability": 0.55,
         "style": 0.7,
-        "pitch_variation": "medium",
-        "speech_rate": "animated",
         "emotional_range": ["affectionate", "hurt", "loyal"],
-        "accent_hint": "friendly_neutral"
     },
 
     "comedic_psychic": {
         # The Comedic Psychic: High openness, moderate extraversion
         "voice_description": "Whimsical, playful, slightly eccentric. Theatrical delivery.",
-        "base_voice_id": "matilda",  # Quirky female
+        "male": {
+            "base_voice_id": "jeremy",  # Excited, American-Irish, energetic
+            "alt_voice_id": "giovanni", # Young English-Italian, foreign flair
+        },
+        "female": {
+            "base_voice_id": "mimi",    # Childish, English-Swedish, quirky
+            "alt_voice_id": "gigi",     # Childish, animation-style
+        },
         "stability": 0.4,
         "style": 0.85,
-        "pitch_variation": "high",
-        "speech_rate": "variable",
         "emotional_range": ["mystical", "silly", "dramatic"],
-        "accent_hint": "theatrical"
     },
 
     "incompetent_authority": {
         # The Incompetent Authority Figure: Low conscientiousness, high extraversion
         "voice_description": "Pompous bluster hiding uncertainty. Overconfident assertions.",
-        "base_voice_id": "bill",  # Theatrical male
+        "male": {
+            "base_voice_id": "patrick", # Shouty, energetic - perfect bluster
+            "alt_voice_id": "bill",     # Strong, documentary
+        },
+        "female": {
+            "base_voice_id": "glinda",  # Middle-aged American, witch-like
+            "alt_voice_id": "serena",   # Pleasant, interactive
+        },
         "stability": 0.5,
         "style": 0.75,
-        "pitch_variation": "variable",
-        "speech_rate": "blustery",
         "emotional_range": ["pompous", "flustered", "indignant"],
-        "accent_hint": "upper_class_affected"
     },
 
     "quirky_outsider": {
         # The Quirky Outsider: High openness, low extraversion
         "voice_description": "Quiet observation, unexpected insights. Deadpan delivery.",
-        "base_voice_id": "thomas",  # Understated male
+        "male": {
+            "base_voice_id": "thomas",  # Calm, meditation-style
+            "alt_voice_id": "fin",      # Old Irish sailor, authentic
+        },
+        "female": {
+            "base_voice_id": "emily",   # Calm young American
+            "alt_voice_id": "nicole",   # Whispering, intimate
+        },
+        "non_binary": {
+            "base_voice_id": "river",   # Non-binary, modern (2024)
+            "alt_voice_id": "thomas",   # Neutral fallback
+        },
         "stability": 0.7,
         "style": 0.3,
-        "pitch_variation": "low",
-        "speech_rate": "measured",
         "emotional_range": ["curious", "detached", "surprised"],
-        "accent_hint": "regional_mild"
     },
 
     "romantic": {
         # The Romantic: High agreeableness, high openness
         "voice_description": "Emotionally rich, idealistic. Dramatic emotional range.",
-        "base_voice_id": "dorothy",  # Warm expressive
+        "male": {
+            "base_voice_id": "brian",   # Deep, rich narration
+            "alt_voice_id": "michael",  # Old American, audiobook
+        },
+        "female": {
+            "base_voice_id": "dorothy", # Pleasant young British
+            "alt_voice_id": "grace",    # Young American-Southern
+        },
         "stability": 0.5,
         "style": 0.65,
-        "pitch_variation": "high",
-        "speech_rate": "flowing",
         "emotional_range": ["hopeful", "heartbroken", "passionate"],
-        "accent_hint": "soft_regional"
     },
 
     "mischievous_operator": {
         # The Mischievous Operator: Low conscientiousness, high extraversion
         "voice_description": "Playful chaos energy. Enjoys stirring the pot.",
-        "base_voice_id": "clyde",  # Mischievous male
+        "male": {
+            "base_voice_id": "charlie", # Casual Australian, playful
+            "alt_voice_id": "jeremy",   # Excited, energetic
+        },
+        "female": {
+            "base_voice_id": "laura",   # Upbeat, lively (2024)
+            "alt_voice_id": "sarah",    # Expressive, energetic
+        },
         "stability": 0.4,
         "style": 0.8,
-        "pitch_variation": "high",
-        "speech_rate": "quick",
         "emotional_range": ["amused", "scheming", "gleeful"],
-        "accent_hint": "cheeky_regional"
     },
 
     "smug_player": {
         # The Smug Player: High extraversion, low agreeableness
         "voice_description": "Self-satisfied confidence. Condescending undertones.",
-        "base_voice_id": "james",  # Smooth superior male
+        "male": {
+            "base_voice_id": "joseph",  # Formal British male
+            "alt_voice_id": "daniel",   # Deep British, authoritative
+        },
+        "female": {
+            "base_voice_id": "alice",   # Confident British, news presenter
+            "alt_voice_id": "charlotte",# Seductive, playful edge
+        },
         "stability": 0.7,
         "style": 0.5,
-        "pitch_variation": "medium",
-        "speech_rate": "deliberate",
         "emotional_range": ["smug", "dismissive", "annoyed"],
-        "accent_hint": "educated_superior"
     },
 
     "charismatic_leader": {
         # The Charismatic Leader: High extraversion, high conscientiousness
         "voice_description": "Inspiring presence, natural authority. Rallying tone.",
-        "base_voice_id": "patrick",  # Strong male lead
+        "male": {
+            "base_voice_id": "liam",    # Articulate, clear
+            "alt_voice_id": "george",   # Warm, trustworthy
+        },
+        "female": {
+            "base_voice_id": "aria",    # Expressive, engaging (2024)
+            "alt_voice_id": "sarah",    # Soft, news delivery
+        },
         "stability": 0.65,
         "style": 0.6,
-        "pitch_variation": "medium",
-        "speech_rate": "commanding",
         "emotional_range": ["inspiring", "determined", "compassionate"],
-        "accent_hint": "natural_authority"
     },
 }
+
+def get_voice_for_persona(persona: Dict) -> str:
+    """Get appropriate voice ID based on persona's archetype and gender.
+
+    Args:
+        persona: Dict with archetype_id and demographics.gender
+
+    Returns:
+        ElevenLabs voice ID string
+    """
+    archetype_id = persona.get("archetype_id", "prodigy")
+    gender = persona.get("demographics", {}).get("gender", "female").lower()
+
+    profile = ARCHETYPE_VOICE_PROFILES.get(archetype_id, ARCHETYPE_VOICE_PROFILES["prodigy"])
+
+    # Handle non-binary if supported by archetype
+    if gender == "non-binary" and "non_binary" in profile:
+        return profile["non_binary"]["base_voice_id"]
+
+    # Default to female if gender unknown
+    gender_key = "male" if gender == "male" else "female"
+    return profile[gender_key]["base_voice_id"]
 
 def map_persona_to_voice(persona: Dict) -> VoiceConfig:
     """Map a persona from library to voice config.
@@ -1699,23 +1783,36 @@ For high-volume production:
 
 ---
 
-## Appendix A: Voice Mapping Table
+## Appendix A: Voice Mapping Table (Gender-Aware)
 
-| Archetype | Voice Description | ElevenLabs Voice | Stability | Style |
-|-----------|-------------------|------------------|-----------|-------|
-| The Prodigy | Young, analytical, quick | Charlotte | 0.6 | 0.7 |
-| The Charming Sociopath | Smooth, measured, warm | Daniel | 0.75 | 0.5 |
-| The Working Class Hero | Northern, grounded, honest | Clyde | 0.7 | 0.4 |
-| The Elder Statesperson | Deep, authoritative, wise | Arnold | 0.8 | 0.3 |
-| The Fan Favourite | Bubbly, enthusiastic, likeable | Bella | 0.55 | 0.8 |
-| The Under-the-Radar | Quiet, unremarkable, forgettable | Thomas | 0.85 | 0.2 |
-| The Wild Card | Unpredictable, energetic, chaotic | Matilda | 0.4 | 0.9 |
-| The Wounded Bird | Vulnerable, emotional, sympathetic | Jessica | 0.5 | 0.6 |
-| The Lone Wolf | Reserved, observant, detached | Patrick | 0.75 | 0.3 |
-| The Entertainer | Theatrical, attention-seeking, witty | Bill | 0.5 | 0.85 |
-| The Strategist | Cerebral, calculating, precise | James | 0.8 | 0.4 |
-| The Heart | Empathetic, protective, maternal/paternal | Dorothy | 0.65 | 0.55 |
-| The Cynic | Skeptical, sardonic, world-weary | Adam | 0.7 | 0.45 |
+*Voice IDs validated against [ElevenLabs premade library](https://audio-generation-plugin.com/elevenlabs-premade-voices/) - Dec 2025*
+
+| Archetype | Male Voice | Female Voice | Stability | Style |
+|-----------|------------|--------------|-----------|-------|
+| The Prodigy | Liam (articulate) | Aria (expressive) | 0.6 | 0.7 |
+| The Charming Sociopath | George (warm, trustworthy) | Charlotte (seductive) | 0.75 | 0.5 |
+| The Bitter Traitor | Callum (hoarse, dramatic) | Lily (raspy British) | 0.5 | 0.6 |
+| The Misguided Survivor | Harry (anxious) | Jessica (expressive) | 0.4 | 0.55 |
+| The Zealot | Josh (deep, impactful) | Alice (confident British) | 0.8 | 0.4 |
+| The Infatuated Faithful | Chris (casual, relatable) | Matilda (friendly, warm) | 0.55 | 0.7 |
+| The Comedic Psychic | Jeremy (excited, energetic) | Mimi (childish, quirky) | 0.4 | 0.85 |
+| The Incompetent Authority | Patrick (shouty, bluster) | Glinda (witch-like) | 0.5 | 0.75 |
+| The Quirky Outsider | Thomas (calm, deadpan) | Emily (calm) / River (NB) | 0.7 | 0.3 |
+| The Romantic | Brian (deep, rich) | Dorothy (pleasant British) | 0.5 | 0.65 |
+| The Mischievous Operator | Charlie (casual Australian) | Laura (upbeat, lively) | 0.4 | 0.8 |
+| The Smug Player | Joseph (formal British) | Alice (confident British) | 0.7 | 0.5 |
+| The Charismatic Leader | Liam (articulate, clear) | Aria (expressive, engaging) | 0.65 | 0.6 |
+
+### Voice Selection Logic
+
+```python
+def get_voice_for_persona(persona: Dict) -> str:
+    archetype = persona.get("archetype_id", "prodigy")
+    gender = persona.get("demographics", {}).get("gender", "female").lower()
+    profile = ARCHETYPE_VOICE_PROFILES[archetype]
+    gender_key = "male" if gender == "male" else "female"
+    return profile[gender_key]["base_voice_id"]
+```
 
 ---
 
