@@ -3,10 +3,12 @@
 
 Usage:
     python scripts/batch_convert_logs.py
+    python scripts/batch_convert_logs.py --force  # Overwrite existing files
 """
 
 import os
 import sys
+import argparse
 from pathlib import Path
 
 # Add parent to path for imports
@@ -80,10 +82,19 @@ def convert_log_to_reports(log_path: Path, output_dir: Path) -> bool:
 
 
 def main():
+    parser = argparse.ArgumentParser(description='Batch convert game logs to JSON/HTML reports')
+    parser.add_argument('--force', '-f', action='store_true',
+                        help='Force overwrite existing report files')
+    parser.add_argument('--logs-dir', type=Path, default=None,
+                        help='Directory containing log files')
+    parser.add_argument('--output-dir', type=Path, default=None,
+                        help='Directory for output reports')
+    args = parser.parse_args()
+
     # Paths
     project_root = Path(__file__).parent.parent
-    logs_dir = project_root / "data" / "games"
-    output_dir = project_root / "reports"
+    logs_dir = args.logs_dir or project_root / "data" / "games"
+    output_dir = args.output_dir or project_root / "reports"
 
     # Ensure output directory exists
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -96,7 +107,11 @@ def main():
         return
 
     print(f"Found {len(log_files)} log files in {logs_dir}")
-    print(f"Output directory: {output_dir}\n")
+    print(f"Output directory: {output_dir}")
+    if args.force:
+        print("Force mode: overwriting existing files\n")
+    else:
+        print()
 
     # Convert each log
     converted = 0
@@ -106,7 +121,7 @@ def main():
     for log_path in log_files:
         # Check if JSON already exists
         json_path = output_dir / f"{log_path.stem}.json"
-        if json_path.exists():
+        if json_path.exists() and not args.force:
             print(f"  Already exists: {log_path.name}")
             skipped += 1
             continue

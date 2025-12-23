@@ -20,6 +20,15 @@ import type { Phase, TrustMatrix, TrustSnapshot } from '../types';
 
 type Theme = 'dark' | 'light' | 'system';
 
+/**
+ * Viewing mode determines what information is visible to the viewer.
+ *
+ * - omniscient: Full spoilers - see all roles, all trust, murder discussions
+ * - faithful: Spoiler-free - experience like a Faithful contestant (optional: from specific player's POV)
+ * - traitor: Traitor knowledge - see Traitors, murder decisions, recruitment plots
+ */
+type ViewingMode = 'omniscient' | 'faithful' | 'traitor';
+
 interface GameStore {
   // Selection state
   selectedGameId: string | null;
@@ -35,6 +44,8 @@ interface GameStore {
   showRoles: boolean;
   showEliminatedPlayers: boolean;
   trustThreshold: number;
+  viewingMode: ViewingMode;
+  povPlayerId: string | null; // For faithful mode - whose perspective to show
 
   // UI state
   sidebarOpen: boolean;
@@ -42,6 +53,15 @@ interface GameStore {
 
   // Computed trust matrix (derived from snapshots + timeline position)
   currentTrustMatrix: TrustMatrix;
+
+  // Animation state for trust matrix transitions
+  previousTrustMatrix: TrustMatrix;
+  animationProgress: number; // 0.0 to 1.0
+  isAnimating: boolean;
+
+  // Playback state
+  isPlaying: boolean;
+  playbackSpeed: number; // 0.5, 1, 2, 4
 
   // Actions - Selection
   selectGame: (id: string | null) => void;
@@ -60,6 +80,8 @@ interface GameStore {
   toggleRoleReveal: () => void;
   toggleShowEliminated: () => void;
   setTrustThreshold: (threshold: number) => void;
+  setViewingMode: (mode: ViewingMode) => void;
+  setPovPlayer: (playerId: string | null) => void;
 
   // Actions - UI
   toggleSidebar: () => void;
@@ -68,6 +90,16 @@ interface GameStore {
 
   // Actions - Trust Matrix
   updateTrustMatrix: (snapshots: TrustSnapshot[]) => void;
+
+  // Actions - Animation
+  startAnimation: () => void;
+  setAnimationProgress: (progress: number) => void;
+  stopAnimation: () => void;
+
+  // Actions - Playback
+  togglePlayback: () => void;
+  setPlaybackSpeed: (speed: number) => void;
+  stopPlayback: () => void;
 
   // Actions - Reset
   reset: () => void;
@@ -144,9 +176,16 @@ export const useGameStore = create<GameStore>()(
       showRoles: false,
       showEliminatedPlayers: true,
       trustThreshold: 0.1,
+      viewingMode: 'omniscient',
+      povPlayerId: null,
       sidebarOpen: false,
       theme: 'dark',
       currentTrustMatrix: {},
+      previousTrustMatrix: {},
+      animationProgress: 1, // Start at 1 (no animation in progress)
+      isAnimating: false,
+      isPlaying: false,
+      playbackSpeed: 1,
 
       // Selection actions
       selectGame: (id) => {
@@ -157,6 +196,10 @@ export const useGameStore = create<GameStore>()(
           currentDay: 1,
           currentPhase: 'breakfast',
           currentTrustMatrix: {},
+          previousTrustMatrix: {},
+          animationProgress: 1,
+          isAnimating: false,
+          isPlaying: false,
         });
       },
 
@@ -232,6 +275,25 @@ export const useGameStore = create<GameStore>()(
         set({ trustThreshold: threshold });
       },
 
+      setViewingMode: (mode) => {
+        // viewingMode controls what's visible. Components should use usePOVVisibility hook.
+        // showRoles is a legacy toggle - we keep it in sync as a fallback
+        // omniscient: show all roles (showRoles = true)
+        // traitor: show traitor roles only (showRoles = false, use usePOVVisibility for nuanced control)
+        // faithful: hide all roles (showRoles = false)
+        const showRoles = mode === 'omniscient';
+        set({
+          viewingMode: mode,
+          showRoles,
+          // Clear POV player if switching away from faithful mode
+          povPlayerId: mode === 'faithful' ? get().povPlayerId : null,
+        });
+      },
+
+      setPovPlayer: (playerId) => {
+        set({ povPlayerId: playerId });
+      },
+
       // UI actions
       toggleSidebar: () => {
         set((state) => ({ sidebarOpen: !state.sidebarOpen }));
@@ -256,9 +318,59 @@ export const useGameStore = create<GameStore>()(
 
       // Trust matrix actions
       updateTrustMatrix: (snapshots) => {
-        const { currentDay, currentPhase } = get();
-        const matrix = findTrustSnapshot(snapshots, currentDay, currentPhase);
-        set({ currentTrustMatrix: matrix });
+        const { currentDay, currentPhase, currentTrustMatrix } = get();
+        const newMatrix = findTrustSnapshot(snapshots, currentDay, currentPhase);
+
+        // Only animate if we have a previous matrix and it's different
+        const hasData = Object.keys(currentTrustMatrix).length > 0;
+        const isNewData = JSON.stringify(newMatrix) !== JSON.stringify(currentTrustMatrix);
+
+        if (hasData && isNewData) {
+          // Start animation from current to new
+          set({
+            previousTrustMatrix: currentTrustMatrix,
+            currentTrustMatrix: newMatrix,
+            animationProgress: 0,
+            isAnimating: true,
+          });
+        } else {
+          // No animation needed
+          set({
+            currentTrustMatrix: newMatrix,
+            previousTrustMatrix: newMatrix,
+            animationProgress: 1,
+            isAnimating: false,
+          });
+        }
+      },
+
+      // Animation actions
+      startAnimation: () => {
+        set({ isAnimating: true, animationProgress: 0 });
+      },
+
+      setAnimationProgress: (progress) => {
+        set({ animationProgress: Math.min(1, Math.max(0, progress)) });
+        if (progress >= 1) {
+          set({ isAnimating: false });
+        }
+      },
+
+      stopAnimation: () => {
+        set({ isAnimating: false, animationProgress: 1 });
+      },
+
+      // Playback actions
+      togglePlayback: () => {
+        set((state) => ({ isPlaying: !state.isPlaying }));
+      },
+
+      setPlaybackSpeed: (speed) => {
+        set({ playbackSpeed: speed });
+      },
+
+      stopPlayback: () => {
+        set({ isPlaying: false });
       },
 
       // Reset actions
@@ -271,6 +383,10 @@ export const useGameStore = create<GameStore>()(
           currentDay: 1,
           currentPhase: 'breakfast',
           currentTrustMatrix: {},
+          previousTrustMatrix: {},
+          animationProgress: 1,
+          isAnimating: false,
+          isPlaying: false,
         });
       },
 
@@ -278,6 +394,7 @@ export const useGameStore = create<GameStore>()(
         set({
           currentDay: 1,
           currentPhase: 'breakfast',
+          isPlaying: false,
         });
       },
     }),
@@ -288,6 +405,7 @@ export const useGameStore = create<GameStore>()(
         showRoles: state.showRoles,
         showEliminatedPlayers: state.showEliminatedPlayers,
         trustThreshold: state.trustThreshold,
+        viewingMode: state.viewingMode,
         theme: state.theme,
       }),
     }
@@ -315,6 +433,8 @@ export const useViewOptions = () =>
     showRoles: state.showRoles,
     showEliminatedPlayers: state.showEliminatedPlayers,
     trustThreshold: state.trustThreshold,
+    viewingMode: state.viewingMode,
+    povPlayerId: state.povPlayerId,
   }));
 
 /**
@@ -340,5 +460,5 @@ export const useUIState = () =>
 // Export the phase list for components
 export { PHASES };
 
-// Export the Theme type
-export type { Theme };
+// Export types
+export type { Theme, ViewingMode };

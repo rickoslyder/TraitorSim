@@ -11,9 +11,9 @@
 
 import React, { useRef, useEffect, useCallback, useMemo, useState } from 'react';
 import ForceGraph2D, { ForceGraphMethods } from 'react-force-graph-2d';
-import { Player, TrustMatrix, matrixToEdges, getSuspicionColor, getArchetypeColor } from '../../types';
+import { Player, TrustMatrix, matrixToEdges, getSuspicionColor, getArchetypeColor, interpolateTrust } from '../../types';
 import { useGameStore } from '../../stores/gameStore';
-import { useContainerSize, useReducedMotion } from '../../hooks';
+import { useContainerSize, useReducedMotion, useTrustAnimation, usePOVVisibility } from '../../hooks';
 
 interface TrustGraphProps {
   players: Record<string, Player>;
@@ -62,26 +62,72 @@ export function TrustGraph({ players, trustMatrix, width, height }: TrustGraphPr
     selectPlayer,
     hoveredPlayerId,
     setHoveredPlayer,
-    showRoles,
     showEliminatedPlayers,
     trustThreshold,
     currentDay,
+    // Animation state
+    previousTrustMatrix,
+    animationProgress,
+    isAnimating,
+    setAnimationProgress,
   } = useGameStore();
+
+  // POV-aware visibility for roles
+  const { shouldShowRole, shouldRevealTraitor, getVisibleTrust } = usePOVVisibility(players);
+
+  // Pre-compute which nodes should show roles (for canvas rendering efficiency)
+  const roleVisibleNodeIds = useMemo(() => {
+    const visible = new Set<string>();
+    Object.entries(players).forEach(([id, player]) => {
+      if (shouldShowRole(player)) {
+        visible.add(id);
+      }
+    });
+    return visible;
+  }, [players, shouldShowRole]);
+
+  // Pre-compute revealed traitors for highlighting
+  const revealedTraitorIds = useMemo(() => {
+    const revealed = new Set<string>();
+    Object.entries(players).forEach(([id, player]) => {
+      if (shouldRevealTraitor(player)) {
+        revealed.add(id);
+      }
+    });
+    return revealed;
+  }, [players, shouldRevealTraitor]);
+
+  // Apply POV filtering to trust matrix
+  const visibleTrustMatrix = useMemo(() => {
+    return getVisibleTrust(trustMatrix);
+  }, [trustMatrix, getVisibleTrust]);
+
+  // Drive the animation with requestAnimationFrame
+  useTrustAnimation(isAnimating, setAnimationProgress, 500);
+
+  // Compute interpolated trust matrix for smooth animation (using POV-filtered matrix)
+  const animatedTrustMatrix = useMemo(() => {
+    if (!isAnimating || animationProgress >= 1) {
+      return visibleTrustMatrix;
+    }
+    // Interpolate between previous and current (both should be POV-filtered)
+    return interpolateTrust(previousTrustMatrix, visibleTrustMatrix, animationProgress);
+  }, [previousTrustMatrix, visibleTrustMatrix, animationProgress, isAnimating]);
 
   // Local hover state for immediate feedback
   const [localHoveredId, setLocalHoveredId] = useState<string | null>(null);
   const hoveredId = localHoveredId || hoveredPlayerId;
 
-  // Calculate connected nodes for hover highlighting
+  // Calculate connected nodes for hover highlighting (use animated matrix)
   const connectedNodes = useMemo(() => {
-    if (!hoveredId || !trustMatrix) return new Set<string>();
+    if (!hoveredId || !animatedTrustMatrix) return new Set<string>();
 
     const connected = new Set<string>();
     connected.add(hoveredId);
 
     // Add nodes this player suspects (outgoing edges)
-    if (trustMatrix[hoveredId]) {
-      Object.entries(trustMatrix[hoveredId]).forEach(([target, suspicion]) => {
+    if (animatedTrustMatrix[hoveredId]) {
+      Object.entries(animatedTrustMatrix[hoveredId]).forEach(([target, suspicion]) => {
         if (suspicion >= trustThreshold) {
           connected.add(target);
         }
@@ -89,16 +135,16 @@ export function TrustGraph({ players, trustMatrix, width, height }: TrustGraphPr
     }
 
     // Add nodes that suspect this player (incoming edges)
-    Object.entries(trustMatrix).forEach(([observer, targets]) => {
+    Object.entries(animatedTrustMatrix).forEach(([observer, targets]) => {
       if (targets[hoveredId] && targets[hoveredId] >= trustThreshold) {
         connected.add(observer);
       }
     });
 
     return connected;
-  }, [hoveredId, trustMatrix, trustThreshold]);
+  }, [hoveredId, animatedTrustMatrix, trustThreshold]);
 
-  // Convert players and trust matrix to graph data
+  // Convert players and trust matrix to graph data (use animated matrix for smooth transitions)
   const graphData = useMemo(() => {
     const nodes: GraphNode[] = [];
     const links: GraphLink[] = [];
@@ -121,8 +167,8 @@ export function TrustGraph({ players, trustMatrix, width, height }: TrustGraphPr
       });
     }
 
-    // Create links from trust matrix
-    const edges = matrixToEdges(trustMatrix, trustThreshold);
+    // Create links from animated trust matrix (smooth transitions)
+    const edges = matrixToEdges(animatedTrustMatrix, trustThreshold);
     for (const edge of edges) {
       // Only add link if both nodes exist
       if (nodes.find(n => n.id === edge.source) && nodes.find(n => n.id === edge.target)) {
@@ -136,7 +182,7 @@ export function TrustGraph({ players, trustMatrix, width, height }: TrustGraphPr
     }
 
     return { nodes, links };
-  }, [players, trustMatrix, showEliminatedPlayers, trustThreshold, currentDay]);
+  }, [players, animatedTrustMatrix, showEliminatedPlayers, trustThreshold, currentDay]);
 
   // Handle node click
   const handleNodeClick = useCallback((node: GraphNode) => {
@@ -156,6 +202,8 @@ export function TrustGraph({ players, trustMatrix, width, height }: TrustGraphPr
     const isHovered = node.id === hoveredId;
     const isConnected = connectedNodes.has(node.id);
     const isDimmed = hoveredId && !isConnected && !isSelected;
+    const showRole = roleVisibleNodeIds.has(node.id);
+    const isRevealedTraitor = revealedTraitorIds.has(node.id);
 
     const baseRadius = 6 + node.socialInfluence * 6;
     const radius = baseRadius / globalScale;
@@ -164,11 +212,11 @@ export function TrustGraph({ players, trustMatrix, width, height }: TrustGraphPr
     // Apply dimming for non-connected nodes during hover
     ctx.globalAlpha = isDimmed ? 0.2 : 1;
 
-    // Draw outer ring for selected/hovered node
-    if (isSelected || isHovered) {
+    // Draw outer ring for selected/hovered/revealed traitor
+    if (isSelected || isHovered || isRevealedTraitor) {
       ctx.beginPath();
       ctx.arc(node.x!, node.y!, radius + 3 / globalScale, 0, 2 * Math.PI);
-      ctx.strokeStyle = isSelected ? '#3b82f6' : '#f59e0b';
+      ctx.strokeStyle = isSelected ? '#3b82f6' : isRevealedTraitor ? '#dc2626' : '#f59e0b';
       ctx.lineWidth = 2 / globalScale;
       ctx.stroke();
     }
@@ -179,8 +227,8 @@ export function TrustGraph({ players, trustMatrix, width, height }: TrustGraphPr
     ctx.fillStyle = node.alive ? node.color : '#4b5563';
     ctx.fill();
 
-    // Draw role indicator if showing roles
-    if (showRoles) {
+    // Draw role indicator if role is visible in current POV
+    if (showRole) {
       ctx.beginPath();
       ctx.arc(node.x! + radius, node.y! - radius, 4 / globalScale, 0, 2 * Math.PI);
       ctx.fillStyle = node.role === 'TRAITOR' ? '#dc2626' : '#22c55e';
@@ -210,7 +258,7 @@ export function TrustGraph({ players, trustMatrix, width, height }: TrustGraphPr
 
     // Reset alpha
     ctx.globalAlpha = 1;
-  }, [selectedPlayerId, hoveredId, connectedNodes, showRoles]);
+  }, [selectedPlayerId, hoveredId, connectedNodes, roleVisibleNodeIds, revealedTraitorIds]);
 
   // Draw custom link
   const drawLink = useCallback((link: GraphLink, ctx: CanvasRenderingContext2D, globalScale: number) => {

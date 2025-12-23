@@ -6,6 +6,86 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 TraitorSim is a high-fidelity AI simulator for the reality TV show "The Traitors" - a social deduction game combining elements of Werewolf/Mafia with economic strategy and psychological manipulation. The system uses advanced multi-agent AI to simulate an entire season with distinct AI personalities exhibiting genuine social dynamics including deception, paranoia, alliance-building, and betrayal.
 
+## Live Deployment
+
+**Production URL:** https://traitorsim.rbnk.uk (port 8085 on server)
+
+### Deployment Commands
+
+```bash
+# Deploy UI changes to production
+cd /home/rkb/projects/TraitorSim/traitorsim-ui
+docker compose -f docker-compose.prod.yml build
+docker compose -f docker-compose.prod.yml up -d
+
+# Check container status
+docker ps --filter "name=traitorsim-ui"
+
+# View logs
+docker logs traitorsim-ui-frontend-1
+docker logs traitorsim-ui-backend-1
+
+# Restart services
+docker compose -f docker-compose.prod.yml restart
+```
+
+### Deployment Architecture
+
+```
+Internet → traitorsim.rbnk.uk → Nginx (port 8085)
+                                   ├── /api/* → backend:8000 (FastAPI)
+                                   └── /* → static React build
+```
+
+## Project Structure
+
+```
+/home/rkb/projects/TraitorSim/
+├── src/traitorsim/                 # Core game engine
+│   ├── core/                       # Game state management
+│   │   ├── game_engine_containerized.py  # Main engine (HTTP to containers)
+│   │   ├── game_engine_async.py    # Async parallel execution
+│   │   ├── game_state.py           # GameState, Player, TrustMatrix
+│   │   ├── config.py               # GameConfig
+│   │   └── archetypes.py           # OCEAN personality traits
+│   ├── agents/                     # AI decision-making
+│   │   ├── game_master_interactions.py   # Gemini Interactions API
+│   │   ├── player_agent_sdk.py     # Claude Agent SDK players
+│   │   └── agent_service.py        # Flask API for containerized agents
+│   ├── mcp/                        # Model Context Protocol tools
+│   └── missions/                   # Game challenges
+│
+├── traitorsim-ui/                  # Web Dashboard (React + FastAPI)
+│   ├── frontend/                   # React + TypeScript + Vite
+│   │   ├── src/
+│   │   │   ├── components/         # UI components
+│   │   │   ├── stores/gameStore.ts # Zustand state management
+│   │   │   ├── hooks/              # Custom React hooks
+│   │   │   ├── types/game.ts       # TypeScript interfaces
+│   │   │   └── api/client.ts       # API client (relative URLs)
+│   │   ├── Dockerfile.prod         # Production: Node build → Nginx
+│   │   └── nginx.conf              # Reverse proxy config
+│   ├── backend/                    # FastAPI server
+│   │   ├── app/
+│   │   │   ├── main.py             # FastAPI app + CORS
+│   │   │   ├── db/database.py      # SQLite + auto-sync from reports
+│   │   │   └── routers/            # games.py, analysis.py, runner.py
+│   │   └── Dockerfile
+│   ├── docker-compose.yml          # Development (hot reload)
+│   └── docker-compose.prod.yml     # Production (port 8085)
+│
+├── data/
+│   ├── memories/                   # Agent memory files (runtime)
+│   └── personas/                   # Character templates (100+ personas)
+│
+├── reports/                        # Game JSON exports (mounted to UI)
+│
+├── .env                            # API keys (GEMINI_API_KEY, CLAUDE_CODE_OAUTH_TOKEN)
+├── CLAUDE.md                       # This file
+├── ARCHITECTURE.md                 # Technical deep-dive
+└── WORLD_BIBLE.md                  # In-universe lore
+```
+
 ## Architecture
 
 ### Core Components
@@ -201,3 +281,135 @@ When writing tests:
 - State mutations only in GameEngine methods
 - Trust Matrix updates should emit event logs for debugging
 - All personality trait access via getter methods (not direct dict access)
+
+## TraitorSim UI System
+
+The web dashboard (`traitorsim-ui/`) provides post-game analysis and visualization.
+
+### Key UI Components
+
+| Component | Location | Purpose |
+|-----------|----------|---------|
+| `TrustGraph` | `components/trust-network/` | D3.js force-directed trust network visualization |
+| `PlayerCard` | `components/players/` | Player info with OCEAN traits, behavioral stats |
+| `EventFeed` | `components/events/` | Chronological event list with POV filtering |
+| `TimelineScrubber` | `components/timeline/` | Navigate days/phases, animate trust evolution |
+| `VoteFlow` | `components/voting/` | Sankey diagram of voting patterns |
+| `POVSelector` | `components/layout/` | Toggle Omniscient/Faithful/Traitor viewing modes |
+| `ScrollytellingView` | `components/recap/` | Narrative story mode for game recap |
+| `BreakfastOrderChart` | `components/analysis/` | Suspicion analysis from breakfast entry patterns |
+| `MissionBreakdown` | `components/analysis/` | Mission performance and sabotage detection |
+
+### State Management (Zustand)
+
+The `gameStore` (`stores/gameStore.ts`) manages:
+- Current game session and metadata
+- Selected player ID for cross-component highlighting
+- Current day/phase for timeline navigation
+- Trust matrix snapshots with animation interpolation
+- POV viewing mode (omniscient, faithful, traitor)
+- UI preferences (showRoles, showEliminatedPlayers, trustThreshold)
+
+### POV System
+
+The `usePOVVisibility` hook (`hooks/usePOVVisibility.ts`) provides:
+- `shouldShowRole(player)` - Whether to display a player's role
+- `shouldRevealTraitor(player)` - Whether to highlight as known traitor
+- `filterVisibleEvents(events)` - Hide traitor-only events in faithful mode
+- `getVisibleTrust(matrix)` - Filter trust matrix by POV player
+- `isSpoilerFree` - True when in faithful mode (no spoilers)
+
+### API Client
+
+The API client (`api/client.ts`) uses **relative URLs** (`/api/*`) which nginx proxies to the backend. Key endpoints:
+- `GET /api/games` - List all games
+- `GET /api/games/{id}` - Full game with trust matrices
+- `POST /api/games/sync` - Re-import from reports directory
+- `GET /api/games/{id}/trust-matrix?day=N&phase=P` - Trust at specific point
+
+### Building & Deploying UI
+
+```bash
+# Development (with hot reload)
+cd traitorsim-ui
+docker compose up --build
+
+# Production deployment
+cd traitorsim-ui
+docker compose -f docker-compose.prod.yml build
+docker compose -f docker-compose.prod.yml up -d
+
+# Frontend-only rebuild
+docker compose -f docker-compose.prod.yml build frontend
+docker compose -f docker-compose.prod.yml up -d frontend
+
+# Check what ports are in use
+sudo netstat -tlnp | grep -E ':(80|8080|8085|5173|8000)'
+```
+
+## Running Game Simulations
+
+```bash
+# Run a containerized game (from project root)
+cd /home/rkb/projects/TraitorSim
+source .env
+python -m src.traitorsim
+
+# Check game reports
+ls -la reports/
+
+# Sync new reports to UI
+curl -X POST http://localhost:8085/api/games/sync
+```
+
+## Environment Variables
+
+Required in `.env`:
+```
+GEMINI_API_KEY=...          # For Game Master (Gemini Interactions API)
+CLAUDE_CODE_OAUTH_TOKEN=... # For Player Agents (Claude Agent SDK)
+```
+
+## Common Issues & Solutions
+
+### Port Already in Use
+```bash
+# Find and kill process on port
+sudo lsof -ti:8085 | xargs -r kill -9
+# Or use a different port in docker-compose.prod.yml
+```
+
+### Backend Unhealthy
+The healthcheck requires `curl` in the container. Check logs:
+```bash
+docker logs traitorsim-ui-backend-1 --tail 50
+```
+
+### Games Not Appearing in UI
+```bash
+# Check reports directory is mounted
+docker exec traitorsim-ui-backend-1 ls /app/reports
+
+# Force re-sync
+curl -X POST http://localhost:8085/api/games/refresh
+```
+
+### CORS Errors
+The backend allows these origins (see `backend/app/main.py`):
+- `http://localhost:5173` (dev)
+- `http://localhost:3000`
+- `https://traitorsim.rbnk.uk`
+
+Add new origins to the `origins` list if needed.
+
+## Claude Code Skills
+
+This project includes 8 Claude Code Agent Skills in `.claude/skills/`:
+1. **persona-pipeline** - Orchestrate persona generation
+2. **archetype-designer** - Design OCEAN personality archetypes
+3. **world-bible-validator** - Check lore consistency
+4. **quota-manager** - Manage Gemini API quotas
+5. **game-analyzer** - Analyze completed games
+6. **memory-debugger** - Debug agent memory systems
+7. **simulation-config** - Configure game rules
+8. **traitorsim-orchestrator** - Run complete workflows

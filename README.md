@@ -2,6 +2,8 @@
 
 AI simulation of "The Traitors" TV show game using **dual-SDK architecture** with Gemini Interactions API for game orchestration and Claude Agent SDK for player decision-making.
 
+**Live Dashboard:** https://traitorsim.rbnk.uk - Interactive visualization of game sessions with trust networks, voting patterns, and POV-aware analysis.
+
 ## Overview
 
 TraitorSim is a high-fidelity multi-agent AI simulation that recreates the social deduction game from the reality TV show "The Traitors." The system uses a cutting-edge **dual-SDK architecture**:

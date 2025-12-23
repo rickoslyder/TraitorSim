@@ -85,3 +85,80 @@ export function useReducedMotion(): boolean {
 
   return prefersReducedMotion;
 }
+
+/**
+ * useTrustAnimation - Animate trust matrix transitions using requestAnimationFrame
+ *
+ * Provides smooth interpolation between trust matrix states with configurable duration
+ * and easing. Respects reduced motion preference.
+ */
+export function useTrustAnimation(
+  isAnimating: boolean,
+  onProgress: (progress: number) => void,
+  duration: number = 500 // ms
+): void {
+  const prefersReducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    if (!isAnimating) return;
+
+    // Skip animation if user prefers reduced motion
+    if (prefersReducedMotion) {
+      onProgress(1);
+      return;
+    }
+
+    let startTime: number | null = null;
+    let animationFrameId: number;
+
+    const animate = (timestamp: number) => {
+      if (startTime === null) {
+        startTime = timestamp;
+      }
+
+      const elapsed = timestamp - startTime;
+      const linearProgress = Math.min(elapsed / duration, 1);
+
+      // Apply easing (ease-out cubic for smooth deceleration)
+      const easedProgress = 1 - Math.pow(1 - linearProgress, 3);
+
+      onProgress(easedProgress);
+
+      if (linearProgress < 1) {
+        animationFrameId = requestAnimationFrame(animate);
+      }
+    };
+
+    animationFrameId = requestAnimationFrame(animate);
+
+    return () => {
+      if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+  }, [isAnimating, onProgress, duration, prefersReducedMotion]);
+}
+
+/**
+ * usePlaybackTimer - Auto-advance timeline based on playback state
+ *
+ * When playing, advances through phases/days at the specified speed.
+ */
+export function usePlaybackTimer(
+  isPlaying: boolean,
+  playbackSpeed: number,
+  onAdvance: () => void,
+  baseDurationMs: number = 2000 // Time per phase at 1x speed
+): void {
+  useEffect(() => {
+    if (!isPlaying) return;
+
+    const interval = baseDurationMs / playbackSpeed;
+
+    const timerId = setInterval(() => {
+      onAdvance();
+    }, interval);
+
+    return () => clearInterval(timerId);
+  }, [isPlaying, playbackSpeed, onAdvance, baseDurationMs]);
+}

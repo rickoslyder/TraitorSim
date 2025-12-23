@@ -231,8 +231,10 @@ export function VoteFlow({ players, events, day }: VoteFlowProps) {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           nodeTooltip={({ node }: { node: any }) => {
             const player = players[node.id];
-            const inValue = node.sourceLinks?.reduce((sum: number, link: { value?: number }) => sum + (link.value || 0), 0) || 0;
-            const outValue = node.targetLinks?.reduce((sum: number, link: { value?: number }) => sum + (link.value || 0), 0) || 0;
+            // sourceLinks = links where this node is the source (votes cast)
+            // targetLinks = links where this node is the target (votes received)
+            const votesCast = node.sourceLinks?.reduce((sum: number, link: { value?: number }) => sum + (link.value || 0), 0) || 0;
+            const votesReceived = node.targetLinks?.reduce((sum: number, link: { value?: number }) => sum + (link.value || 0), 0) || 0;
 
             return (
               <div className="bg-gray-800 px-3 py-2 rounded-lg shadow-lg border border-gray-700">
@@ -241,8 +243,8 @@ export function VoteFlow({ players, events, day }: VoteFlowProps) {
                   <div className="text-xs text-gray-400">{player.archetype_name}</div>
                 )}
                 <div className="mt-2 text-xs space-y-1">
-                  <div className="text-green-400">Cast {outValue} votes</div>
-                  <div className="text-red-400">Received {inValue} votes</div>
+                  <div className="text-green-400">Cast {votesCast} votes</div>
+                  <div className="text-red-400">Received {votesReceived} votes</div>
                 </div>
                 {showRoles && player && (
                   <div className={`mt-2 text-xs font-medium ${

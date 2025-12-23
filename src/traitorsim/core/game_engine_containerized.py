@@ -1521,9 +1521,14 @@ class GameEngineContainerized:
         from datetime import datetime
         from pathlib import Path
 
-        # Default path
+        # Default path - use mounted volume in container, or local reports dir
         if output_path is None:
-            reports_dir = Path("reports")
+            import os
+            # Check for container environment (mounted at /app/data)
+            if os.path.isdir("/app/data"):
+                reports_dir = Path("/app/data/reports")
+            else:
+                reports_dir = Path("reports")
             reports_dir.mkdir(exist_ok=True)
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             output_path = reports_dir / f"game_{timestamp}.json"

@@ -133,8 +133,12 @@ export function Sidebar() {
                 <div className="flex items-center gap-2 mt-1 text-xs opacity-75">
                   <span>{game.total_days} days</span>
                   <span>•</span>
-                  <span className={game.winner === 'FAITHFUL' ? 'text-blue-300' : 'text-red-300'}>
-                    {game.winner}
+                  <span className={
+                    game.winner === 'FAITHFUL' ? 'text-blue-300' :
+                    game.winner === 'TRAITORS' ? 'text-red-300' :
+                    'text-gray-400'
+                  }>
+                    {game.winner === '' || game.winner === 'UNKNOWN' ? 'In Progress' : game.winner}
                   </span>
                 </div>
               </motion.button>

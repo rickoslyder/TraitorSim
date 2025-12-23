@@ -19,6 +19,17 @@ DATABASE_PATH = Path(__file__).parent.parent.parent / "data" / "games.db"
 SCHEMA_PATH = Path(__file__).parent / "schema.sql"
 
 
+def _normalize_winner(winner: Optional[str]) -> str:
+    """Normalize winner field: TRAITOR -> TRAITORS, empty/None -> UNKNOWN."""
+    if not winner:
+        return 'UNKNOWN'
+    if winner == 'TRAITOR':
+        return 'TRAITORS'
+    if winner in ('FAITHFUL', 'TRAITORS', 'UNKNOWN'):
+        return winner
+    return 'UNKNOWN'
+
+
 async def get_db() -> aiosqlite.Connection:
     """Get database connection with row factory enabled."""
     DATABASE_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -168,8 +179,8 @@ async def migrate_json_to_db(json_path: Path) -> str:
             datetime.now().isoformat(),
             data.get('total_days', data.get('day', 0)),
             data.get('prize_pot', 0),
-            # Normalize winner: TRAITOR -> TRAITORS, FAITHFUL stays FAITHFUL
-            ('TRAITORS' if data.get('winner') == 'TRAITOR' else data.get('winner', 'UNKNOWN')),
+            # Normalize winner: TRAITOR -> TRAITORS, empty -> UNKNOWN
+            _normalize_winner(data.get('winner')),
             data.get('rule_variant', 'uk'),
             str(json_path),
             config.get('total_players'),

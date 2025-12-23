@@ -6,6 +6,7 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GameEvent, EventType, getEventInfo, normalizePhase } from '../../types';
 import { useGameStore } from '../../stores/gameStore';
+import { usePOVVisibility } from '../../hooks';
 
 interface EventFeedProps {
   events: GameEvent[];
@@ -25,12 +26,19 @@ export function EventFeed({ events, maxDay }: EventFeedProps) {
   const { setTimelinePosition, currentDay, currentPhase } = useGameStore();
   const effectiveMaxDay = maxDay ?? currentDay;
 
+  // POV-aware event filtering (hides Traitor-only events in Faithful mode)
+  const { filterVisibleEvents, isSpoilerFree } = usePOVVisibility();
+
   const [filterIndex, setFilterIndex] = useState(0);
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
 
-  // Filter events
+  // Filter events with POV awareness
   const filteredEvents = useMemo(() => {
-    let filtered = events.filter(e => e.day <= effectiveMaxDay);
+    // First apply POV filter (hides murder planning, recruitment offers in Faithful mode)
+    let filtered = filterVisibleEvents(events);
+
+    // Then filter by day
+    filtered = filtered.filter(e => e.day <= effectiveMaxDay);
 
     // Apply type filter
     const filter = EVENT_TYPE_FILTERS[filterIndex];
@@ -43,7 +51,7 @@ export function EventFeed({ events, maxDay }: EventFeedProps) {
       if (a.day !== b.day) return b.day - a.day;
       return 0;
     });
-  }, [events, effectiveMaxDay, filterIndex]);
+  }, [events, effectiveMaxDay, filterIndex, filterVisibleEvents]);
 
   const handleEventClick = (event: GameEvent) => {
     // Navigate to event's day/phase (normalize phase for consistency)
@@ -176,9 +184,14 @@ export function EventFeed({ events, maxDay }: EventFeedProps) {
         )}
       </div>
 
-      {/* Stats */}
-      <div className="text-xs text-gray-500 text-center">
-        Showing {filteredEvents.length} events
+      {/* Stats and POV indicator */}
+      <div className="text-xs text-gray-500 text-center space-y-1">
+        <div>Showing {filteredEvents.length} events</div>
+        {isSpoilerFree && (
+          <div className="text-yellow-500">
+            👁️ Faithful POV - some events hidden
+          </div>
+        )}
       </div>
     </div>
   );

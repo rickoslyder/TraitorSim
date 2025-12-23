@@ -8,11 +8,14 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
+import { POVSelector } from './components/layout/POVSelector';
 import { TrustGraph } from './components/trust-network/TrustGraph';
 import { PlayerGrid } from './components/players/PlayerGrid';
-import { TimelineScrubber } from './components/timeline/TimelineScrubber';
+import { TimelineScrubber, PlaybackControls } from './components/timeline';
 import { VotingHeatmap, VoteFlow } from './components/voting';
 import { EventFeed } from './components/events/EventFeed';
+import { BreakfastOrderChart, MissionBreakdown } from './components/analysis';
+import { ScrollytellingView } from './components/recap';
 import {
   ErrorBoundary,
   QueryErrorFallback,
@@ -23,7 +26,7 @@ import { useGameStore } from './stores/gameStore';
 import { useGame, useRefreshGames } from './api/hooks';
 import type { TrustSnapshot } from './types';
 
-type ViewTab = 'graph' | 'players' | 'voting' | 'events';
+type ViewTab = 'graph' | 'players' | 'voting' | 'events' | 'analysis' | 'story';
 type VotingView = 'heatmap' | 'flow';
 
 function App() {
@@ -69,6 +72,8 @@ function App() {
     { id: 'players', label: 'Players', icon: '👥' },
     { id: 'voting', label: 'Voting', icon: '🗳️' },
     { id: 'events', label: 'Events', icon: '📜' },
+    { id: 'analysis', label: 'Analysis', icon: '📊' },
+    { id: 'story', label: 'Story Mode', icon: '📖' },
   ];
 
   return (
@@ -112,12 +117,27 @@ function App() {
             {/* Game loaded */}
             {!isLoading && !error && currentGame && (
               <>
-                {/* Timeline */}
-                <div className="p-4 border-b border-gray-700">
-                  <TimelineScrubber
-                    totalDays={currentGame.total_days}
-                    events={currentGame.events}
-                  />
+                {/* Timeline, Playback Controls, and POV Selector */}
+                <div className="p-4 border-b border-gray-700 space-y-4">
+                  <div className="flex flex-col lg:flex-row gap-4">
+                    <div className="flex-1 space-y-4">
+                      <TimelineScrubber
+                        totalDays={currentGame.total_days}
+                        events={currentGame.events}
+                      />
+                      <PlaybackControls totalDays={currentGame.total_days} />
+                    </div>
+                    {/* POV Selector - collapsible panel */}
+                    <div className="lg:w-80 lg:border-l lg:border-gray-700 lg:pl-4">
+                      <details className="group">
+                        <summary className="flex items-center gap-2 cursor-pointer text-gray-400 hover:text-white mb-2">
+                          <span className="text-sm font-medium">Viewing Mode</span>
+                          <span className="text-xs text-gray-500">(click to expand)</span>
+                        </summary>
+                        <POVSelector players={currentGame.players} />
+                      </details>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Tab bar */}
@@ -249,6 +269,66 @@ function App() {
                       >
                         <ErrorBoundary>
                           <EventFeed events={currentGame.events} />
+                        </ErrorBoundary>
+                      </motion.div>
+                    )}
+
+                    {activeTab === 'analysis' && (
+                      <motion.div
+                        key="analysis"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="h-full overflow-y-auto p-4"
+                      >
+                        <ErrorBoundary>
+                          <div className="space-y-8 max-w-6xl mx-auto">
+                            {/* Analysis header */}
+                            <div className="text-center">
+                              <h2 className="text-2xl font-bold text-white mb-2">
+                                Game Analysis
+                              </h2>
+                              <p className="text-gray-400 text-sm">
+                                Detect suspicious patterns like a true Traitors detective
+                              </p>
+                            </div>
+
+                            {/* Breakfast Order Analysis */}
+                            <section className="bg-gray-800 rounded-xl p-6">
+                              <BreakfastOrderChart
+                                players={currentGame.players}
+                                events={currentGame.events}
+                              />
+                            </section>
+
+                            {/* Mission Performance Analysis */}
+                            <section className="bg-gray-800 rounded-xl p-6">
+                              <MissionBreakdown
+                                players={currentGame.players}
+                                events={currentGame.events}
+                              />
+                            </section>
+                          </div>
+                        </ErrorBoundary>
+                      </motion.div>
+                    )}
+
+                    {activeTab === 'story' && (
+                      <motion.div
+                        key="story"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="h-full overflow-y-auto"
+                      >
+                        <ErrorBoundary>
+                          <ScrollytellingView
+                            players={currentGame.players}
+                            events={currentGame.events}
+                            totalDays={currentGame.total_days}
+                            prizePot={currentGame.prize_pot}
+                            winner={currentGame.winner === 'FAITHFUL' || currentGame.winner === 'TRAITORS' ? currentGame.winner : undefined}
+                          />
                         </ErrorBoundary>
                       </motion.div>
                     )}

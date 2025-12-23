@@ -14,7 +14,7 @@ CREATE TABLE games (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     total_days INTEGER NOT NULL,
     prize_pot INTEGER DEFAULT 0,
-    winner TEXT CHECK(winner IN ('FAITHFUL', 'TRAITORS', 'UNKNOWN')),
+    winner TEXT DEFAULT 'UNKNOWN' CHECK(winner IN ('FAITHFUL', 'TRAITORS', 'UNKNOWN', '')),
     rule_variant TEXT DEFAULT 'uk',
     source_file TEXT,  -- Original JSON path for reference
     -- Config fields

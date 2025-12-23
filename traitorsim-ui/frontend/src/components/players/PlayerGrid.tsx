@@ -76,8 +76,12 @@ export function PlayerGrid({ players, trustMatrix, events = [] }: PlayerGridProp
   }, [players, searchTerm, archetypeFilter, showEliminatedPlayers, currentDay]);
 
   const handlePlayerClick = (player: Player) => {
-    selectPlayer(player.id === selectedPlayerId ? null : player.id);
-    setDetailPlayer(player);
+    const isCurrentlySelected = player.id === selectedPlayerId;
+    selectPlayer(isCurrentlySelected ? null : player.id);
+    // Only open modal when selecting, not when deselecting
+    if (!isCurrentlySelected) {
+      setDetailPlayer(player);
+    }
   };
 
   const handleCloseModal = () => {
@@ -171,6 +175,8 @@ export function PlayerGrid({ players, trustMatrix, events = [] }: PlayerGridProp
                   isSelected={player.id === selectedPlayerId}
                   showRole={showRoles}
                   onClick={() => handlePlayerClick(player)}
+                  events={events}
+                  players={players}
                 />
               </motion.div>
             ))}

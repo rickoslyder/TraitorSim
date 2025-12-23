@@ -20,7 +20,8 @@ export function normalizePhase(phase: string): Phase {
   return phase as Phase;
 }
 
-export type Winner = 'FAITHFUL' | 'TRAITORS';
+// Winner can also be 'UNKNOWN' or empty string for incomplete games
+export type Winner = 'FAITHFUL' | 'TRAITORS' | 'UNKNOWN' | '';
 
 export type RuleVariant = 'uk' | 'us' | 'australia' | 'canada';
 
