@@ -4,7 +4,7 @@
 
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GameEvent, EventType, getEventInfo, Phase } from '../../types';
+import { GameEvent, EventType, getEventInfo, normalizePhase } from '../../types';
 import { useGameStore } from '../../stores/gameStore';
 
 interface EventFeedProps {
@@ -46,8 +46,8 @@ export function EventFeed({ events, maxDay }: EventFeedProps) {
   }, [events, effectiveMaxDay, filterIndex]);
 
   const handleEventClick = (event: GameEvent) => {
-    // Navigate to event's day/phase
-    setTimelinePosition(event.day, event.phase as Phase);
+    // Navigate to event's day/phase (normalize phase for consistency)
+    setTimelinePosition(event.day, normalizePhase(event.phase));
     setExpandedEvent(expandedEvent === event.id ? null : event.id ?? null);
   };
 
@@ -95,7 +95,7 @@ export function EventFeed({ events, maxDay }: EventFeedProps) {
                   {dayEvents.map((event, index) => {
                     const info = getEventInfo(event.type);
                     const isExpanded = expandedEvent === event.id;
-                    const isCurrent = event.day === currentDay && event.phase === currentPhase;
+                    const isCurrent = event.day === currentDay && normalizePhase(event.phase) === currentPhase;
 
                     return (
                       <motion.div

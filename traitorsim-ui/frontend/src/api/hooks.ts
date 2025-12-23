@@ -376,3 +376,92 @@ export function usePrefetchGame() {
     });
   };
 }
+
+// ============================================================================
+// Game Runner
+// ============================================================================
+
+interface RunStatusResponse {
+  running: boolean;
+  game_id?: string;
+  status?: string;
+  current_day: number;
+  current_phase: string;
+  alive_players: number;
+  prize_pot: number;
+  winner?: string;
+  started_at?: string;
+  log_line_count: number;
+}
+
+interface StartGameRequest {
+  num_players?: number;
+  num_traitors?: number;
+  rule_variant?: string;
+}
+
+/**
+ * Get game runner status
+ */
+export function useRunStatus() {
+  return useQuery({
+    queryKey: ['runner', 'status'],
+    queryFn: async () => {
+      const response = await fetch('/api/games/run/status');
+      if (!response.ok) throw new Error('Failed to get run status');
+      return response.json() as Promise<RunStatusResponse>;
+    },
+    refetchInterval: (query) => {
+      // Poll every 2 seconds while game is running
+      return query.state.data?.running ? 2000 : false;
+    },
+  });
+}
+
+/**
+ * Start a new game
+ */
+export function useStartGame() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (request: StartGameRequest = {}) => {
+      const response = await fetch('/api/games/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to start game');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['runner', 'status'] });
+    },
+  });
+}
+
+/**
+ * Stop running game
+ */
+export function useStopGame() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      const response = await fetch('/api/games/run/stop', { method: 'POST' });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || 'Failed to stop game');
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['runner', 'status'] });
+      // Refresh games list to pick up new game
+      queryClient.invalidateQueries({ queryKey: queryKeys.games.all });
+    },
+  });
+}

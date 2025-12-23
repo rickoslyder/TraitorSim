@@ -11,7 +11,7 @@
 
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Player, TrustMatrix, GameEvent, getArchetypeColor, getSuspicionColor } from '../../types';
+import { Player, TrustMatrix, GameEvent, getArchetypeColor, getSuspicionColor, normalizePhase } from '../../types';
 import { useGameStore } from '../../stores/gameStore';
 import { useReducedMotion } from '../../hooks';
 
@@ -385,7 +385,7 @@ export function PlayerDetailModal({
                   playerEvents.map((event, i) => (
                     <button
                       key={event.id ?? i}
-                      onClick={() => setTimelinePosition(event.day, event.phase as any)}
+                      onClick={() => setTimelinePosition(event.day, normalizePhase(event.phase))}
                       className="w-full text-left bg-gray-750 rounded-lg p-3 hover:bg-gray-700 transition-colors"
                     >
                       <div className="flex items-center gap-2">

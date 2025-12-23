@@ -8,7 +8,17 @@ import type { TrustSnapshot } from './trust';
 
 export type Role = 'FAITHFUL' | 'TRAITOR';
 
-export type Phase = 'breakfast' | 'mission' | 'social' | 'roundtable' | 'turret';
+// Note: Backend may use 'round_table' (snake_case), frontend normalizes to 'roundtable'
+export type Phase = 'breakfast' | 'mission' | 'social' | 'roundtable' | 'turret' | 'round_table';
+
+/**
+ * Normalize phase name from backend format to frontend format
+ * Handles snake_case (round_table) to lowercase (roundtable) conversion
+ */
+export function normalizePhase(phase: string): Phase {
+  if (phase === 'round_table') return 'roundtable';
+  return phase as Phase;
+}
 
 export type Winner = 'FAITHFUL' | 'TRAITORS';
 

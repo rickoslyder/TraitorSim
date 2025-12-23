@@ -11,7 +11,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import games, analysis
+from .routers import games, analysis, runner
 from .db.database import init_db, sync_from_filesystem
 from .cache import cache
 
@@ -44,6 +44,7 @@ app.add_middleware(
 # Include routers
 app.include_router(games.router, prefix="/api/games", tags=["games"])
 app.include_router(analysis.router, prefix="/api/games", tags=["analysis"])
+app.include_router(runner.router, prefix="/api/games", tags=["runner"])
 
 
 @app.on_event("startup")

@@ -5,12 +5,16 @@
  * Collapsible on mobile with overlay backdrop.
  */
 
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore } from '../../stores/gameStore';
-import { useGames, usePrefetchGame } from '../../api/hooks';
+import { useGames, usePrefetchGame, useRunStatus } from '../../api/hooks';
 import { LoadingFallback, QueryErrorFallback } from '../ErrorBoundary';
+import { GameRunner } from '../runner';
 
 export function Sidebar() {
+  const [runnerOpen, setRunnerOpen] = useState(false);
+  const { data: runStatus } = useRunStatus();
   // UI state from Zustand
   const { selectedGameId, selectGame, sidebarOpen, setSidebarOpen } = useGameStore();
 
@@ -67,6 +71,35 @@ export function Sidebar() {
         </h2>
       </div>
 
+      {/* Run New Game button */}
+      <div className="p-2 border-b border-gray-700">
+        <motion.button
+          onClick={() => setRunnerOpen(true)}
+          className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg font-medium transition-colors ${
+            runStatus?.running
+              ? 'bg-yellow-600 hover:bg-yellow-500 text-white'
+              : 'bg-green-600 hover:bg-green-500 text-white'
+          }`}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          {runStatus?.running ? (
+            <>
+              <span className="relative flex h-3 w-3">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-300 opacity-75" />
+                <span className="relative inline-flex rounded-full h-3 w-3 bg-yellow-200" />
+              </span>
+              Game Running...
+            </>
+          ) : (
+            <>
+              <span>▶</span>
+              Run New Game
+            </>
+          )}
+        </motion.button>
+      </div>
+
       <div className="flex-1 overflow-y-auto p-2">
         {isLoading ? (
           <LoadingFallback message="Loading games..." />
@@ -120,6 +153,9 @@ export function Sidebar() {
           </div>
         )}
       </aside>
+
+      {/* Game Runner Modal */}
+      <GameRunner isOpen={runnerOpen} onClose={() => setRunnerOpen(false)} />
     </>
   );
 }

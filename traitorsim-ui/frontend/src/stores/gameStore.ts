@@ -80,6 +80,12 @@ interface GameStore {
 
 const PHASES: Phase[] = ['breakfast', 'mission', 'social', 'roundtable', 'turret'];
 
+// Backend may use 'round_table', so we normalize when comparing
+const normalizePhaseForMatch = (phase: Phase | string): Phase => {
+  if (phase === 'round_table') return 'roundtable';
+  return phase as Phase;
+};
+
 // ============================================================================
 // Helpers
 // ============================================================================
@@ -97,16 +103,22 @@ function findTrustSnapshot(
     return {};
   }
 
-  // Find exact match first
-  const exact = snapshots.find(s => s.day === day && s.phase === phase);
+  const normalizedPhase = normalizePhaseForMatch(phase);
+
+  // Find exact match first (normalize both for comparison)
+  const exact = snapshots.find(
+    s => s.day === day && normalizePhaseForMatch(s.phase) === normalizedPhase
+  );
   if (exact) return exact.matrix;
 
   // Find closest previous snapshot
-  const phaseIndex = PHASES.indexOf(phase);
+  const phaseIndex = PHASES.indexOf(normalizedPhase);
   for (let d = day; d >= 1; d--) {
     const startPhase = d === day ? phaseIndex : PHASES.length - 1;
     for (let p = startPhase; p >= 0; p--) {
-      const snapshot = snapshots.find(s => s.day === d && s.phase === PHASES[p]);
+      const snapshot = snapshots.find(
+        s => s.day === d && normalizePhaseForMatch(s.phase) === PHASES[p]
+      );
       if (snapshot) return snapshot.matrix;
     }
   }
