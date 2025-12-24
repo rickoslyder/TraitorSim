@@ -15,6 +15,8 @@ services:
       timeout: 5s
       retries: 3
     restart: unless-stopped
+    networks:
+      - default
 
   frontend:
     build:
@@ -25,3 +27,19 @@ services:
     depends_on:
       - backend
     restart: unless-stopped
+    networks:
+      - default
+      - traefik_proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.traitorsim-ui.rule=Host(`traitorsim.rbnk.uk`)"
+      - "traefik.http.routers.traitorsim-ui.entrypoints=websecure"
+      - "traefik.http.routers.traitorsim-ui.tls=true"
+      - "traefik.http.routers.traitorsim-ui.tls.certresolver=cf"
+      - "traefik.http.services.traitorsim-ui.loadbalancer.server.port=80"
+      - "traefik.docker.network=traefik_proxy"
+
+networks:
+  default:
+  traefik_proxy:
+    external: true
