@@ -1583,3 +1583,98 @@ class GameEngineContainerized:
     def run_game(self) -> str:
         """Synchronous wrapper for run_game_async."""
         return asyncio.run(self.run_game_async())
+
+    # =========================================================================
+    # VOICE INTEGRATION HOOKS
+    # =========================================================================
+
+    def generate_voice_scripts(self, output_dir: Optional[str] = None) -> str:
+        """Generate voice scripts for all game days.
+
+        Creates DialogueScript files for each day that can be used
+        for ElevenLabs voice synthesis (Episode Mode).
+
+        Args:
+            output_dir: Directory for output. Defaults to reports/voice_scripts/
+
+        Returns:
+            Path to output directory
+        """
+        from pathlib import Path
+        from ..voice import (
+            EpisodeGenerator,
+            EpisodeGeneratorConfig,
+            export_season_scripts,
+        )
+
+        # Default output directory
+        if output_dir is None:
+            reports_dir = Path("reports")
+            if Path("/app/data").is_dir():
+                reports_dir = Path("/app/data/reports")
+            output_dir = reports_dir / "voice_scripts"
+
+        output_path = Path(output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
+
+        # Export all episode scripts
+        export_season_scripts(
+            game_state=self.game_state,
+            output_path=str(output_path),
+            agent_reasoning_by_day=None,  # TODO: Capture reasoning during gameplay
+            config=EpisodeGeneratorConfig(
+                include_cold_open=True,
+                include_preview=True,
+                include_social_phase=True,
+            )
+        )
+
+        self.logger.info(f"📜 Voice scripts generated: {output_path}")
+        return str(output_path)
+
+    def generate_single_day_script(self, day: int) -> Optional["DialogueScript"]:
+        """Generate voice script for a single day.
+
+        Args:
+            day: Day number to generate script for
+
+        Returns:
+            DialogueScript for the day, or None if no events
+        """
+        from ..voice import extract_script_from_game_state
+
+        try:
+            return extract_script_from_game_state(
+                game_state=self.game_state,
+                day=day,
+            )
+        except Exception as e:
+            self.logger.error(f"Error generating voice script for day {day}: {e}")
+            return None
+
+    def get_player_voice_config(self, player_id: str) -> Optional[Dict]:
+        """Get voice configuration for a player.
+
+        Returns ElevenLabs API parameters for the player's voice
+        based on their archetype and personality.
+
+        Args:
+            player_id: Player ID
+
+        Returns:
+            Dict with voice_id and voice_settings, or None
+        """
+        from ..voice import get_voice_config_for_persona
+
+        player = self.game_state.get_player(player_id)
+        if not player:
+            return None
+
+        persona_data = {
+            "archetype_id": player.archetype_id,
+            "demographics": player.demographics,
+            "personality": player.personality,
+        }
+
+        config = get_voice_config_for_persona(persona_data)
+        return config.to_api_params()
