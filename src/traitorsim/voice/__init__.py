@@ -85,6 +85,19 @@ from .elevenlabs_client import (
     quick_synthesize,
 )
 
+# Audio assembler
+from .audio_assembler import (
+    EpisodeAudioAssembler,
+    AudioTimeline,
+    AudioTrack,
+    AudioCue,
+    MusicLibrary,
+    SFXLibrary,
+    MusicMood,
+    SFXType,
+    assemble_episode_from_script,
+)
+
 
 __all__ = [
     # Models
@@ -130,6 +143,16 @@ __all__ = [
     "UsageStats",
     "create_client",
     "quick_synthesize",
+    # Audio assembler
+    "EpisodeAudioAssembler",
+    "AudioTimeline",
+    "AudioTrack",
+    "AudioCue",
+    "MusicLibrary",
+    "SFXLibrary",
+    "MusicMood",
+    "SFXType",
+    "assemble_episode_from_script",
 ]
 
 
