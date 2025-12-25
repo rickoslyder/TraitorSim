@@ -9,6 +9,18 @@ echo "TraitorSim Docker-in-Docker Orchestrator"
 echo "==========================================="
 echo ""
 
+# Debug: Show environment variables
+echo "🔑 Environment Check:"
+echo "   GEMINI_API_KEY: ${GEMINI_API_KEY:+SET (${#GEMINI_API_KEY} chars)}${GEMINI_API_KEY:-NOT SET}"
+echo "   CLAUDE_CODE_OAUTH_TOKEN: ${CLAUDE_CODE_OAUTH_TOKEN:+SET (${#CLAUDE_CODE_OAUTH_TOKEN} chars)}${CLAUDE_CODE_OAUTH_TOKEN:-NOT SET}"
+echo "   ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:+SET}${ANTHROPIC_API_KEY:-NOT SET}"
+echo ""
+
+# Export environment variables so they're available to nested docker-compose
+export GEMINI_API_KEY
+export CLAUDE_CODE_OAUTH_TOKEN
+export ANTHROPIC_API_KEY
+
 # Start Docker daemon in background
 echo "🐳 Starting Docker daemon..."
 dockerd-entrypoint.sh &
