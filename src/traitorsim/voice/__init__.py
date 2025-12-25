@@ -73,6 +73,18 @@ from .episode_generator import (
     export_season_scripts,
 )
 
+# ElevenLabs client
+from .elevenlabs_client import (
+    ElevenLabsClient,
+    ElevenLabsModel,
+    ElevenLabsAPIError,
+    VoiceSettings,
+    SynthesisResult,
+    UsageStats,
+    create_client,
+    quick_synthesize,
+)
+
 
 __all__ = [
     # Models
@@ -109,6 +121,15 @@ __all__ = [
     "EpisodeGeneratorConfig",
     "generate_episode_from_game_state",
     "export_season_scripts",
+    # ElevenLabs client
+    "ElevenLabsClient",
+    "ElevenLabsModel",
+    "ElevenLabsAPIError",
+    "VoiceSettings",
+    "SynthesisResult",
+    "UsageStats",
+    "create_client",
+    "quick_synthesize",
 ]
 
 
