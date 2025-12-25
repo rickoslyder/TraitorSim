@@ -4,10 +4,13 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     volumes:
-      - ../reports:/app/reports:ro
+      - ../reports:/app/reports  # Writable for game output
+      - ../:/app/traitorsim  # Mount TraitorSim project for game runner (writable for data/)
     environment:
       - PYTHONUNBUFFERED=1
       - REPORTS_DIR=/app/reports
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
