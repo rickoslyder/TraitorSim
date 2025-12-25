@@ -64,14 +64,28 @@ export function GameRunner({ isOpen, onClose }: GameRunnerProps) {
     }
   }, []);
 
-  // WebSocket connection
+  // Store refs for callbacks to avoid re-creating WebSocket on every render
+  const refetchStatusRef = useRef(refetchStatus);
+  const syncGamesMutationRef = useRef(syncGamesMutation);
+
+  // Keep refs updated
+  useEffect(() => {
+    refetchStatusRef.current = refetchStatus;
+    syncGamesMutationRef.current = syncGamesMutation;
+  }, [refetchStatus, syncGamesMutation]);
+
+  // WebSocket connection - only depends on isOpen
   useEffect(() => {
     if (!isOpen) return;
 
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const wsUrl = `${protocol}//${window.location.host}/api/games/run/ws`;
+    let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
+    let isClosing = false;
 
     const connect = () => {
+      if (isClosing) return;
+
       const ws = new WebSocket(wsUrl);
 
       ws.onopen = () => {
@@ -87,11 +101,11 @@ export function GameRunner({ isOpen, onClose }: GameRunnerProps) {
             const timestamp = new Date().toLocaleTimeString();
             setLogs(prev => [...prev, { timestamp, text: message.data!.line! }]);
           } else if (message.type === 'status') {
-            refetchStatus();
+            refetchStatusRef.current();
           } else if (message.type === 'complete') {
-            refetchStatus();
+            refetchStatusRef.current();
             // Sync games list after completion
-            syncGamesMutation.mutate();
+            syncGamesMutationRef.current.mutate();
           }
         } catch (e) {
           console.error('Failed to parse WebSocket message:', e);
@@ -101,10 +115,10 @@ export function GameRunner({ isOpen, onClose }: GameRunnerProps) {
       ws.onclose = () => {
         console.log('WebSocket disconnected');
         setWsConnected(false);
-        // Reconnect after 2 seconds if modal is still open
-        setTimeout(() => {
-          if (isOpen) connect();
-        }, 2000);
+        // Reconnect after 2 seconds if not intentionally closing
+        if (!isClosing) {
+          reconnectTimeout = setTimeout(connect, 2000);
+        }
       };
 
       ws.onerror = (error) => {
@@ -124,13 +138,17 @@ export function GameRunner({ isOpen, onClose }: GameRunnerProps) {
     }, 25000);
 
     return () => {
+      isClosing = true;
       clearInterval(pingInterval);
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+      }
       if (wsRef.current) {
         wsRef.current.close();
         wsRef.current = null;
       }
     };
-  }, [isOpen, refetchStatus, syncGamesMutation]);
+  }, [isOpen]);
 
   const handleStartGame = () => {
     setLogs([]);
