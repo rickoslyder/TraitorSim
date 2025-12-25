@@ -6,7 +6,7 @@ via HTTP REST APIs, enabling resource isolation and parallel execution.
 
 import asyncio
 import httpx
-from typing import List, Dict, Optional, Tuple
+from typing import List, Dict, Optional, Tuple, Any
 from collections import Counter
 
 from ..agents.game_master_interactions import GameMasterInteractions
@@ -46,6 +46,10 @@ class GameEngineContainerized:
 
         # Agent URLs (port mapping: 8000-8009 for agents 0-9)
         self.agent_urls: Dict[str, str] = {}
+
+        # Agent reasoning capture for voice scripts
+        # Structure: {day: {player_id: {"vote": {...}, "murder": {...}, ...}}}
+        self.agent_reasoning_by_day: Dict[int, Dict[str, Dict[str, Any]]] = {}
 
     def _initialize_players(self) -> None:
         """Initialize players and assign roles using persona library."""
@@ -1103,6 +1107,22 @@ class GameEngineContainerized:
         # Fallback: random selection from Faithful
         return random.sample([p.id for p in faithful], num_candidates)
 
+    def _store_reasoning(self, player_id: str, reasoning_type: str, data: Dict[str, Any]) -> None:
+        """Store agent reasoning for voice script generation.
+
+        Args:
+            player_id: Player who made the decision
+            reasoning_type: Type of reasoning (vote, murder, vote_to_end, etc.)
+            data: Full response data including reasoning
+        """
+        day = self.game_state.day
+        if day not in self.agent_reasoning_by_day:
+            self.agent_reasoning_by_day[day] = {}
+        if player_id not in self.agent_reasoning_by_day[day]:
+            self.agent_reasoning_by_day[day][player_id] = {}
+
+        self.agent_reasoning_by_day[day][player_id][reasoning_type] = data
+
     async def _collect_votes_parallel_async(self) -> Dict[str, str]:
         """Collect votes from all alive players in parallel via HTTP.
 
@@ -1113,7 +1133,7 @@ class GameEngineContainerized:
         game_state_data = self._serialize_game_state()
 
         async with httpx.AsyncClient(timeout=120.0) as client:
-            async def vote_via_http(player: Player) -> Tuple[str, str]:
+            async def vote_via_http(player: Player) -> Tuple[str, str, Dict[str, Any]]:
                 """Get vote from agent container via HTTP."""
                 try:
                     url = self.agent_urls[player.id]
@@ -1123,17 +1143,24 @@ class GameEngineContainerized:
                     )
                     response.raise_for_status()
                     data = response.json()
-                    return (player.id, data['target_player_id'])
+                    return (player.id, data['target_player_id'], data)
                 except Exception as e:
                     self.logger.error(f"Error getting vote from {player.name}: {e}")
-                    return (player.id, self._emergency_vote(player.id))
+                    return (player.id, self._emergency_vote(player.id), {"reasoning": "Error fallback"})
 
             # Execute votes in parallel
             vote_tasks = [vote_via_http(p) for p in alive_players]
             vote_results = await asyncio.gather(*vote_tasks)
 
-            # Convert to dict
-            votes = {pid: target for pid, target in vote_results}
+            # Convert to dict and capture reasoning
+            votes = {}
+            for pid, target, data in vote_results:
+                votes[pid] = target
+                # Store vote reasoning for voice scripts
+                self._store_reasoning(pid, "vote_result", {
+                    "target_player_id": target,
+                    "reasoning": data.get("reasoning", ""),
+                })
 
             return votes
 
@@ -1301,6 +1328,13 @@ class GameEngineContainerized:
                 )
                 response.raise_for_status()
                 data = response.json()
+
+                # Store murder reasoning for voice scripts
+                self._store_reasoning(traitor_id, "murder_result", {
+                    "target_player_id": data['target_player_id'],
+                    "reasoning": data.get("reasoning", ""),
+                })
+
                 return data['target_player_id']
         except Exception as e:
             self.logger.error(f"Error choosing murder victim: {e}")
@@ -1362,6 +1396,12 @@ class GameEngineContainerized:
                     reasoning = data.get('reasoning', '')
                     votes[player.id] = vote
                     self.logger.info(f"{player.name} votes {vote}: {reasoning}")
+
+                    # Store vote_to_end reasoning for voice scripts
+                    self._store_reasoning(player.id, "vote_to_end_result", {
+                        "vote": vote,
+                        "reasoning": reasoning,
+                    })
                 except Exception as e:
                     self.logger.error(f"Error getting vote from {player.name}: {e}")
                     votes[player.id] = "BANISH"  # Default to BANISH on error
@@ -1427,6 +1467,12 @@ class GameEngineContainerized:
                     reasoning = data.get('reasoning', '')
                     decisions[traitor.id] = decision
                     self.logger.info(f"🤫 {traitor.name} decides (secretly): {reasoning}")
+
+                    # Store dilemma reasoning for voice scripts
+                    self._store_reasoning(traitor.id, "dilemma_result", {
+                        "decision": decision,
+                        "reasoning": reasoning,
+                    })
                 except Exception as e:
                     self.logger.error(f"Error getting decision from {traitor.name}: {e}")
                     decisions[traitor.id] = "STEAL"  # Default to STEAL on error
@@ -1617,11 +1663,11 @@ class GameEngineContainerized:
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
 
-        # Export all episode scripts
+        # Export all episode scripts with captured reasoning
         export_season_scripts(
             game_state=self.game_state,
             output_path=str(output_path),
-            agent_reasoning_by_day=None,  # TODO: Capture reasoning during gameplay
+            agent_reasoning_by_day=self.agent_reasoning_by_day,
             config=EpisodeGeneratorConfig(
                 include_cold_open=True,
                 include_preview=True,
@@ -1647,6 +1693,7 @@ class GameEngineContainerized:
             return extract_script_from_game_state(
                 game_state=self.game_state,
                 day=day,
+                agent_reasoning=self.agent_reasoning_by_day.get(day),
             )
         except Exception as e:
             self.logger.error(f"Error generating voice script for day {day}: {e}")
@@ -1678,3 +1725,42 @@ class GameEngineContainerized:
 
         config = get_voice_config_for_persona(persona_data)
         return config.to_api_params()
+
+    def get_agent_reasoning(self, day: Optional[int] = None) -> Dict[int, Dict[str, Dict[str, Any]]]:
+        """Get captured agent reasoning for voice script generation.
+
+        Args:
+            day: Optional specific day to retrieve. If None, returns all days.
+
+        Returns:
+            Dict of {day: {player_id: {reasoning_type: data}}}
+        """
+        if day is not None:
+            return {day: self.agent_reasoning_by_day.get(day, {})}
+        return self.agent_reasoning_by_day.copy()
+
+    def export_reasoning_to_json(self, output_path: Optional[str] = None) -> str:
+        """Export captured reasoning to JSON file.
+
+        Useful for debugging and post-game analysis.
+
+        Args:
+            output_path: Optional path. Defaults to reports/reasoning.json
+
+        Returns:
+            Path to the exported file
+        """
+        import json
+
+        if output_path is None:
+            reports_dir = Path("reports")
+            if Path("/app/data").is_dir():
+                reports_dir = Path("/app/data/reports")
+            reports_dir.mkdir(parents=True, exist_ok=True)
+            output_path = str(reports_dir / "agent_reasoning.json")
+
+        with open(output_path, "w") as f:
+            json.dump(self.agent_reasoning_by_day, f, indent=2)
+
+        self.logger.info(f"📝 Agent reasoning exported: {output_path}")
+        return output_path
