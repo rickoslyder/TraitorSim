@@ -64,3 +64,5 @@ reports/
 !data/personas/skeletons/.gitkeep
 !data/personas/library/.gitkeep
 !reports/.gitkeep
+archive/
+*.png

@@ -1,0 +1,964 @@
+[
+  {
+    "skeleton_id": "skeleton_002",
+    "archetype": "quirky_outsider",
+    "archetype_name": "The Quirky Outsider",
+    "personality": {
+      "openness": 0.8994486529045548,
+      "conscientiousness": 0.48754493720248115,
+      "extraversion": 0.5238352818087963,
+      "agreeableness": 0.5156755693796565,
+      "neuroticism": 0.6202326677737631
+    },
+    "stats": {
+      "intellect": 0.8399531971493874,
+      "dexterity": 0.46336090589060236,
+      "social_influence": 0.5153069493605982
+    },
+    "demographics_template": {
+      "age": 23,
+      "occupation": "museum curator",
+      "location": "Brighton",
+      "socioeconomic": "middle-class",
+      "gender": "female"
+    },
+    "strategic_drive": "Authenticity; misunderstood for being different",
+    "gameplay_tendency": "Misread due to unconventional behavior patterns"
+  },
+  {
+    "skeleton_id": "skeleton_049",
+    "archetype": "prodigy",
+    "archetype_name": "The Prodigy",
+    "personality": {
+      "openness": 0.8011935579830025,
+      "conscientiousness": 0.8360118924551223,
+      "extraversion": 0.5165666710341752,
+      "agreeableness": 0.694238278292758,
+      "neuroticism": 0.3546541568793009
+    },
+    "stats": {
+      "intellect": 0.9338649856358587,
+      "dexterity": 0.6100117148313642,
+      "social_influence": 0.8076664886996298
+    },
+    "demographics_template": {
+      "age": 31,
+      "occupation": "researcher",
+      "location": "London",
+      "socioeconomic": "middle-class",
+      "gender": "female"
+    },
+    "strategic_drive": "Truth-seeking and logical deduction",
+    "gameplay_tendency": "Analytical; tracks voting patterns and behavioral tells"
+  },
+  {
+    "skeleton_id": "skeleton_050",
+    "archetype": "romantic",
+    "archetype_name": "The Romantic",
+    "personality": {
+      "openness": 0.8238082962727356,
+      "conscientiousness": 0.5076277465313919,
+      "extraversion": 0.7337295371993708,
+      "agreeableness": 0.865441453308825,
+      "neuroticism": 0.5086639219754026
+    },
+    "stats": {
+      "intellect": 0.511510588638754,
+      "dexterity": 0.5021387925420697,
+      "social_influence": 0.7051729751711511
+    },
+    "demographics_template": {
+      "age": 36,
+      "occupation": "counselor",
+      "location": "Oxford",
+      "socioeconomic": "middle-class",
+      "gender": "female"
+    },
+    "strategic_drive": "Friendship loyalty; naively trusting",
+    "gameplay_tendency": "Refuses to suspect friends; overlaps with 'mission performance = Faithful'"
+  },
+  {
+    "skeleton_id": "skeleton_051",
+    "archetype": "comedic_psychic",
+    "archetype_name": "The Comedic Psychic",
+    "personality": {
+      "openness": 0.8095449329543797,
+      "conscientiousness": 0.2793968894886357,
+      "extraversion": 0.7840515912163634,
+      "agreeableness": 0.5857928712503955,
+      "neuroticism": 0.7712306240054645
+    },
+    "stats": {
+      "intellect": 0.4176437228245188,
+      "dexterity": 0.6246213433883856,
+      "social_influence": 0.6242312496894623
+    },
+    "demographics_template": {
+      "age": 44,
+      "occupation": "party planner",
+      "location": "urban UK",
+      "socioeconomic": "middle-class",
+      "gender": "male"
+    },
+    "strategic_drive": "Entertainment and spotlight; craves attention",
+    "gameplay_tendency": "Dramatic accusations; often wrong but memorable"
+  },
+  {
+    "skeleton_id": "skeleton_052",
+    "archetype": "mischievous_operator",
+    "archetype_name": "The Mischievous Operator",
+    "personality": {
+      "openness": 0.7187584189901758,
+      "conscientiousness": 0.4225430190702978,
+      "extraversion": 0.8387400996002135,
+      "agreeableness": 0.2629935982989331,
+      "neuroticism": 0.34542120527788445
+    },
+    "stats": {
+      "intellect": 0.8857022201422949,
+      "dexterity": 0.7596946139814296,
+      "social_influence": 0.8010638360726023
+    },
+    "demographics_template": {
+      "age": 40,
+      "occupation": "entrepreneur",
+      "location": "Bristol",
+      "socioeconomic": "upper-middle",
+      "gender": "non-binary"
+    },
+    "strategic_drive": "Machiavellian manipulation; thrill of the game",
+    "gameplay_tendency": "Forms alliances; bends truth; enjoys strategic chaos"
+  },
+  {
+    "skeleton_id": "skeleton_053",
+    "archetype": "misguided_survivor",
+    "archetype_name": "The Misguided Survivor",
+    "personality": {
+      "openness": 0.2102061813270892,
+      "conscientiousness": 0.5988248326138397,
+      "extraversion": 0.6364894330358382,
+      "agreeableness": 0.6004574608401102,
+      "neuroticism": 0.8086665295796511
+    },
+    "stats": {
+      "intellect": 0.45249771137242256,
+      "dexterity": 0.45481685238654923,
+      "social_influence": 0.4017506642055343
+    },
+    "demographics_template": {
+      "age": 54,
+      "occupation": "call center agent",
+      "location": "provincial cities",
+      "socioeconomic": "working-class",
+      "gender": "male"
+    },
+    "strategic_drive": "Survival over strategy; believes longevity = competence",
+    "gameplay_tendency": "Passive follower; survives by being non-threatening"
+  },
+  {
+    "skeleton_id": "skeleton_054",
+    "archetype": "charming_sociopath",
+    "archetype_name": "The Charming Sociopath",
+    "personality": {
+      "openness": 0.6791026676243751,
+      "conscientiousness": 0.4925967932042885,
+      "extraversion": 0.8427980059682874,
+      "agreeableness": 0.2865206361931563,
+      "neuroticism": 0.38301962142940105
+    },
+    "stats": {
+      "intellect": 0.7015937406361912,
+      "dexterity": 0.7455468889592719,
+      "social_influence": 0.82633620917471
+    },
+    "demographics_template": {
+      "age": 36,
+      "occupation": "personal trainer",
+      "location": "London",
+      "socioeconomic": "working-class",
+      "gender": "male"
+    },
+    "strategic_drive": "Manipulation through charm and charisma",
+    "gameplay_tendency": "Deflects suspicion with charm; builds loyal followers"
+  },
+  {
+    "skeleton_id": "skeleton_055",
+    "archetype": "romantic",
+    "archetype_name": "The Romantic",
+    "personality": {
+      "openness": 0.7026714704838779,
+      "conscientiousness": 0.5298136521778565,
+      "extraversion": 0.6942467388252391,
+      "agreeableness": 0.8655469871429355,
+      "neuroticism": 0.48047013988035664
+    },
+    "stats": {
+      "intellect": 0.49071712638586107,
+      "dexterity": 0.5325447118485169,
+      "social_influence": 0.6700164609414498
+    },
+    "demographics_template": {
+      "age": 28,
+      "occupation": "wedding planner",
+      "location": "Oxford",
+      "socioeconomic": "middle-class",
+      "gender": "female"
+    },
+    "strategic_drive": "Friendship loyalty; naively trusting",
+    "gameplay_tendency": "Refuses to suspect friends; overlaps with 'mission performance = Faithful'"
+  },
+  {
+    "skeleton_id": "skeleton_056",
+    "archetype": "infatuated_faithful",
+    "archetype_name": "The Infatuated Faithful",
+    "personality": {
+      "openness": 0.7310116126640205,
+      "conscientiousness": 0.6118070161599465,
+      "extraversion": 0.7553019220288915,
+      "agreeableness": 0.8378281532312012,
+      "neuroticism": 0.5022090986895775
+    },
+    "stats": {
+      "intellect": 0.35189045248152223,
+      "dexterity": 0.5553344542183993,
+      "social_influence": 0.7215736900171256
+    },
+    "demographics_template": {
+      "age": 30,
+      "occupation": "nurse",
+      "location": "small towns",
+      "socioeconomic": "working-class",
+      "gender": "female"
+    },
+    "strategic_drive": "Emotional connection over logic; loyalty to crush",
+    "gameplay_tendency": "Defends romantic interest despite red flags"
+  },
+  {
+    "skeleton_id": "skeleton_057",
+    "archetype": "prodigy",
+    "archetype_name": "The Prodigy",
+    "personality": {
+      "openness": 0.8172663385338454,
+      "conscientiousness": 0.8156284305290101,
+      "extraversion": 0.5631678837524284,
+      "agreeableness": 0.6440826860073974,
+      "neuroticism": 0.4348202822492184
+    },
+    "stats": {
+      "intellect": 0.7557209508059611,
+      "dexterity": 0.6818635826738934,
+      "social_influence": 0.6240970692777167
+    },
+    "demographics_template": {
+      "age": 26,
+      "occupation": "data analyst",
+      "location": "London",
+      "socioeconomic": "middle-class",
+      "gender": "female"
+    },
+    "strategic_drive": "Truth-seeking and logical deduction",
+    "gameplay_tendency": "Analytical; tracks voting patterns and behavioral tells"
+  },
+  {
+    "skeleton_id": "skeleton_058",
+    "archetype": "romantic",
+    "archetype_name": "The Romantic",
+    "personality": {
+      "openness": 0.7144806851205969,
+      "conscientiousness": 0.5815084030641415,
+      "extraversion": 0.8631792344730079,
+      "agreeableness": 0.946954940906093,
+      "neuroticism": 0.44303246911724203
+    },
+    "stats": {
+      "intellect": 0.4642361094284437,
+      "dexterity": 0.5948358442189159,
+      "social_influence": 0.7699358198973505
+    },
+    "demographics_template": {
+      "age": 33,
+      "occupation": "counselor",
+      "location": "Bath",
+      "socioeconomic": "upper-middle",
+      "gender": "female"
+    },
+    "strategic_drive": "Friendship loyalty; naively trusting",
+    "gameplay_tendency": "Refuses to suspect friends; overlaps with 'mission performance = Faithful'"
+  },
+  {
+    "skeleton_id": "skeleton_059",
+    "archetype": "prodigy",
+    "archetype_name": "The Prodigy",
+    "personality": {
+      "openness": 0.872764543412273,
+      "conscientiousness": 0.788254772105615,
+      "extraversion": 0.5268641703630565,
+      "agreeableness": 0.6560501267352403,
+      "neuroticism": 0.3154320903719108
+    },
+    "stats": {
+      "intellect": 0.8213967632026294,
+      "dexterity": 0.7503263350015303,
+      "social_influence": 0.6518636612501003
+    },
+    "demographics_template": {
+      "age": 32,
+      "occupation": "software engineer",
+      "location": "Manchester",
+      "socioeconomic": "upper-middle",
+      "gender": "male"
+    },
+    "strategic_drive": "Truth-seeking and logical deduction",
+    "gameplay_tendency": "Analytical; tracks voting patterns and behavioral tells"
+  },
+  {
+    "skeleton_id": "skeleton_060",
+    "archetype": "zealot",
+    "archetype_name": "The Zealot",
+    "personality": {
+      "openness": 0.3849496513454601,
+      "conscientiousness": 0.819526564926293,
+      "extraversion": 0.6059777778889421,
+      "agreeableness": 0.3081645058357247,
+      "neuroticism": 0.54168980416375
+    },
+    "stats": {
+      "intellect": 0.7796363087342822,
+      "dexterity": 0.5555650747539839,
+      "social_influence": 0.7012280934467692
+    },
+    "demographics_template": {
+      "age": 33,
+      "occupation": "charity worker",
+      "location": "across UK",
+      "socioeconomic": "upper-middle",
+      "gender": "male"
+    },
+    "strategic_drive": "Moral righteousness; sees game as crusade",
+    "gameplay_tendency": "High conviction; sanctimonious about 'playing fairly'"
+  },
+  {
+    "skeleton_id": "skeleton_061",
+    "archetype": "misguided_survivor",
+    "archetype_name": "The Misguided Survivor",
+    "personality": {
+      "openness": 0.2548237197150494,
+      "conscientiousness": 0.4804189940533774,
+      "extraversion": 0.615967540016155,
+      "agreeableness": 0.6130716870593398,
+      "neuroticism": 0.8448899217365079
+    },
+    "stats": {
+      "intellect": 0.37813684528616454,
+      "dexterity": 0.3973369452519362,
+      "social_influence": 0.5306787326087404
+    },
+    "demographics_template": {
+      "age": 43,
+      "occupation": "cleaner",
+      "location": "suburban UK",
+      "socioeconomic": "lower-middle",
+      "gender": "non-binary"
+    },
+    "strategic_drive": "Survival over strategy; believes longevity = competence",
+    "gameplay_tendency": "Passive follower; survives by being non-threatening"
+  },
+  {
+    "skeleton_id": "skeleton_062",
+    "archetype": "misguided_survivor",
+    "archetype_name": "The Misguided Survivor",
+    "personality": {
+      "openness": 0.35163853806346285,
+      "conscientiousness": 0.5462705267777253,
+      "extraversion": 0.6435381110011391,
+      "agreeableness": 0.7779189296124092,
+      "neuroticism": 0.7224131161710977
+    },
+    "stats": {
+      "intellect": 0.34630190594834176,
+      "dexterity": 0.5180789564128172,
+      "social_influence": 0.5880278994500716
+    },
+    "demographics_template": {
+      "age": 54,
+      "occupation": "call center agent",
+      "location": "provincial cities",
+      "socioeconomic": "lower-middle",
+      "gender": "non-binary"
+    },
+    "strategic_drive": "Survival over strategy; believes longevity = competence",
+    "gameplay_tendency": "Passive follower; survives by being non-threatening"
+  },
+  {
+    "skeleton_id": "skeleton_063",
+    "archetype": "romantic",
+    "archetype_name": "The Romantic",
+    "personality": {
+      "openness": 0.7707969361863424,
+      "conscientiousness": 0.7115796993647251,
+      "extraversion": 0.7906172514892308,
+      "agreeableness": 0.8461514921706847,
+      "neuroticism": 0.4419127494467129
+    },
+    "stats": {
+      "intellect": 0.6879642541658582,
+      "dexterity": 0.7438373047194022,
+      "social_influence": 0.6775592299060924
+    },
+    "demographics_template": {
+      "age": 29,
+      "occupation": "counselor",
+      "location": "romantic UK cities",
+      "socioeconomic": "middle-class",
+      "gender": "non-binary"
+    },
+    "strategic_drive": "Friendship loyalty; naively trusting",
+    "gameplay_tendency": "Refuses to suspect friends; overlaps with 'mission performance = Faithful'"
+  },
+  {
+    "skeleton_id": "skeleton_064",
+    "archetype": "bitter_traitor",
+    "archetype_name": "The Bitter Traitor",
+    "personality": {
+      "openness": 0.6454314878035646,
+      "conscientiousness": 0.5028807241966465,
+      "extraversion": 0.4423267776629428,
+      "agreeableness": 0.264116811546742,
+      "neuroticism": 0.8992889029826192
+    },
+    "stats": {
+      "intellect": 0.6395624788615366,
+      "dexterity": 0.46294643720237655,
+      "social_influence": 0.5874757188386984
+    },
+    "demographics_template": {
+      "age": 35,
+      "occupation": "IT support",
+      "location": "suburban UK",
+      "socioeconomic": "lower-middle",
+      "gender": "female"
+    },
+    "strategic_drive": "Vengeance when betrayed; burns bridges",
+    "gameplay_tendency": "Drops hints about fellow Traitors when banished"
+  },
+  {
+    "skeleton_id": "skeleton_065",
+    "archetype": "bitter_traitor",
+    "archetype_name": "The Bitter Traitor",
+    "personality": {
+      "openness": 0.6888562608483741,
+      "conscientiousness": 0.5601946875944384,
+      "extraversion": 0.43632712945103613,
+      "agreeableness": 0.2629813987804672,
+      "neuroticism": 0.8579916175952844
+    },
+    "stats": {
+      "intellect": 0.571532315536876,
+      "dexterity": 0.6193213038237964,
+      "social_influence": 0.5917464495225514
+    },
+    "demographics_template": {
+      "age": 44,
+      "occupation": "council worker",
+      "location": "Midlands",
+      "socioeconomic": "lower-middle",
+      "gender": "male"
+    },
+    "strategic_drive": "Vengeance when betrayed; burns bridges",
+    "gameplay_tendency": "Drops hints about fellow Traitors when banished"
+  },
+  {
+    "skeleton_id": "skeleton_066",
+    "archetype": "mischievous_operator",
+    "archetype_name": "The Mischievous Operator",
+    "personality": {
+      "openness": 0.7224242247379717,
+      "conscientiousness": 0.48755422846374663,
+      "extraversion": 0.7148532347881384,
+      "agreeableness": 0.33804372209009703,
+      "neuroticism": 0.46570550880081585
+    },
+    "stats": {
+      "intellect": 0.6702691628108562,
+      "dexterity": 0.8075418626678503,
+      "social_influence": 0.8995580809477778
+    },
+    "demographics_template": {
+      "age": 36,
+      "occupation": "poker player",
+      "location": "Bristol",
+      "socioeconomic": "upper-middle",
+      "gender": "non-binary"
+    },
+    "strategic_drive": "Machiavellian manipulation; thrill of the game",
+    "gameplay_tendency": "Forms alliances; bends truth; enjoys strategic chaos"
+  },
+  {
+    "skeleton_id": "skeleton_067",
+    "archetype": "prodigy",
+    "archetype_name": "The Prodigy",
+    "personality": {
+      "openness": 0.8120973690903552,
+      "conscientiousness": 0.7389016367936713,
+      "extraversion": 0.5604062210168959,
+      "agreeableness": 0.5021401982057808,
+      "neuroticism": 0.45192280946363206
+    },
+    "stats": {
+      "intellect": 0.7595417119387486,
+      "dexterity": 0.6946909164701685,
+      "social_influence": 0.7158832815335142
+    },
+    "demographics_template": {
+      "age": 36,
+      "occupation": "researcher",
+      "location": "London",
+      "socioeconomic": "upper-middle",
+      "gender": "female"
+    },
+    "strategic_drive": "Truth-seeking and logical deduction",
+    "gameplay_tendency": "Analytical; tracks voting patterns and behavioral tells"
+  },
+  {
+    "skeleton_id": "skeleton_068",
+    "archetype": "incompetent_authority",
+    "archetype_name": "The Incompetent Authority Figure",
+    "personality": {
+      "openness": 0.399158286775123,
+      "conscientiousness": 0.7197350926258784,
+      "extraversion": 0.7490487969679442,
+      "agreeableness": 0.5822550065502259,
+      "neuroticism": 0.5393436352937171
+    },
+    "stats": {
+      "intellect": 0.36008933157752665,
+      "dexterity": 0.6876671806317167,
+      "social_influence": 0.6416260702092177
+    },
+    "demographics_template": {
+      "age": 47,
+      "occupation": "ex-military",
+      "location": "suburban UK",
+      "socioeconomic": "upper-middle",
+      "gender": "non-binary"
+    },
+    "strategic_drive": "Leverage perceived credibility; overconfident",
+    "gameplay_tendency": "Trusted initially due to background; makes poor deductions"
+  },
+  {
+    "skeleton_id": "skeleton_069",
+    "archetype": "zealot",
+    "archetype_name": "The Zealot",
+    "personality": {
+      "openness": 0.3824623260418395,
+      "conscientiousness": 0.7955473622404354,
+      "extraversion": 0.6653858418864087,
+      "agreeableness": 0.31485662119643104,
+      "neuroticism": 0.5949888774408361
+    },
+    "stats": {
+      "intellect": 0.5911129638121437,
+      "dexterity": 0.6132551726684744,
+      "social_influence": 0.6679601723661146
+    },
+    "demographics_template": {
+      "age": 45,
+      "occupation": "activist",
+      "location": "across UK",
+      "socioeconomic": "middle-class",
+      "gender": "female"
+    },
+    "strategic_drive": "Moral righteousness; sees game as crusade",
+    "gameplay_tendency": "High conviction; sanctimonious about 'playing fairly'"
+  },
+  {
+    "skeleton_id": "skeleton_070",
+    "archetype": "misguided_survivor",
+    "archetype_name": "The Misguided Survivor",
+    "personality": {
+      "openness": 0.24420400061428757,
+      "conscientiousness": 0.5237851154007236,
+      "extraversion": 0.6386224938464165,
+      "agreeableness": 0.6235240962828374,
+      "neuroticism": 0.6516340702568929
+    },
+    "stats": {
+      "intellect": 0.3495871772021589,
+      "dexterity": 0.4330498619469973,
+      "social_influence": 0.45935232642962254
+    },
+    "demographics_template": {
+      "age": 46,
+      "occupation": "delivery driver",
+      "location": "provincial cities",
+      "socioeconomic": "working-class",
+      "gender": "female"
+    },
+    "strategic_drive": "Survival over strategy; believes longevity = competence",
+    "gameplay_tendency": "Passive follower; survives by being non-threatening"
+  },
+  {
+    "skeleton_id": "skeleton_071",
+    "archetype": "bitter_traitor",
+    "archetype_name": "The Bitter Traitor",
+    "personality": {
+      "openness": 0.6603836887849469,
+      "conscientiousness": 0.5194464949240896,
+      "extraversion": 0.49853478241550464,
+      "agreeableness": 0.18165138823091498,
+      "neuroticism": 0.6782328625126632
+    },
+    "stats": {
+      "intellect": 0.5838548445771475,
+      "dexterity": 0.5375516372046226,
+      "social_influence": 0.6137568951473642
+    },
+    "demographics_template": {
+      "age": 43,
+      "occupation": "administrator",
+      "location": "suburban UK",
+      "socioeconomic": "middle-class",
+      "gender": "male"
+    },
+    "strategic_drive": "Vengeance when betrayed; burns bridges",
+    "gameplay_tendency": "Drops hints about fellow Traitors when banished"
+  },
+  {
+    "skeleton_id": "skeleton_072",
+    "archetype": "bitter_traitor",
+    "archetype_name": "The Bitter Traitor",
+    "personality": {
+      "openness": 0.4930861731550111,
+      "conscientiousness": 0.46983838616188234,
+      "extraversion": 0.5784751453795991,
+      "agreeableness": 0.33040512683522605,
+      "neuroticism": 0.6985851481242805
+    },
+    "stats": {
+      "intellect": 0.5612323735121918,
+      "dexterity": 0.46237736359239195,
+      "social_influence": 0.5116914250553828
+    },
+    "demographics_template": {
+      "age": 37,
+      "occupation": "administrator",
+      "location": "suburban UK",
+      "socioeconomic": "lower-middle",
+      "gender": "male"
+    },
+    "strategic_drive": "Vengeance when betrayed; burns bridges",
+    "gameplay_tendency": "Drops hints about fellow Traitors when banished"
+  },
+  {
+    "skeleton_id": "skeleton_073",
+    "archetype": "romantic",
+    "archetype_name": "The Romantic",
+    "personality": {
+      "openness": 0.7747398065541362,
+      "conscientiousness": 0.6900497739644859,
+      "extraversion": 0.8141448868315376,
+      "agreeableness": 0.9259541046446942,
+      "neuroticism": 0.3675607878249908
+    },
+    "stats": {
+      "intellect": 0.6701371327368102,
+      "dexterity": 0.5830788373114975,
+      "social_influence": 0.8268074449575
+    },
+    "demographics_template": {
+      "age": 25,
+      "occupation": "poet",
+      "location": "Bath",
+      "socioeconomic": "upper-middle",
+      "gender": "female"
+    },
+    "strategic_drive": "Friendship loyalty; naively trusting",
+    "gameplay_tendency": "Refuses to suspect friends; overlaps with 'mission performance = Faithful'"
+  },
+  {
+    "skeleton_id": "skeleton_074",
+    "archetype": "bitter_traitor",
+    "archetype_name": "The Bitter Traitor",
+    "personality": {
+      "openness": 0.6761917533192554,
+      "conscientiousness": 0.49689562268311266,
+      "extraversion": 0.6439613846407125,
+      "agreeableness": 0.1690551303048139,
+      "neuroticism": 0.7377270450925266
+    },
+    "stats": {
+      "intellect": 0.6487098774388413,
+      "dexterity": 0.5014329618492677,
+      "social_influence": 0.5581715468059475
+    },
+    "demographics_template": {
+      "age": 38,
+      "occupation": "IT support",
+      "location": "suburban UK",
+      "socioeconomic": "middle-class",
+      "gender": "female"
+    },
+    "strategic_drive": "Vengeance when betrayed; burns bridges",
+    "gameplay_tendency": "Drops hints about fellow Traitors when banished"
+  },
+  {
+    "skeleton_id": "skeleton_075",
+    "archetype": "smug_player",
+    "archetype_name": "The Smug Player",
+    "personality": {
+      "openness": 0.6128370958003084,
+      "conscientiousness": 0.6604938239348846,
+      "extraversion": 0.7056442815515673,
+      "agreeableness": 0.4073856457159729,
+      "neuroticism": 0.45986164794712453
+    },
+    "stats": {
+      "intellect": 0.7909435524178005,
+      "dexterity": 0.6594709897701724,
+      "social_influence": 0.6640770999353116
+    },
+    "demographics_template": {
+      "age": 45,
+      "occupation": "doctor",
+      "location": "Cambridge",
+      "socioeconomic": "upper-middle",
+      "gender": "non-binary"
+    },
+    "strategic_drive": "Moral superiority; judges others' tactics",
+    "gameplay_tendency": "Sanctimonious about 'proper' gameplay; alienates others"
+  },
+  {
+    "skeleton_id": "skeleton_076",
+    "archetype": "mischievous_operator",
+    "archetype_name": "The Mischievous Operator",
+    "personality": {
+      "openness": 0.8987116203196177,
+      "conscientiousness": 0.3050362142138457,
+      "extraversion": 0.8810344470053184,
+      "agreeableness": 0.3810872280547035,
+      "neuroticism": 0.4691040636257264
+    },
+    "stats": {
+      "intellect": 0.8273795468450611,
+      "dexterity": 0.7135666067064782,
+      "social_influence": 0.9375325164624837
+    },
+    "demographics_template": {
+      "age": 25,
+      "occupation": "political strategist",
+      "location": "Manchester",
+      "socioeconomic": "upper-middle",
+      "gender": "female"
+    },
+    "strategic_drive": "Machiavellian manipulation; thrill of the game",
+    "gameplay_tendency": "Forms alliances; bends truth; enjoys strategic chaos"
+  },
+  {
+    "skeleton_id": "skeleton_077",
+    "archetype": "romantic",
+    "archetype_name": "The Romantic",
+    "personality": {
+      "openness": 0.8493113048693197,
+      "conscientiousness": 0.5925289124488924,
+      "extraversion": 0.8592677830502513,
+      "agreeableness": 0.9015712188935701,
+      "neuroticism": 0.46995468049833133
+    },
+    "stats": {
+      "intellect": 0.6144414546807168,
+      "dexterity": 0.6999713846617521,
+      "social_influence": 0.8292745771470732
+    },
+    "demographics_template": {
+      "age": 40,
+      "occupation": "musician",
+      "location": "romantic UK cities",
+      "socioeconomic": "upper-middle",
+      "gender": "female"
+    },
+    "strategic_drive": "Friendship loyalty; naively trusting",
+    "gameplay_tendency": "Refuses to suspect friends; overlaps with 'mission performance = Faithful'"
+  },
+  {
+    "skeleton_id": "skeleton_078",
+    "archetype": "infatuated_faithful",
+    "archetype_name": "The Infatuated Faithful",
+    "personality": {
+      "openness": 0.7329375010968386,
+      "conscientiousness": 0.4594011840195737,
+      "extraversion": 0.7390939960782117,
+      "agreeableness": 0.7690307265235768,
+      "neuroticism": 0.6463329585553043
+    },
+    "stats": {
+      "intellect": 0.33844492213264465,
+      "dexterity": 0.5863220938469634,
+      "social_influence": 0.5754698416638553
+    },
+    "demographics_template": {
+      "age": 24,
+      "occupation": "nurse",
+      "location": "small towns",
+      "socioeconomic": "lower-middle",
+      "gender": "female"
+    },
+    "strategic_drive": "Emotional connection over logic; loyalty to crush",
+    "gameplay_tendency": "Defends romantic interest despite red flags"
+  },
+  {
+    "skeleton_id": "skeleton_079",
+    "archetype": "charismatic_leader",
+    "archetype_name": "The Charismatic Leader",
+    "personality": {
+      "openness": 0.7410282669417504,
+      "conscientiousness": 0.6658148738946079,
+      "extraversion": 0.8464973226207032,
+      "agreeableness": 0.6797814290935145,
+      "neuroticism": 0.4154840045028716
+    },
+    "stats": {
+      "intellect": 0.8827591084400237,
+      "dexterity": 0.6493833174563859,
+      "social_influence": 0.9470334419683069
+    },
+    "demographics_template": {
+      "age": 40,
+      "occupation": "team captain",
+      "location": "Birmingham",
+      "socioeconomic": "middle-class",
+      "gender": "non-binary"
+    },
+    "strategic_drive": "Leadership and group influence",
+    "gameplay_tendency": "Dominates Round Table; sways group opinion; forms voting blocs"
+  },
+  {
+    "skeleton_id": "skeleton_080",
+    "archetype": "incompetent_authority",
+    "archetype_name": "The Incompetent Authority Figure",
+    "personality": {
+      "openness": 0.41826114114486845,
+      "conscientiousness": 0.6463897089063233,
+      "extraversion": 0.7279934484712416,
+      "agreeableness": 0.6160529223535597,
+      "neuroticism": 0.597636536072569
+    },
+    "stats": {
+      "intellect": 0.49166874480117856,
+      "dexterity": 0.5747693141392857,
+      "social_influence": 0.618071104251115
+    },
+    "demographics_template": {
+      "age": 49,
+      "occupation": "former detective",
+      "location": "suburban UK",
+      "socioeconomic": "upper-middle",
+      "gender": "female"
+    },
+    "strategic_drive": "Leverage perceived credibility; overconfident",
+    "gameplay_tendency": "Trusted initially due to background; makes poor deductions"
+  },
+  {
+    "skeleton_id": "skeleton_081",
+    "archetype": "smug_player",
+    "archetype_name": "The Smug Player",
+    "personality": {
+      "openness": 0.5240923598895938,
+      "conscientiousness": 0.7526763690022829,
+      "extraversion": 0.6578774780129432,
+      "agreeableness": 0.3885664738862312,
+      "neuroticism": 0.32960642298547105
+    },
+    "stats": {
+      "intellect": 0.8266702020531362,
+      "dexterity": 0.5232904722845778,
+      "social_influence": 0.7168572997522625
+    },
+    "demographics_template": {
+      "age": 28,
+      "occupation": "doctor",
+      "location": "Oxford",
+      "socioeconomic": "upper",
+      "gender": "non-binary"
+    },
+    "strategic_drive": "Moral superiority; judges others' tactics",
+    "gameplay_tendency": "Sanctimonious about 'proper' gameplay; alienates others"
+  },
+  {
+    "skeleton_id": "skeleton_082",
+    "archetype": "smug_player",
+    "archetype_name": "The Smug Player",
+    "personality": {
+      "openness": 0.5022844888184457,
+      "conscientiousness": 0.7819386772704979,
+      "extraversion": 0.670651849908499,
+      "agreeableness": 0.2581009417518597,
+      "neuroticism": 0.3127273041954504
+    },
+    "stats": {
+      "intellect": 0.6378444515390984,
+      "dexterity": 0.6467599127610792,
+      "social_influence": 0.7564705574156534
+    },
+    "demographics_template": {
+      "age": 45,
+      "occupation": "journalist",
+      "location": "London",
+      "socioeconomic": "upper",
+      "gender": "male"
+    },
+    "strategic_drive": "Moral superiority; judges others' tactics",
+    "gameplay_tendency": "Sanctimonious about 'proper' gameplay; alienates others"
+  },
+  {
+    "skeleton_id": "skeleton_083",
+    "archetype": "charming_sociopath",
+    "archetype_name": "The Charming Sociopath",
+    "personality": {
+      "openness": 0.7285838969045622,
+      "conscientiousness": 0.514558979063245,
+      "extraversion": 0.9364408897016949,
+      "agreeableness": 0.30139919577498137,
+      "neuroticism": 0.2400642739169285
+    },
+    "stats": {
+      "intellect": 0.5874178763035233,
+      "dexterity": 0.6994299162423474,
+      "social_influence": 0.9017404573484213
+    },
+    "demographics_template": {
+      "age": 34,
+      "occupation": "bartender",
+      "location": "Manchester",
+      "socioeconomic": "working-class",
+      "gender": "female"
+    },
+    "strategic_drive": "Manipulation through charm and charisma",
+    "gameplay_tendency": "Deflects suspicion with charm; builds loyal followers"
+  },
+  {
+    "skeleton_id": "skeleton_084",
+    "archetype": "charismatic_leader",
+    "archetype_name": "The Charismatic Leader",
+    "personality": {
+      "openness": 0.6708406523348382,
+      "conscientiousness": 0.7176311714195853,
+      "extraversion": 0.7509047988042573,
+      "agreeableness": 0.6412964158740712,
+      "neuroticism": 0.35515430642430745
+    },
+    "stats": {
+      "intellect": 0.7551971377294445,
+      "dexterity": 0.7072477395048972,
+      "social_influence": 0.9062182809175805
+    },
+    "demographics_template": {
+      "age": 53,
+      "occupation": "team captain",
+      "location": "major UK cities",
+      "socioeconomic": "upper",
+      "gender": "male"
+    },
+    "strategic_drive": "Leadership and group influence",
+    "gameplay_tendency": "Dominates Round Table; sways group opinion; forms voting blocs"
+  }
+]
