@@ -29,6 +29,9 @@ Toggle between viewing modes to experience the game from different perspectives:
 ### Production Deployment
 
 ```bash
+# Setup: Create symlink to parent .env for API keys (Game Runner feature)
+ln -sf ../.env .env
+
 # Build and deploy
 docker compose -f docker-compose.prod.yml build
 docker compose -f docker-compose.prod.yml up -d

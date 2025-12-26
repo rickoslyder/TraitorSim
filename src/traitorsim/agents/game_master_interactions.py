@@ -49,8 +49,11 @@ class GameMasterInteractions:
             self.world_bible_file = None
             if os.path.exists(world_bible_path):
                 try:
+                    # Determine mime_type based on file extension
+                    mime_type = "text/markdown" if world_bible_path.endswith(".md") else "text/plain"
                     self.world_bible_file = self.client.files.upload(
-                        file=world_bible_path
+                        file=world_bible_path,
+                        config={"mime_type": mime_type}
                     )
                     print(f"✓ World Bible uploaded for lore grounding: {self.world_bible_file.name}")
                 except Exception as e:

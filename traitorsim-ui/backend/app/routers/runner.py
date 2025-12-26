@@ -221,15 +221,35 @@ async def _run_game_async(request: RunGameRequest):
 
         logger.info(f"Using TraitorSim project root: {project_root}")
 
-        cmd = [
-            "python3", "-m", "src.traitorsim"
-        ]
+        # Build environment string for su command
+        # Include API keys for Gemini and Claude
+        env_vars = []
+        for key in ["GEMINI_API_KEY", "CLAUDE_CODE_OAUTH_TOKEN", "ANTHROPIC_API_KEY"]:
+            if os.environ.get(key):
+                env_vars.append(f'{key}="{os.environ[key]}"')
 
-        # Set environment
+        # Critical: Set up environment for Claude CLI
+        # - PATH must include npm global bin for claude command
+        # - HOME must be set for SDK to find config files
+        # - PYTHONPATH for module imports
+        env_vars.extend([
+            'PATH="/usr/local/bin:/usr/bin:/bin"',
+            'HOME="/home/gamerunner"',
+            f'PYTHONPATH="{project_root}"',
+            'PYTHONUNBUFFERED=1',
+        ])
+        env_str = " ".join(env_vars)
+
+        # Run as non-root user (gamerunner) to satisfy Claude Agent SDK security requirements
+        # The SDK's bypassPermissions mode cannot run as root
+        game_cmd = f"cd {project_root} && {env_str} python3 -m src.traitorsim"
+        cmd = ["su", "-c", game_cmd, "gamerunner"]
+
+        # Set environment for the parent process
         env = os.environ.copy()
         env["PYTHONUNBUFFERED"] = "1"
 
-        # Start process
+        # Start process as gamerunner user
         _process = subprocess.Popen(
             cmd,
             cwd=str(project_root),
