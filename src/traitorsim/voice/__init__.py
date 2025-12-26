@@ -107,6 +107,76 @@ from .voice_cache import (
     warm_game_cache,
 )
 
+# Deepgram STT client (HITL speech-to-text)
+from .deepgram_client import (
+    DeepgramClient,
+    DeepgramModel,
+    DeepgramConfig,
+    DeepgramAPIError,
+    TranscriptResult,
+    WordInfo,
+    VADResult,
+    create_client as create_deepgram_client,
+    quick_transcribe,
+)
+
+# Soundtrack catalog (music and SFX)
+from .soundtrack import (
+    MusicCue,
+    SFXCue,
+    PHASE_MUSIC,
+    EVENT_STINGS,
+    AMBIENT_SOUNDS,
+    get_music_for_phase,
+    get_sfx_for_event,
+    get_ambient_for_location,
+)
+
+# HITL voice handler (human input processing)
+from .hitl_handler import (
+    HITLVoiceHandler,
+    IntentClassifier,
+    IntentType,
+    GamePhase as HITLGamePhase,
+    IntentResult,
+    ConversationResponse,
+    HITLSession,
+)
+
+# Round Table voice orchestrator (multi-speaker coordination)
+from .roundtable_voice import (
+    RoundTableOrchestrator,
+    RoundTableState,
+    SpeakerPriority,
+    SpeakerTurn,
+    AccusationContext,
+    VotingState,
+    RoundTableSession,
+    create_roundtable_orchestrator,
+    run_orchestrated_roundtable,
+)
+
+# HITL WebSocket server
+from .hitl_server import (
+    HITLServer,
+    MessageType,
+    AudioFormat,
+    AudioConfig,
+    ClientSession,
+    ServerStats,
+    create_hitl_server,
+    run_server as run_hitl_server,
+)
+
+# HITL game engine variant
+from .game_engine_hitl import (
+    GameEngineHITL,
+    GamePhaseHITL,
+    HumanInputRequest,
+    create_hitl_game,
+    run_hitl_game,
+)
+
 
 __all__ = [
     # Models
@@ -168,8 +238,60 @@ __all__ = [
     "CacheStats",
     "create_cache_manager",
     "warm_game_cache",
+    # Deepgram STT client
+    "DeepgramClient",
+    "DeepgramModel",
+    "DeepgramConfig",
+    "DeepgramAPIError",
+    "TranscriptResult",
+    "WordInfo",
+    "VADResult",
+    "create_deepgram_client",
+    "quick_transcribe",
+    # Soundtrack catalog
+    "MusicCue",
+    "SFXCue",
+    "PHASE_MUSIC",
+    "EVENT_STINGS",
+    "AMBIENT_SOUNDS",
+    "get_music_for_phase",
+    "get_sfx_for_event",
+    "get_ambient_for_location",
+    # HITL voice handler
+    "HITLVoiceHandler",
+    "IntentClassifier",
+    "IntentType",
+    "HITLGamePhase",
+    "IntentResult",
+    "ConversationResponse",
+    "HITLSession",
+    # Round Table orchestrator
+    "RoundTableOrchestrator",
+    "RoundTableState",
+    "SpeakerPriority",
+    "SpeakerTurn",
+    "AccusationContext",
+    "VotingState",
+    "RoundTableSession",
+    "create_roundtable_orchestrator",
+    "run_orchestrated_roundtable",
+    # HITL WebSocket server
+    "HITLServer",
+    "MessageType",
+    "AudioFormat",
+    "AudioConfig",
+    "ClientSession",
+    "ServerStats",
+    "create_hitl_server",
+    "run_hitl_server",
+    # HITL game engine
+    "GameEngineHITL",
+    "GamePhaseHITL",
+    "HumanInputRequest",
+    "create_hitl_game",
+    "run_hitl_game",
 ]
 
 
 # Version
-__version__ = "1.0.0"
+__version__ = "2.0.0"  # HITL Mode release
