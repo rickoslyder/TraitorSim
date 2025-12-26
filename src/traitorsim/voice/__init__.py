@@ -98,6 +98,15 @@ from .audio_assembler import (
     assemble_episode_from_script,
 )
 
+# Voice cache (HITL latency optimization)
+from .voice_cache import (
+    VoiceCacheManager,
+    CacheEntry,
+    CacheStats,
+    create_cache_manager,
+    warm_game_cache,
+)
+
 
 __all__ = [
     # Models
@@ -153,6 +162,12 @@ __all__ = [
     "MusicMood",
     "SFXType",
     "assemble_episode_from_script",
+    # Voice cache
+    "VoiceCacheManager",
+    "CacheEntry",
+    "CacheStats",
+    "create_cache_manager",
+    "warm_game_cache",
 ]
 
 
