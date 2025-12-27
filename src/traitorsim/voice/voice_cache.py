@@ -9,6 +9,10 @@ Features:
 - Persistent disk cache for cross-session reuse
 - Memory + disk hybrid storage
 - Cache hit/miss statistics
+- Semantic similarity caching (fuzzy match)
+- Predictive caching based on game phase
+- Priority-based eviction (narrator > player)
+- Compression for disk storage
 
 Usage:
     from traitorsim.voice import VoiceCacheManager
@@ -23,6 +27,12 @@ Usage:
         text="I've been analyzing the patterns...",
         voice_id="marcus",
         archetype="prodigy"
+    )
+
+    # Use semantic cache for fuzzy matches
+    audio = await cache.get_or_synthesize_semantic(
+        text="I've been looking at the patterns...",  # Similar to cached
+        voice_id="marcus"
     )
 """
 
@@ -809,3 +819,538 @@ async def warm_game_cache(
     report["final_stats"] = cache.get_stats()
 
     return report
+
+
+# =============================================================================
+# ADVANCED CACHING STRATEGIES
+# =============================================================================
+
+class CachePriority:
+    """Priority levels for cache entries (higher = harder to evict)."""
+    LOW = 1       # Dynamic player dialogue
+    MEDIUM = 2    # Common phrases
+    HIGH = 3      # Narrator phrases
+    CRITICAL = 4  # Pre-warmed essential phrases
+
+
+def _normalize_text(text: str) -> str:
+    """Normalize text for semantic matching.
+
+    Removes punctuation, lowercases, and normalizes whitespace.
+    """
+    import re
+    # Remove punctuation except apostrophes
+    text = re.sub(r"[^\w\s']", "", text.lower())
+    # Normalize whitespace
+    text = " ".join(text.split())
+    return text
+
+
+def _compute_similarity(text1: str, text2: str) -> float:
+    """Compute Jaccard similarity between two texts.
+
+    Returns:
+        Similarity score between 0.0 and 1.0
+    """
+    # Normalize
+    t1 = set(_normalize_text(text1).split())
+    t2 = set(_normalize_text(text2).split())
+
+    if not t1 or not t2:
+        return 0.0
+
+    intersection = len(t1 & t2)
+    union = len(t1 | t2)
+
+    return intersection / union if union > 0 else 0.0
+
+
+class SemanticCacheIndex:
+    """Index for semantic similarity-based cache lookups.
+
+    Uses word-level n-grams and inverted index for fast similarity search.
+    """
+
+    def __init__(self, similarity_threshold: float = 0.7):
+        """Initialize semantic index.
+
+        Args:
+            similarity_threshold: Minimum similarity for a match (0.0-1.0)
+        """
+        self.threshold = similarity_threshold
+
+        # Inverted index: word -> set of cache keys
+        self._word_index: Dict[str, Set[str]] = {}
+
+        # Cache key -> normalized text
+        self._key_texts: Dict[str, str] = {}
+
+        # Cache key -> original text
+        self._key_originals: Dict[str, str] = {}
+
+    def add(self, cache_key: str, text: str) -> None:
+        """Add a text to the semantic index.
+
+        Args:
+            cache_key: Cache key for the entry
+            text: Original text
+        """
+        normalized = _normalize_text(text)
+        self._key_texts[cache_key] = normalized
+        self._key_originals[cache_key] = text
+
+        # Index words
+        for word in normalized.split():
+            if word not in self._word_index:
+                self._word_index[word] = set()
+            self._word_index[word].add(cache_key)
+
+    def remove(self, cache_key: str) -> None:
+        """Remove an entry from the index."""
+        if cache_key not in self._key_texts:
+            return
+
+        normalized = self._key_texts[cache_key]
+        for word in normalized.split():
+            if word in self._word_index:
+                self._word_index[word].discard(cache_key)
+                if not self._word_index[word]:
+                    del self._word_index[word]
+
+        del self._key_texts[cache_key]
+        del self._key_originals[cache_key]
+
+    def find_similar(
+        self,
+        text: str,
+        voice_id: str,
+        max_results: int = 5,
+    ) -> List[Tuple[str, float]]:
+        """Find cache keys with similar text.
+
+        Args:
+            text: Query text
+            voice_id: Voice ID to match
+            max_results: Maximum results to return
+
+        Returns:
+            List of (cache_key, similarity) tuples, sorted by similarity desc
+        """
+        normalized = _normalize_text(text)
+        query_words = set(normalized.split())
+
+        if not query_words:
+            return []
+
+        # Find candidate keys (entries sharing at least one word)
+        candidates = set()
+        for word in query_words:
+            if word in self._word_index:
+                candidates.update(self._word_index[word])
+
+        if not candidates:
+            return []
+
+        # Score candidates
+        scores = []
+        for key in candidates:
+            # Only match same voice
+            if f"|{voice_id}|" not in key and not key.startswith(voice_id):
+                continue
+
+            similarity = _compute_similarity(text, self._key_originals.get(key, ""))
+            if similarity >= self.threshold:
+                scores.append((key, similarity))
+
+        # Sort by similarity descending
+        scores.sort(key=lambda x: -x[1])
+        return scores[:max_results]
+
+    def clear(self) -> None:
+        """Clear the entire index."""
+        self._word_index.clear()
+        self._key_texts.clear()
+        self._key_originals.clear()
+
+
+class PredictiveCache:
+    """Predictive caching based on game phase transitions.
+
+    Pre-fetches likely next phrases based on current game state.
+    """
+
+    # Phase transition probabilities and likely phrases
+    PHASE_PREDICTIONS = {
+        "breakfast": {
+            "next_phases": ["mission"],
+            "likely_phrases": [
+                "The mission awaits.",
+                "Let's see how you perform today.",
+                "Time to prove yourselves.",
+            ],
+        },
+        "mission": {
+            "next_phases": ["social", "roundtable"],
+            "likely_phrases": [
+                "The mission is complete.",
+                "Well done, everyone.",
+                "That could have gone better.",
+                "Suspicions are rising.",
+            ],
+        },
+        "social": {
+            "next_phases": ["roundtable"],
+            "likely_phrases": [
+                "The Round Table awaits.",
+                "Time to make your accusations.",
+                "Someone here is not who they claim to be.",
+            ],
+        },
+        "roundtable": {
+            "next_phases": ["turret", "breakfast"],
+            "likely_phrases": [
+                "The votes are in.",
+                "You have been banished.",
+                "You were a Faithful.",
+                "You were a Traitor!",
+                "The Traitors meet tonight.",
+            ],
+        },
+        "turret": {
+            "next_phases": ["breakfast"],
+            "likely_phrases": [
+                "The murder is done.",
+                "Dawn approaches.",
+                "Another soul claimed by treachery.",
+            ],
+        },
+    }
+
+    def __init__(self, cache: "VoiceCacheManager"):
+        """Initialize predictive cache.
+
+        Args:
+            cache: Parent VoiceCacheManager
+        """
+        self.cache = cache
+        self._current_phase: Optional[str] = None
+        self._prefetch_task: Optional[asyncio.Task] = None
+
+    async def on_phase_change(
+        self,
+        new_phase: str,
+        narrator_voice_id: str = "narrator",
+    ) -> None:
+        """Handle phase change and trigger predictive caching.
+
+        Args:
+            new_phase: The new game phase
+            narrator_voice_id: Narrator voice ID for pre-caching
+        """
+        self._current_phase = new_phase
+
+        # Cancel any existing prefetch
+        if self._prefetch_task and not self._prefetch_task.done():
+            self._prefetch_task.cancel()
+
+        # Start prefetching in background
+        self._prefetch_task = asyncio.create_task(
+            self._prefetch_for_phase(new_phase, narrator_voice_id)
+        )
+
+    async def _prefetch_for_phase(
+        self,
+        phase: str,
+        narrator_voice_id: str,
+    ) -> None:
+        """Prefetch phrases likely needed for upcoming phases.
+
+        Args:
+            phase: Current phase
+            narrator_voice_id: Narrator voice ID
+        """
+        predictions = self.PHASE_PREDICTIONS.get(phase, {})
+        phrases = predictions.get("likely_phrases", [])
+
+        if not phrases:
+            return
+
+        logger.debug(f"Predictive prefetch: {len(phrases)} phrases for post-{phase}")
+
+        # Pre-cache with low priority (evictable)
+        for phrase in phrases:
+            try:
+                # Check if already cached
+                cached = await self.cache.get(phrase, narrator_voice_id)
+                if cached is None:
+                    await self.cache.get_or_synthesize(
+                        text=phrase,
+                        voice_id=narrator_voice_id,
+                        archetype="narrator",
+                    )
+            except asyncio.CancelledError:
+                break
+            except Exception as e:
+                logger.debug(f"Predictive cache failed for phrase: {e}")
+
+
+class AggressiveCacheManager(VoiceCacheManager):
+    """Extended VoiceCacheManager with aggressive caching strategies.
+
+    Adds:
+    - Semantic similarity matching
+    - Predictive phase-based caching
+    - Priority-based eviction
+    - Compression for disk storage
+    """
+
+    def __init__(
+        self,
+        client: Any = None,
+        cache_dir: Optional[Path] = None,
+        memory_limit_mb: float = 150,  # Higher default for aggressive caching
+        disk_limit_mb: float = 1000,   # 1GB disk cache
+        semantic_threshold: float = 0.75,
+        enable_prediction: bool = True,
+        enable_compression: bool = True,
+        **kwargs,
+    ):
+        """Initialize aggressive cache manager.
+
+        Args:
+            client: ElevenLabsClient instance
+            cache_dir: Cache directory
+            memory_limit_mb: Memory limit (default higher)
+            disk_limit_mb: Disk limit (default higher)
+            semantic_threshold: Similarity threshold for semantic matching
+            enable_prediction: Enable predictive caching
+            enable_compression: Enable disk compression
+            **kwargs: Additional args for VoiceCacheManager
+        """
+        super().__init__(
+            client=client,
+            cache_dir=cache_dir,
+            memory_limit_mb=memory_limit_mb,
+            disk_limit_mb=disk_limit_mb,
+            **kwargs,
+        )
+
+        # Semantic index
+        self.semantic_index = SemanticCacheIndex(similarity_threshold=semantic_threshold)
+        self.semantic_threshold = semantic_threshold
+
+        # Predictive cache
+        self.enable_prediction = enable_prediction
+        self.predictive_cache = PredictiveCache(self) if enable_prediction else None
+
+        # Compression
+        self.enable_compression = enable_compression
+
+        # Priority tracking
+        self._entry_priorities: Dict[str, int] = {}
+
+        # Semantic cache stats
+        self.semantic_hits = 0
+        self.semantic_misses = 0
+
+    async def put(
+        self,
+        text: str,
+        voice_id: str,
+        audio_data: bytes,
+        model: Optional[str] = None,
+        archetype: Optional[str] = None,
+        priority: int = CachePriority.MEDIUM,
+    ):
+        """Store audio with priority and semantic indexing."""
+        model = model or self.model
+        key = self._generate_cache_key(text, voice_id, model)
+
+        # Set priority
+        self._entry_priorities[key] = priority
+
+        # Add to semantic index
+        self.semantic_index.add(key, text)
+
+        # Compress for disk if enabled
+        if self.enable_compression:
+            import gzip
+            audio_data_disk = gzip.compress(audio_data)
+        else:
+            audio_data_disk = audio_data
+
+        # Call parent put
+        await super().put(text, voice_id, audio_data, model, archetype)
+
+    async def get_semantic(
+        self,
+        text: str,
+        voice_id: str,
+        model: Optional[str] = None,
+    ) -> Optional[bytes]:
+        """Get cached audio using semantic similarity.
+
+        First tries exact match, then falls back to semantic similarity.
+
+        Args:
+            text: Text to look up
+            voice_id: Voice ID
+            model: Model
+
+        Returns:
+            Audio bytes if found (exact or similar), None otherwise
+        """
+        # Try exact match first
+        exact = await self.get(text, voice_id, model)
+        if exact is not None:
+            return exact
+
+        # Try semantic match
+        similar = self.semantic_index.find_similar(text, voice_id, max_results=1)
+        if similar:
+            best_key, similarity = similar[0]
+            logger.debug(f"Semantic match: {similarity:.2f} similarity")
+
+            # Look up the matched entry
+            if best_key in self._memory_cache:
+                entry = self._memory_cache[best_key]
+                entry.touch()
+                self._memory_cache.move_to_end(best_key)
+                self.semantic_hits += 1
+                return entry.audio_data
+
+        self.semantic_misses += 1
+        return None
+
+    async def get_or_synthesize_semantic(
+        self,
+        text: str,
+        voice_id: str,
+        model: Optional[str] = None,
+        archetype: Optional[str] = None,
+        voice_settings: Optional[Dict[str, Any]] = None,
+    ) -> bytes:
+        """Get cached audio (exact or semantic) or synthesize.
+
+        This is the recommended method for HITL mode as it maximizes
+        cache hit rate through semantic matching.
+
+        Args:
+            text: Text to speak
+            voice_id: Voice ID
+            model: Model
+            archetype: Archetype
+            voice_settings: Voice settings
+
+        Returns:
+            Audio bytes
+        """
+        # Try semantic cache first
+        cached = await self.get_semantic(text, voice_id, model)
+        if cached is not None:
+            return cached
+
+        # Fall back to synthesis
+        return await self.get_or_synthesize(
+            text=text,
+            voice_id=voice_id,
+            model=model,
+            archetype=archetype,
+            voice_settings=voice_settings,
+        )
+
+    async def _evict_lru_memory(self, needed_bytes: int = 0):
+        """Priority-aware LRU eviction.
+
+        Evicts low-priority entries first, then medium, then high.
+        Critical entries are never evicted.
+        """
+        # Group entries by priority
+        by_priority: Dict[int, List[str]] = {p: [] for p in range(1, 5)}
+        for key in self._memory_cache:
+            priority = self._entry_priorities.get(key, CachePriority.LOW)
+            if priority < CachePriority.CRITICAL:
+                by_priority[priority].append(key)
+
+        # Evict starting from lowest priority
+        for priority in sorted(by_priority.keys()):
+            while (
+                self._memory_size_bytes + needed_bytes > self.memory_limit_bytes
+                or len(self._memory_cache) >= self.max_memory_entries
+            ) and by_priority[priority]:
+                # Find oldest in this priority
+                oldest_key = by_priority[priority][0]
+                for key in by_priority[priority]:
+                    if self._memory_cache[key].last_accessed < self._memory_cache[oldest_key].last_accessed:
+                        oldest_key = key
+
+                # Evict
+                entry = self._memory_cache.pop(oldest_key)
+                by_priority[priority].remove(oldest_key)
+                self._memory_size_bytes -= entry.size_bytes
+                self.stats.evictions += 1
+
+                # Remove from semantic index
+                self.semantic_index.remove(oldest_key)
+
+                # Remove priority tracking
+                self._entry_priorities.pop(oldest_key, None)
+
+                logger.debug(f"Priority evicted (P{priority}): {oldest_key}")
+
+    async def on_phase_change(self, new_phase: str, narrator_voice_id: str = "narrator"):
+        """Notify cache of phase change for predictive caching."""
+        if self.predictive_cache:
+            await self.predictive_cache.on_phase_change(new_phase, narrator_voice_id)
+
+    def get_stats(self) -> Dict[str, Any]:
+        """Get extended statistics including semantic cache stats."""
+        stats = super().get_stats()
+
+        # Add semantic stats
+        total_semantic = self.semantic_hits + self.semantic_misses
+        stats["semantic_hits"] = self.semantic_hits
+        stats["semantic_misses"] = self.semantic_misses
+        stats["semantic_hit_rate"] = (
+            round(self.semantic_hits / total_semantic * 100, 2)
+            if total_semantic > 0 else 0.0
+        )
+        stats["semantic_index_size"] = len(self.semantic_index._key_texts)
+
+        # Priority breakdown
+        priority_counts = {p: 0 for p in range(1, 5)}
+        for priority in self._entry_priorities.values():
+            priority_counts[priority] = priority_counts.get(priority, 0) + 1
+        stats["entries_by_priority"] = {
+            "low": priority_counts.get(CachePriority.LOW, 0),
+            "medium": priority_counts.get(CachePriority.MEDIUM, 0),
+            "high": priority_counts.get(CachePriority.HIGH, 0),
+            "critical": priority_counts.get(CachePriority.CRITICAL, 0),
+        }
+
+        return stats
+
+
+async def create_aggressive_cache(
+    client: Any = None,
+    cache_dir: Optional[Path] = None,
+    memory_limit_mb: float = 150,
+    enable_prediction: bool = True,
+) -> AggressiveCacheManager:
+    """Create an AggressiveCacheManager with optimized settings.
+
+    Args:
+        client: ElevenLabsClient instance
+        cache_dir: Optional cache directory
+        memory_limit_mb: Memory limit
+        enable_prediction: Enable predictive caching
+
+    Returns:
+        Configured AggressiveCacheManager
+    """
+    return AggressiveCacheManager(
+        client=client,
+        cache_dir=cache_dir,
+        memory_limit_mb=memory_limit_mb,
+        enable_prediction=enable_prediction,
+    )

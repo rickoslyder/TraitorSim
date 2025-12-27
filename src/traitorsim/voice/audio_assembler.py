@@ -33,12 +33,387 @@ from dataclasses import dataclass, field
 from enum import Enum
 import io
 
+import numpy as np
 from pydub import AudioSegment
 from pydub.effects import normalize, compress_dynamic_range
 
 from .models import DialogueScript, DialogueSegment, SegmentType
+from .chapters import (
+    ChapterMarker,
+    ChapterList,
+    ChapterType,
+    embed_chapters,
+    export_chapters_json,
+    export_chapters_podlove,
+    export_chapters_webvtt,
+    generate_episode_chapters,
+    format_phase_title,
+)
 
 logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# SIDECHAIN COMPRESSOR (DYNAMIC MIXING)
+# =============================================================================
+
+@dataclass
+class SidechainConfig:
+    """Configuration for sidechain compression.
+
+    Sidechain compression uses a "trigger" signal (voice) to control
+    the gain reduction applied to a "target" signal (music).
+
+    This creates the "ducking" effect where music automatically gets
+    quieter when someone is speaking.
+
+    Attributes:
+        threshold_db: Level above which compression engages (-60 to 0 dB)
+        ratio: Compression ratio (1.0 = no compression, inf = limiting)
+        attack_ms: Time to reach full compression (1-100ms typical)
+        release_ms: Time to recover after trigger stops (50-500ms typical)
+        makeup_gain_db: Gain applied after compression
+        knee_db: Soft knee width (0 = hard knee, 6+ = soft knee)
+        lookahead_ms: Delay target signal to anticipate trigger onset
+        hold_ms: Time to hold compression after trigger falls below threshold
+        range_db: Maximum gain reduction (limits ducking depth)
+    """
+    threshold_db: float = -24.0
+    ratio: float = 4.0
+    attack_ms: float = 10.0
+    release_ms: float = 150.0
+    makeup_gain_db: float = 0.0
+    knee_db: float = 6.0
+    lookahead_ms: float = 5.0
+    hold_ms: float = 50.0
+    range_db: float = -24.0  # Max 24dB of gain reduction
+
+
+class SidechainCompressor:
+    """Implements sidechain compression for automatic music ducking.
+
+    This is the core DSP component for dynamic mixing. It analyzes
+    the voice signal's envelope and applies proportional gain reduction
+    to the music signal, creating smooth automatic ducking.
+
+    The algorithm:
+    1. Extract RMS envelope from trigger (voice) signal
+    2. Apply attack/release smoothing to create gain control signal
+    3. Compute gain reduction using compressor transfer function
+    4. Apply gain to target (music) signal with optional lookahead
+
+    Example:
+        compressor = SidechainCompressor(SidechainConfig(
+            threshold_db=-24,
+            ratio=4.0,
+            attack_ms=10,
+            release_ms=150,
+        ))
+
+        ducked_music = compressor.process(
+            trigger=voice_audio,
+            target=music_audio,
+            sample_rate=44100,
+        )
+    """
+
+    def __init__(self, config: Optional[SidechainConfig] = None):
+        """Initialize compressor with configuration.
+
+        Args:
+            config: Compression settings (uses defaults if None)
+        """
+        self.config = config or SidechainConfig()
+
+    def process(
+        self,
+        trigger: np.ndarray,
+        target: np.ndarray,
+        sample_rate: int = 44100,
+    ) -> np.ndarray:
+        """Apply sidechain compression to target based on trigger.
+
+        Args:
+            trigger: Trigger signal (voice) as numpy array
+            target: Target signal (music) to compress as numpy array
+            sample_rate: Audio sample rate in Hz
+
+        Returns:
+            Compressed target signal as numpy array
+        """
+        if len(trigger) == 0 or len(target) == 0:
+            return target
+
+        # Ensure signals are same length (pad shorter with zeros)
+        max_len = max(len(trigger), len(target))
+        if len(trigger) < max_len:
+            trigger = np.pad(trigger, (0, max_len - len(trigger)))
+        if len(target) < max_len:
+            target = np.pad(target, (0, max_len - len(target)))
+
+        # Step 1: Extract envelope from trigger signal
+        envelope_db = self._extract_envelope(trigger, sample_rate)
+
+        # Step 2: Apply attack/release smoothing
+        smoothed_envelope = self._apply_attack_release(envelope_db, sample_rate)
+
+        # Step 3: Compute gain reduction
+        gain_reduction_db = self._compute_gain_reduction(smoothed_envelope)
+
+        # Step 4: Apply lookahead by delaying target
+        lookahead_samples = int(self.config.lookahead_ms * sample_rate / 1000)
+        if lookahead_samples > 0:
+            # Delay target relative to gain envelope
+            target = np.pad(target, (lookahead_samples, 0))[:max_len]
+
+        # Step 5: Apply gain reduction
+        gain_linear = self._db_to_linear(gain_reduction_db + self.config.makeup_gain_db)
+        compressed = target * gain_linear
+
+        return compressed
+
+    def _extract_envelope(
+        self,
+        signal: np.ndarray,
+        sample_rate: int,
+        window_ms: float = 10.0,
+    ) -> np.ndarray:
+        """Extract RMS amplitude envelope from signal.
+
+        Uses overlapping windows to compute local RMS, providing
+        a smooth representation of the signal's loudness over time.
+
+        Args:
+            signal: Input signal
+            sample_rate: Sample rate in Hz
+            window_ms: Analysis window size in milliseconds
+
+        Returns:
+            Envelope in dB, same length as input
+        """
+        window_samples = max(1, int(window_ms * sample_rate / 1000))
+        hop_samples = window_samples // 4  # 75% overlap
+
+        # Compute RMS in overlapping windows
+        num_frames = (len(signal) - window_samples) // hop_samples + 1
+        if num_frames <= 0:
+            # Signal too short, compute single RMS
+            rms = np.sqrt(np.mean(signal ** 2))
+            return np.full(len(signal), self._linear_to_db(rms))
+
+        # Pre-allocate envelope
+        envelope_frames = np.zeros(num_frames)
+
+        for i in range(num_frames):
+            start = i * hop_samples
+            end = start + window_samples
+            window = signal[start:end]
+            rms = np.sqrt(np.mean(window ** 2))
+            envelope_frames[i] = rms
+
+        # Interpolate to full signal length
+        frame_times = np.arange(num_frames) * hop_samples + window_samples // 2
+        sample_times = np.arange(len(signal))
+        envelope_linear = np.interp(sample_times, frame_times, envelope_frames)
+
+        # Convert to dB
+        return self._linear_to_db(envelope_linear)
+
+    def _apply_attack_release(
+        self,
+        envelope_db: np.ndarray,
+        sample_rate: int,
+    ) -> np.ndarray:
+        """Apply attack/release smoothing to envelope.
+
+        Attack: How fast the envelope rises (compression engages)
+        Release: How fast the envelope falls (compression disengages)
+
+        Uses first-order IIR filters for smooth transitions.
+
+        Args:
+            envelope_db: Raw envelope in dB
+            sample_rate: Sample rate in Hz
+
+        Returns:
+            Smoothed envelope in dB
+        """
+        # Convert time constants to filter coefficients
+        attack_coeff = np.exp(-1.0 / (self.config.attack_ms * sample_rate / 1000))
+        release_coeff = np.exp(-1.0 / (self.config.release_ms * sample_rate / 1000))
+        hold_samples = int(self.config.hold_ms * sample_rate / 1000)
+
+        # Apply envelope follower with attack/release
+        smoothed = np.zeros_like(envelope_db)
+        current_level = envelope_db[0]
+        hold_counter = 0
+
+        for i in range(len(envelope_db)):
+            input_level = envelope_db[i]
+
+            if input_level > current_level:
+                # Attack: input is louder, move up quickly
+                current_level = attack_coeff * current_level + (1 - attack_coeff) * input_level
+                hold_counter = hold_samples
+            else:
+                # Check hold time
+                if hold_counter > 0:
+                    hold_counter -= 1
+                else:
+                    # Release: input is quieter, move down slowly
+                    current_level = release_coeff * current_level + (1 - release_coeff) * input_level
+
+            smoothed[i] = current_level
+
+        return smoothed
+
+    def _compute_gain_reduction(self, envelope_db: np.ndarray) -> np.ndarray:
+        """Compute gain reduction from envelope using compressor curve.
+
+        Implements soft-knee compression transfer function:
+        - Below threshold: no compression (0 dB gain reduction)
+        - Above threshold: compress by ratio
+        - In knee region: smooth transition
+
+        Args:
+            envelope_db: Smoothed envelope in dB
+
+        Returns:
+            Gain reduction in dB (negative values = attenuation)
+        """
+        threshold = self.config.threshold_db
+        ratio = self.config.ratio
+        knee = self.config.knee_db
+        range_limit = self.config.range_db
+
+        # Compute gain reduction for each sample
+        gain_reduction = np.zeros_like(envelope_db)
+
+        for i in range(len(envelope_db)):
+            level = envelope_db[i]
+
+            # Below knee region: no compression
+            if level < threshold - knee / 2:
+                reduction = 0.0
+
+            # Above knee region: full compression
+            elif level > threshold + knee / 2:
+                over_threshold = level - threshold
+                reduction = -over_threshold * (1 - 1 / ratio)
+
+            # In knee region: soft transition
+            else:
+                # Quadratic interpolation in knee region
+                x = level - (threshold - knee / 2)
+                reduction = -(x ** 2) / (2 * knee) * (1 - 1 / ratio)
+
+            # Limit gain reduction to range
+            gain_reduction[i] = max(reduction, range_limit)
+
+        return gain_reduction
+
+    @staticmethod
+    def _linear_to_db(linear: Union[float, np.ndarray], floor_db: float = -96.0) -> Union[float, np.ndarray]:
+        """Convert linear amplitude to decibels.
+
+        Args:
+            linear: Linear amplitude value(s)
+            floor_db: Minimum dB value for zero/negative inputs
+
+        Returns:
+            Value(s) in decibels
+        """
+        if isinstance(linear, np.ndarray):
+            with np.errstate(divide='ignore', invalid='ignore'):
+                db = 20 * np.log10(np.abs(linear))
+                db = np.where(np.isfinite(db), db, floor_db)
+                return np.maximum(db, floor_db)
+        else:
+            if linear <= 0:
+                return floor_db
+            return max(20 * np.log10(abs(linear)), floor_db)
+
+    @staticmethod
+    def _db_to_linear(db: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
+        """Convert decibels to linear amplitude.
+
+        Args:
+            db: Value(s) in decibels
+
+        Returns:
+            Linear amplitude value(s)
+        """
+        return 10 ** (db / 20)
+
+
+def audio_segment_to_numpy(audio: AudioSegment) -> Tuple[np.ndarray, int]:
+    """Convert AudioSegment to numpy array.
+
+    Args:
+        audio: pydub AudioSegment
+
+    Returns:
+        Tuple of (samples as float32 array normalized to [-1, 1], sample_rate)
+    """
+    # Get raw samples
+    samples = np.array(audio.get_array_of_samples())
+
+    # Convert to float and normalize
+    if audio.sample_width == 1:
+        samples = samples.astype(np.float32) / 128.0 - 1.0
+    elif audio.sample_width == 2:
+        samples = samples.astype(np.float32) / 32768.0
+    elif audio.sample_width == 4:
+        samples = samples.astype(np.float32) / 2147483648.0
+
+    # If stereo, convert to mono by averaging channels
+    if audio.channels == 2:
+        samples = samples.reshape(-1, 2).mean(axis=1)
+
+    return samples, audio.frame_rate
+
+
+def numpy_to_audio_segment(
+    samples: np.ndarray,
+    sample_rate: int,
+    sample_width: int = 2,
+    channels: int = 1,
+) -> AudioSegment:
+    """Convert numpy array back to AudioSegment.
+
+    Args:
+        samples: Float32 samples normalized to [-1, 1]
+        sample_rate: Sample rate in Hz
+        sample_width: Bytes per sample (1, 2, or 4)
+        channels: Number of channels
+
+    Returns:
+        pydub AudioSegment
+    """
+    # Clip to valid range
+    samples = np.clip(samples, -1.0, 1.0)
+
+    # Convert to integer samples
+    if sample_width == 1:
+        int_samples = ((samples + 1.0) * 128).astype(np.int8)
+    elif sample_width == 2:
+        int_samples = (samples * 32767).astype(np.int16)
+    elif sample_width == 4:
+        int_samples = (samples * 2147483647).astype(np.int32)
+    else:
+        raise ValueError(f"Unsupported sample width: {sample_width}")
+
+    # If mono but output needs stereo, duplicate
+    if channels == 2 and len(int_samples.shape) == 1:
+        int_samples = np.column_stack([int_samples, int_samples]).flatten()
+
+    # Create AudioSegment
+    return AudioSegment(
+        data=int_samples.tobytes(),
+        sample_width=sample_width,
+        frame_rate=sample_rate,
+        channels=channels,
+    )
 
 
 # =============================================================================
@@ -626,7 +1001,11 @@ class AudioTimeline:
         duck_db: float = -12.0,
         fade_ms: int = 200,
     ) -> AudioSegment:
-        """Apply volume ducking during voice regions.
+        """Apply volume ducking during voice regions (simple cut-based).
+
+        This is the legacy ducking method that applies fixed dB reduction
+        during voice regions. For smoother, more professional results,
+        use apply_sidechain_compression() instead.
 
         Args:
             audio: Audio to duck
@@ -672,6 +1051,331 @@ class AudioTimeline:
 
         return audio
 
+    def apply_sidechain_compression(
+        self,
+        trigger_tracks: Union[str, List[str]] = "voice",
+        duck_tracks: Union[str, List[str]] = "music",
+        config: Optional[SidechainConfig] = None,
+    ) -> None:
+        """Apply sidechain compression to duck tracks under trigger tracks.
+
+        This provides professional-quality dynamic mixing where music
+        automatically ducks in response to voice levels, with smooth
+        attack/release characteristics.
+
+        The design doc API:
+            timeline.apply_sidechain_compression(
+                trigger_tracks="voice",
+                duck_tracks="music",
+                ratio=3.0,
+                threshold=-24
+            )
+
+        Args:
+            trigger_tracks: Track name pattern(s) to use as sidechain trigger.
+                            "voice" matches all voice segments.
+                            Can be a string or list of strings.
+            duck_tracks: Track name pattern(s) to apply compression to.
+                         "music" matches tracks starting with "music_".
+                         Can be a string or list of strings.
+            config: Sidechain compression configuration. If None, uses defaults
+                    optimized for voice-over-music ducking.
+
+        Example:
+            timeline = AudioTimeline()
+            # Add voice and music tracks...
+            timeline.apply_sidechain_compression(
+                trigger_tracks="voice",
+                duck_tracks="music",
+                config=SidechainConfig(
+                    threshold_db=-24,
+                    ratio=4.0,
+                    attack_ms=10,
+                    release_ms=150,
+                ),
+            )
+            mixed = timeline.mix()
+        """
+        if config is None:
+            # Default config optimized for voice-over-music
+            config = SidechainConfig(
+                threshold_db=-24.0,
+                ratio=4.0,
+                attack_ms=10.0,
+                release_ms=150.0,
+                knee_db=6.0,
+                lookahead_ms=5.0,
+                hold_ms=50.0,
+                range_db=-18.0,  # Max 18dB reduction
+            )
+
+        compressor = SidechainCompressor(config)
+
+        # Normalize input to lists
+        if isinstance(trigger_tracks, str):
+            trigger_tracks = [trigger_tracks]
+        if isinstance(duck_tracks, str):
+            duck_tracks = [duck_tracks]
+
+        # Build combined trigger signal from matching tracks/segments
+        trigger_signal = self._build_trigger_signal(trigger_tracks)
+        if trigger_signal is None or len(trigger_signal) == 0:
+            logger.warning("No trigger signal found for sidechain compression")
+            return
+
+        # Apply compression to each matching duck track
+        for track in self.tracks:
+            if not self._track_matches_patterns(track.name, duck_tracks):
+                continue
+
+            # Convert track audio to numpy
+            target_samples, sample_rate = audio_segment_to_numpy(track.audio)
+
+            # Align trigger signal with track position
+            aligned_trigger = self._align_signal_to_track(
+                trigger_signal,
+                track.start_ms,
+                len(target_samples),
+                sample_rate
+            )
+
+            # Apply sidechain compression
+            compressed_samples = compressor.process(
+                trigger=aligned_trigger,
+                target=target_samples,
+                sample_rate=sample_rate,
+            )
+
+            # Convert back to AudioSegment
+            track.audio = numpy_to_audio_segment(
+                compressed_samples,
+                sample_rate=sample_rate,
+                sample_width=2,
+                channels=1,
+            )
+
+            # Mark that this track has been processed (no longer needs legacy ducking)
+            track.duck_under_voice = False
+
+            logger.debug(f"Applied sidechain compression to track: {track.name}")
+
+    def _build_trigger_signal(self, patterns: List[str]) -> Optional[np.ndarray]:
+        """Build combined trigger signal from matching tracks/voice segments.
+
+        Args:
+            patterns: List of patterns to match. "voice" matches voice segments.
+
+        Returns:
+            Combined trigger signal as numpy array, or None if no matches.
+        """
+        duration_ms = self.duration_ms
+        if duration_ms == 0:
+            return None
+
+        # Determine sample rate (use first track or default)
+        sample_rate = self._sample_rate
+        total_samples = int(duration_ms * sample_rate / 1000)
+        combined = np.zeros(total_samples, dtype=np.float32)
+
+        has_content = False
+
+        # Check for "voice" pattern - combine all voice segments
+        if "voice" in patterns:
+            for voice in self.voice_segments:
+                voice_samples, voice_sr = audio_segment_to_numpy(voice.audio)
+
+                # Calculate position in combined signal
+                start_sample = int(voice.start_ms * sample_rate / 1000)
+                end_sample = start_sample + len(voice_samples)
+
+                # Ensure within bounds
+                if end_sample > total_samples:
+                    voice_samples = voice_samples[:total_samples - start_sample]
+                    end_sample = total_samples
+
+                if start_sample < total_samples and len(voice_samples) > 0:
+                    combined[start_sample:end_sample] = np.maximum(
+                        combined[start_sample:end_sample],
+                        np.abs(voice_samples[:end_sample - start_sample])
+                    )
+                    has_content = True
+
+        # Check for named track patterns
+        for track in self.tracks:
+            if self._track_matches_patterns(track.name, patterns):
+                track_samples, track_sr = audio_segment_to_numpy(track.audio)
+
+                start_sample = int(track.start_ms * sample_rate / 1000)
+                end_sample = start_sample + len(track_samples)
+
+                if end_sample > total_samples:
+                    track_samples = track_samples[:total_samples - start_sample]
+                    end_sample = total_samples
+
+                if start_sample < total_samples and len(track_samples) > 0:
+                    combined[start_sample:end_sample] = np.maximum(
+                        combined[start_sample:end_sample],
+                        np.abs(track_samples[:end_sample - start_sample])
+                    )
+                    has_content = True
+
+        return combined if has_content else None
+
+    def _align_signal_to_track(
+        self,
+        signal: np.ndarray,
+        track_start_ms: int,
+        target_length: int,
+        sample_rate: int,
+    ) -> np.ndarray:
+        """Align a timeline-wide signal to a specific track's time window.
+
+        Args:
+            signal: Full timeline signal
+            track_start_ms: Track's start position in timeline
+            target_length: Length of target track in samples
+            sample_rate: Sample rate
+
+        Returns:
+            Signal segment aligned to track's time window
+        """
+        start_sample = int(track_start_ms * sample_rate / 1000)
+        end_sample = start_sample + target_length
+
+        if start_sample >= len(signal):
+            return np.zeros(target_length, dtype=np.float32)
+
+        if end_sample > len(signal):
+            # Pad with zeros at end
+            segment = signal[start_sample:]
+            return np.pad(segment, (0, target_length - len(segment)))
+
+        return signal[start_sample:end_sample]
+
+    def _track_matches_patterns(self, track_name: str, patterns: List[str]) -> bool:
+        """Check if a track name matches any of the given patterns.
+
+        Args:
+            track_name: Name of the track
+            patterns: List of patterns to match
+
+        Returns:
+            True if track matches any pattern
+        """
+        track_lower = track_name.lower()
+
+        for pattern in patterns:
+            pattern_lower = pattern.lower()
+
+            # Special handling for common patterns
+            if pattern_lower == "music":
+                if track_lower.startswith("music_"):
+                    return True
+            elif pattern_lower == "sfx":
+                if track_lower.startswith("sfx_"):
+                    return True
+            elif pattern_lower == "voice":
+                # Voice is handled separately via voice_segments
+                continue
+            else:
+                # Direct match or prefix match
+                if track_lower == pattern_lower or track_lower.startswith(pattern_lower):
+                    return True
+
+        return False
+
+    def generate_chapters(
+        self,
+        include_events: bool = True,
+        include_confessionals: bool = False,
+        min_duration_ms: int = 10000,
+        episode_title: Optional[str] = None,
+        episode_number: Optional[int] = None,
+    ) -> ChapterList:
+        """Generate chapter markers from timeline content.
+
+        Analyzes voice segments to identify phase transitions and
+        significant events, creating chapter markers for podcast-style
+        navigation.
+
+        Args:
+            include_events: Include event chapters (murder, banishment)
+            include_confessionals: Include per-confessional chapters
+            min_duration_ms: Minimum chapter duration (merge shorter)
+            episode_title: Optional episode title for metadata
+            episode_number: Optional episode number for metadata
+
+        Returns:
+            ChapterList with generated chapters
+        """
+        chapters = ChapterList(
+            episode_title=episode_title,
+            episode_number=episode_number,
+            total_duration_ms=self.duration_ms,
+        )
+
+        if not self.voice_segments:
+            return chapters
+
+        # Track phase transitions
+        current_phase = None
+        phase_start_ms = 0
+
+        for voice in self.voice_segments:
+            segment = voice.segment
+
+            # Get phase from segment
+            phase = getattr(segment, "phase", None)
+            if phase is None and hasattr(segment, "metadata"):
+                phase = segment.metadata.get("phase")
+
+            # Phase changed - add chapter
+            if phase and phase != current_phase:
+                chapters.add_phase(
+                    phase=phase,
+                    start_ms=voice.start_ms,
+                )
+                current_phase = phase
+                phase_start_ms = voice.start_ms
+
+            # Check for significant events
+            if include_events:
+                event_type = getattr(segment, "event_type", None)
+                if event_type in ("MURDER", "BANISHMENT", "ROLE_REVEAL", "VOTE_TALLY"):
+                    # Get event details for better titles
+                    details = {}
+                    if hasattr(segment, "speaker_name"):
+                        if event_type == "MURDER":
+                            details["victim_name"] = segment.speaker_name
+                        elif event_type == "BANISHMENT":
+                            details["banished_name"] = segment.speaker_name
+
+                    from .chapters import format_event_title
+                    chapters.add_event(
+                        event_type=event_type,
+                        start_ms=voice.start_ms,
+                        title=format_event_title(event_type, details),
+                    )
+
+            # Check for confessionals
+            if include_confessionals:
+                seg_type = segment.segment_type
+                if seg_type == SegmentType.CONFESSIONAL:
+                    speaker_name = getattr(segment, "speaker_name", None)
+                    speaker_id = getattr(segment, "speaker_id", None)
+                    if speaker_name:
+                        chapters.add_confessional(
+                            speaker_name=speaker_name,
+                            speaker_id=speaker_id or "unknown",
+                            start_ms=voice.start_ms,
+                        )
+
+        # Finalize and clean up
+        chapters.finalize(self.duration_ms)
+        chapters.merge_short_chapters(min_duration_ms)
+
+        return chapters
+
 
 # =============================================================================
 # EPISODE AUDIO ASSEMBLER
@@ -687,6 +1391,8 @@ class EpisodeAudioAssembler:
         sfx_library: Optional[SFXLibrary] = None,
         output_format: str = "mp3",
         output_bitrate: str = "192k",
+        use_sidechain: bool = True,
+        sidechain_config: Optional[SidechainConfig] = None,
     ):
         """Initialize episode assembler.
 
@@ -696,18 +1402,28 @@ class EpisodeAudioAssembler:
             sfx_library: Sound effects library
             output_format: Output audio format
             output_bitrate: Output bitrate for MP3
+            use_sidechain: Use sidechain compression for dynamic mixing (default True).
+                           If False, uses legacy simple ducking.
+            sidechain_config: Custom sidechain compression settings. If None, uses
+                              optimized defaults for voice-over-music.
         """
         self.client = elevenlabs_client
         self.music_library = music_library or MusicLibrary()
         self.sfx_library = sfx_library or SFXLibrary()
         self.output_format = output_format
         self.output_bitrate = output_bitrate
+        self.use_sidechain = use_sidechain
+        self.sidechain_config = sidechain_config
 
         # Timing configuration
         self.segment_gap_ms = 500       # Gap between dialogue segments
         self.phase_transition_ms = 2000  # Transition between phases
         self.intro_music_ms = 5000       # Intro music before content
         self.outro_music_ms = 3000       # Outro music after content
+
+        # Store last assembled timeline for chapter generation
+        self._last_timeline: Optional[AudioTimeline] = None
+        self._last_episode_number: int = 0
 
     async def assemble_episode(
         self,
@@ -753,12 +1469,59 @@ class EpisodeAudioAssembler:
         if include_sfx:
             self._add_sfx_from_cues(timeline)
 
+        # Apply sidechain compression for dynamic mixing
+        if include_music and self.use_sidechain:
+            timeline.apply_sidechain_compression(
+                trigger_tracks="voice",
+                duck_tracks="music",
+                config=self.sidechain_config,
+            )
+
         # Mix everything
         mixed = timeline.mix(normalize_output=True)
+
+        # Store timeline for chapter generation
+        self._last_timeline = timeline
+        self._last_episode_number = episode_number
 
         logger.info(f"Episode {episode_number} assembled: {len(mixed) / 1000:.1f}s")
 
         return mixed
+
+    def generate_chapters(
+        self,
+        episode_title: Optional[str] = None,
+        include_events: bool = True,
+        include_confessionals: bool = False,
+        min_duration_ms: int = 10000,
+    ) -> ChapterList:
+        """Generate chapter markers from the last assembled episode.
+
+        Must be called after assemble_episode(). Analyzes the assembled
+        timeline to create chapter markers for podcast-style navigation.
+
+        Args:
+            episode_title: Optional title for episode metadata
+            include_events: Include event chapters (murder, banishment)
+            include_confessionals: Include per-confessional chapters
+            min_duration_ms: Minimum chapter duration (merge shorter)
+
+        Returns:
+            ChapterList with generated chapters
+
+        Raises:
+            ValueError: If no episode has been assembled yet
+        """
+        if self._last_timeline is None:
+            raise ValueError("No episode assembled yet. Call assemble_episode() first.")
+
+        return self._last_timeline.generate_chapters(
+            include_events=include_events,
+            include_confessionals=include_confessionals,
+            min_duration_ms=min_duration_ms,
+            episode_title=episode_title,
+            episode_number=self._last_episode_number,
+        )
 
     async def _add_voice_segments(
         self,
@@ -897,13 +1660,23 @@ class EpisodeAudioAssembler:
         audio: AudioSegment,
         output_path: str,
         format: Optional[str] = None,
+        chapters: Optional[ChapterList] = None,
+        embed_chapters: bool = True,
+        export_chapter_files: bool = True,
     ) -> str:
-        """Export episode audio to file.
+        """Export episode audio to file with optional chapter markers.
+
+        Exports the audio file and optionally embeds chapter markers
+        for podcast-style navigation. Can also export external chapter
+        files (JSON, Podlove) for podcast hosting platforms.
 
         Args:
             audio: Episode AudioSegment
             output_path: Output file path
             format: Override output format
+            chapters: ChapterList to embed (auto-generated if None)
+            embed_chapters: Whether to embed chapters in audio file
+            export_chapter_files: Whether to export external chapter files
 
         Returns:
             Path to exported file
@@ -911,6 +1684,13 @@ class EpisodeAudioAssembler:
         format = format or self.output_format
         output_path = Path(output_path)
         output_path.parent.mkdir(parents=True, exist_ok=True)
+
+        # Auto-generate chapters if not provided and we have a timeline
+        if chapters is None and self._last_timeline is not None:
+            try:
+                chapters = self.generate_chapters()
+            except ValueError:
+                chapters = None
 
         # Export with appropriate settings
         if format == "mp3":
@@ -921,13 +1701,88 @@ class EpisodeAudioAssembler:
                 tags={
                     "artist": "TraitorSim",
                     "album": "The Traitors AI Simulation",
+                    "track": str(self._last_episode_number) if self._last_episode_number else "1",
                 }
             )
+
+            # Embed chapters in MP3
+            if embed_chapters and chapters and len(chapters) > 0:
+                try:
+                    from .chapters import embed_chapters as do_embed
+                    success = do_embed(str(output_path), chapters)
+                    if success:
+                        logger.info(f"Embedded {len(chapters)} chapters in {output_path}")
+                    else:
+                        logger.warning(f"Failed to embed chapters in {output_path}")
+                except Exception as e:
+                    logger.warning(f"Chapter embedding failed: {e}")
+
+        elif format in ("m4a", "aac"):
+            # For M4A, we need to handle chapter embedding differently
+            temp_path = output_path.with_suffix(".temp.m4a")
+            audio.export(str(temp_path), format="ipod")
+
+            if embed_chapters and chapters and len(chapters) > 0:
+                try:
+                    from .chapters import embed_chapters_m4a
+                    success = embed_chapters_m4a(
+                        str(temp_path),
+                        str(output_path),
+                        chapters,
+                    )
+                    if success:
+                        temp_path.unlink()
+                        logger.info(f"Embedded {len(chapters)} chapters in {output_path}")
+                    else:
+                        # Fall back to unchaptered version
+                        temp_path.rename(output_path)
+                        logger.warning(f"Chapter embedding failed, exported without chapters")
+                except Exception as e:
+                    temp_path.rename(output_path)
+                    logger.warning(f"Chapter embedding failed: {e}")
+            else:
+                temp_path.rename(output_path)
         else:
             audio.export(str(output_path), format=format)
 
+        # Export external chapter files
+        if export_chapter_files and chapters and len(chapters) > 0:
+            self._export_chapter_files(output_path, chapters)
+
         logger.info(f"Episode exported: {output_path}")
         return str(output_path)
+
+    def _export_chapter_files(
+        self,
+        audio_path: Path,
+        chapters: ChapterList,
+    ) -> None:
+        """Export chapter markers to external files.
+
+        Creates companion files for podcast hosting platforms:
+        - .chapters.json - Machine-readable format
+        - .chapters.txt - Podlove Simple Chapters format
+        - .chapters.vtt - WebVTT for HTML5 players
+
+        Args:
+            audio_path: Path to the audio file
+            chapters: ChapterList to export
+        """
+        base_path = audio_path.with_suffix("")
+
+        # Export JSON
+        json_path = str(base_path) + ".chapters.json"
+        try:
+            export_chapters_json(chapters, json_path)
+        except Exception as e:
+            logger.warning(f"Failed to export JSON chapters: {e}")
+
+        # Export Podlove Simple Chapters
+        podlove_path = str(base_path) + ".chapters.txt"
+        try:
+            export_chapters_podlove(chapters, podlove_path)
+        except Exception as e:
+            logger.warning(f"Failed to export Podlove chapters: {e}")
 
 
 # =============================================================================

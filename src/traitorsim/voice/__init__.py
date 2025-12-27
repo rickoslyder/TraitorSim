@@ -95,7 +95,25 @@ from .audio_assembler import (
     SFXLibrary,
     MusicMood,
     SFXType,
+    SidechainConfig,
+    SidechainCompressor,
     assemble_episode_from_script,
+    audio_segment_to_numpy,
+    numpy_to_audio_segment,
+)
+
+# Chapter markers
+from .chapters import (
+    ChapterMarker,
+    ChapterList,
+    ChapterType,
+    embed_chapters,
+    export_chapters_json,
+    export_chapters_podlove,
+    export_chapters_webvtt,
+    generate_episode_chapters,
+    ms_to_timecode,
+    timecode_to_ms,
 )
 
 # Voice cache (HITL latency optimization)
@@ -192,6 +210,61 @@ from .voice_emitter import (
     infer_emotion,
 )
 
+# Voice analytics (Phase 6: metrics and cost tracking)
+from .analytics import (
+    VoiceAnalytics,
+    MetricsCollector,
+    TTSRequestMetrics,
+    STTRequestMetrics,
+    SessionMetrics,
+    LatencyStats,
+    TTSRequestTracker,
+    create_analytics,
+    calculate_credits,
+    estimate_cost,
+)
+
+# Load testing (Phase 6: concurrent HITL simulation)
+from .load_test import (
+    LoadTestRunner,
+    LoadTestConfig,
+    LoadTestResults,
+    RequestResult,
+    GameSimulation,
+    ResourceSample,
+    MockTTSClient,
+    MockSTTClient,
+    MockLLMClient,
+    run_quick_test,
+    run_stress_test,
+    run_soak_test,
+    analyze_bottlenecks,
+)
+
+# A/B testing (Phase 6: voice experiment framework)
+from .ab_testing import (
+    ABTestManager,
+    Experiment,
+    Variant,
+    ExperimentStatus,
+    ExperimentResults,
+    WinnerCriteria,
+    ABTestVoiceConfig,
+    create_model_comparison_experiment,
+    create_stability_experiment,
+    create_caching_experiment,
+    calculate_confidence_interval,
+)
+
+# Aggressive cache (Phase 6: advanced caching strategies)
+from .voice_cache import (
+    CachePriority,
+    SemanticCacheIndex,
+    PredictiveCache,
+    AggressiveCacheManager,
+    create_aggressive_cache,
+)
+
 
 __all__ = [
     # Models
@@ -246,7 +319,22 @@ __all__ = [
     "SFXLibrary",
     "MusicMood",
     "SFXType",
+    "SidechainConfig",
+    "SidechainCompressor",
     "assemble_episode_from_script",
+    "audio_segment_to_numpy",
+    "numpy_to_audio_segment",
+    # Chapter markers
+    "ChapterMarker",
+    "ChapterList",
+    "ChapterType",
+    "embed_chapters",
+    "export_chapters_json",
+    "export_chapters_podlove",
+    "export_chapters_webvtt",
+    "generate_episode_chapters",
+    "ms_to_timecode",
+    "timecode_to_ms",
     # Voice cache
     "VoiceCacheManager",
     "CacheEntry",
@@ -317,8 +405,51 @@ __all__ = [
     "CompositeVoiceEmitter",
     "create_voice_emitter",
     "infer_emotion",
+    # Voice analytics (Phase 6)
+    "VoiceAnalytics",
+    "MetricsCollector",
+    "TTSRequestMetrics",
+    "STTRequestMetrics",
+    "SessionMetrics",
+    "LatencyStats",
+    "TTSRequestTracker",
+    "create_analytics",
+    "calculate_credits",
+    "estimate_cost",
+    # Load testing (Phase 6)
+    "LoadTestRunner",
+    "LoadTestConfig",
+    "LoadTestResults",
+    "RequestResult",
+    "GameSimulation",
+    "ResourceSample",
+    "MockTTSClient",
+    "MockSTTClient",
+    "MockLLMClient",
+    "run_quick_test",
+    "run_stress_test",
+    "run_soak_test",
+    "analyze_bottlenecks",
+    # A/B testing (Phase 6)
+    "ABTestManager",
+    "Experiment",
+    "Variant",
+    "ExperimentStatus",
+    "ExperimentResults",
+    "WinnerCriteria",
+    "ABTestVoiceConfig",
+    "create_model_comparison_experiment",
+    "create_stability_experiment",
+    "create_caching_experiment",
+    "calculate_confidence_interval",
+    # Aggressive cache (Phase 6)
+    "CachePriority",
+    "SemanticCacheIndex",
+    "PredictiveCache",
+    "AggressiveCacheManager",
+    "create_aggressive_cache",
 ]
 
 
 # Version
-__version__ = "2.1.0"  # Integration hooks release
+__version__ = "3.0.0"  # Phase 6: Production optimization release
