@@ -177,6 +177,21 @@ from .game_engine_hitl import (
     run_hitl_game,
 )
 
+# Voice emitter (integration hooks)
+from .voice_emitter import (
+    VoiceEventType,
+    VoiceMode,
+    EmotionHint,
+    VoiceEvent,
+    VoiceEmitter,
+    NullVoiceEmitter,
+    EpisodeVoiceEmitter,
+    HITLVoiceEmitter,
+    CompositeVoiceEmitter,
+    create_voice_emitter,
+    infer_emotion,
+)
+
 
 __all__ = [
     # Models
@@ -290,8 +305,20 @@ __all__ = [
     "HumanInputRequest",
     "create_hitl_game",
     "run_hitl_game",
+    # Voice emitter (integration hooks)
+    "VoiceEventType",
+    "VoiceMode",
+    "EmotionHint",
+    "VoiceEvent",
+    "VoiceEmitter",
+    "NullVoiceEmitter",
+    "EpisodeVoiceEmitter",
+    "HITLVoiceEmitter",
+    "CompositeVoiceEmitter",
+    "create_voice_emitter",
+    "infer_emotion",
 ]
 
 
 # Version
-__version__ = "2.0.0"  # HITL Mode release
+__version__ = "2.1.0"  # Integration hooks release

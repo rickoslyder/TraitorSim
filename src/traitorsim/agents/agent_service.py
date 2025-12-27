@@ -667,6 +667,172 @@ def create_death_list():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/speak', methods=['POST'])
+def speak():
+    """Generate voice audio for a player statement (HITL mode).
+
+    This endpoint synthesizes speech for the agent's statements in real-time
+    for human-in-the-loop gameplay. Uses ElevenLabs Flash for low latency.
+
+    Request body:
+        {
+            "text": "I think Player X is suspicious...",
+            "emotion": "suspicious",  # optional
+            "context": "roundtable"   # optional: phase context
+        }
+
+    Response:
+        {
+            "audio_base64": "...",  # Base64-encoded audio bytes
+            "duration_ms": 2500,
+            "voice_id": "..."
+        }
+    """
+    global agent
+
+    if not agent:
+        return jsonify({'error': 'Agent not initialized'}), 503
+
+    try:
+        data = request.json
+        text = data.get('text', '')
+        emotion = data.get('emotion', 'neutral')
+        context = data.get('context', 'conversation')
+
+        if not text:
+            return jsonify({'error': 'No text provided'}), 400
+
+        # Import voice synthesis components
+        try:
+            from ..voice.elevenlabs_client import ElevenLabsClient, ElevenLabsModel
+            from ..voice.voice_library import get_voice_for_persona
+        except ImportError as e:
+            logger.error(f"Voice module not available: {e}")
+            return jsonify({'error': 'Voice module not available'}), 501
+
+        # Get voice ID for this agent's persona
+        persona_data = {
+            'archetype_id': agent.player.archetype_id,
+            'archetype_name': agent.player.archetype_name,
+            'demographics': agent.player.demographics,
+        }
+        voice_id = get_voice_for_persona(persona_data)
+
+        # Create client and synthesize
+        client = ElevenLabsClient()
+
+        # Use Flash model for HITL (low latency)
+        audio_bytes = client.synthesize_sync(
+            text=text,
+            voice_id=voice_id,
+            model=ElevenLabsModel.FLASH,
+        )
+
+        if not audio_bytes:
+            return jsonify({'error': 'Synthesis failed'}), 500
+
+        # Encode audio as base64 for JSON transport
+        import base64
+        audio_base64 = base64.b64encode(audio_bytes).decode('utf-8')
+
+        # Estimate duration (rough: ~150 words/minute)
+        word_count = len(text.split())
+        duration_ms = int((word_count / 150) * 60 * 1000)
+
+        logger.info(f"🔊 {agent.player.name} speaks: '{text[:50]}...' ({len(audio_bytes)} bytes)")
+
+        return jsonify({
+            'audio_base64': audio_base64,
+            'duration_ms': duration_ms,
+            'voice_id': voice_id,
+            'speaker_name': agent.player.name,
+        })
+
+    except Exception as e:
+        logger.error(f"Error in speak endpoint: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/speak_stream', methods=['POST'])
+def speak_stream():
+    """Stream voice audio for a player statement (HITL mode).
+
+    Similar to /speak but returns a streaming response for lower time-to-first-byte.
+    Uses Server-Sent Events (SSE) to stream audio chunks.
+
+    Request body:
+        {
+            "text": "I think Player X is suspicious...",
+            "emotion": "suspicious"
+        }
+
+    Response: Server-Sent Events stream of audio chunks
+    """
+    global agent
+
+    if not agent:
+        return jsonify({'error': 'Agent not initialized'}), 503
+
+    try:
+        data = request.json
+        text = data.get('text', '')
+
+        if not text:
+            return jsonify({'error': 'No text provided'}), 400
+
+        # Import voice synthesis components
+        try:
+            from ..voice.elevenlabs_client import ElevenLabsClient, ElevenLabsModel
+            from ..voice.voice_library import get_voice_for_persona
+        except ImportError as e:
+            logger.error(f"Voice module not available: {e}")
+            return jsonify({'error': 'Voice module not available'}), 501
+
+        # Get voice ID for this agent's persona
+        persona_data = {
+            'archetype_id': agent.player.archetype_id,
+            'archetype_name': agent.player.archetype_name,
+            'demographics': agent.player.demographics,
+        }
+        voice_id = get_voice_for_persona(persona_data)
+
+        # Create streaming generator
+        def generate():
+            import base64
+
+            client = ElevenLabsClient()
+
+            # Stream synthesis
+            for chunk in client.synthesize_stream(
+                text=text,
+                voice_id=voice_id,
+                model=ElevenLabsModel.FLASH,
+            ):
+                if chunk:
+                    chunk_base64 = base64.b64encode(chunk).decode('utf-8')
+                    yield f"data: {json.dumps({'audio': chunk_base64})}\n\n"
+
+            yield f"data: {json.dumps({'done': True})}\n\n"
+
+        from flask import Response
+        return Response(
+            generate(),
+            mimetype='text/event-stream',
+            headers={
+                'Cache-Control': 'no-cache',
+                'X-Accel-Buffering': 'no',
+            }
+        )
+
+    except Exception as e:
+        logger.error(f"Error in speak_stream endpoint: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e)}), 500
+
+
 if __name__ == '__main__':
     # Get port from environment
     port = int(os.environ.get('PORT', 5000))

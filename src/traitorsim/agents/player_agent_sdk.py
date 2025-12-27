@@ -2,10 +2,21 @@
 
 This module uses the proper Claude Agent SDK with MCP tools for
 autonomous, structured decision-making.
+
+Voice Integration:
+    The player agent can optionally emit confessional voice events
+    when making decisions (voting, murder selection). This captures
+    the agent's private reasoning for episode mode playback.
+
+    Example:
+        from traitorsim.voice import create_voice_emitter, VoiceMode
+
+        voice_emitter = create_voice_emitter(mode=VoiceMode.EPISODE)
+        agent = PlayerAgentSDK(player, game_state, voice_emitter=voice_emitter)
 """
 
 import asyncio
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, TYPE_CHECKING
 from dataclasses import dataclass
 
 from claude_agent_sdk import query, ClaudeAgentOptions, ResultMessage, AssistantMessage
@@ -13,6 +24,9 @@ from claude_agent_sdk import query, ClaudeAgentOptions, ResultMessage, Assistant
 from ..core.game_state import Player, GameState
 from ..memory.memory_manager import MemoryManager
 from ..mcp.sdk_tools import create_game_mcp_server
+
+if TYPE_CHECKING:
+    from ..voice.voice_emitter import VoiceEmitter
 
 
 @dataclass
@@ -40,6 +54,7 @@ class PlayerAgentSDK:
         player: Player,
         game_state: GameState,
         memory_manager: Optional[MemoryManager] = None,
+        voice_emitter: Optional["VoiceEmitter"] = None,
     ):
         """Initialize player agent with Claude SDK.
 
@@ -47,10 +62,12 @@ class PlayerAgentSDK:
             player: Player instance this agent controls
             game_state: Current game state (shared reference)
             memory_manager: File-based memory system
+            voice_emitter: Optional VoiceEmitter for confessional voice synthesis
         """
         self.player = player
         self.game_state = game_state
         self.memory_manager = memory_manager
+        self.voice_emitter = voice_emitter
 
         # Create tool context (shared with MCP tools via closure)
         self.tool_context = {
@@ -129,6 +146,59 @@ class PlayerAgentSDK:
 - High extraversion = more vocal accusations; high openness = consider new theories
 
 **Remember**: You must use tools to take actions. Stating "I vote for X" without calling cast_vote will NOT register your vote."""
+
+    async def _emit_confessional(
+        self,
+        text: str,
+        action: str,
+        target: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Emit a confessional voice event (private player thoughts).
+
+        Args:
+            text: The player's private reasoning/thoughts
+            action: What action this confessional is about (vote, murder, reflection)
+            target: Target player ID if applicable
+            metadata: Additional context
+        """
+        if not self.voice_emitter or not text:
+            return
+
+        try:
+            from ..voice.voice_emitter import VoiceEvent, VoiceEventType, EmotionHint
+
+            # Determine emotion based on role and action
+            if self.player.role.value == "traitor":
+                emotion = EmotionHint.CONSPIRATORIAL
+            elif action == "vote":
+                emotion = EmotionHint.SUSPICIOUS
+            else:
+                emotion = EmotionHint.NEUTRAL
+
+            event = VoiceEvent(
+                event_type=VoiceEventType.CONFESSIONAL,
+                text=text,
+                speaker_id=self.player.id,
+                speaker_name=self.player.name,
+                emotion=emotion,
+                day=self.game_state.day,
+                phase="confessional",
+                priority=4,  # Medium priority
+                metadata={
+                    "action": action,
+                    "target": target,
+                    "role": self.player.role.value,
+                    "archetype": self.player.archetype_name,
+                    **(metadata or {}),
+                },
+            )
+
+            await self.voice_emitter.emit(event)
+
+        except Exception as e:
+            # Voice emission should never break agent logic
+            print(f"Warning: Failed to emit confessional voice: {e}")
 
     def _get_archetype_gameplay_hint(self) -> str:
         """Get gameplay hint from archetype definition."""
@@ -233,7 +303,17 @@ Think strategically based on your role and personality. You MUST call the cast_v
             vote_result = self.tool_context.get("vote_result")
 
             if vote_result:
-                return vote_result["target"]
+                target = vote_result["target"]
+                reasoning = vote_result.get("reasoning", "No reasoning provided")
+
+                # Emit confessional voice event with reasoning
+                await self._emit_confessional(
+                    text=reasoning,
+                    action="vote",
+                    target=target,
+                )
+
+                return target
             else:
                 # Fallback: emergency random vote
                 print(f"Warning: {self.player.name} didn't call cast_vote tool, using fallback")
@@ -276,7 +356,17 @@ You MUST call the choose_murder_victim tool."""
             murder_choice = self.tool_context.get("murder_choice")
 
             if murder_choice:
-                return murder_choice["victim"]
+                victim = murder_choice["victim"]
+                reasoning = murder_choice.get("reasoning", "Strategic elimination")
+
+                # Emit confessional voice event with reasoning (Traitor-only)
+                await self._emit_confessional(
+                    text=reasoning,
+                    action="murder",
+                    target=victim,
+                )
+
+                return victim
             else:
                 print(f"Warning: {self.player.name} didn't call choose_murder_victim tool, using fallback")
                 return self._emergency_fallback_murder()

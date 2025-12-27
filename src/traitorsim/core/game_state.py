@@ -1,9 +1,24 @@
-"""Core game state data structures."""
+"""Core game state data structures.
+
+Voice Integration:
+    GameState can optionally emit voice events when significant game events
+    occur (murders, banishments, phase transitions). Set voice_emitter
+    to enable automatic voice generation for events.
+
+    Example:
+        from traitorsim.voice import create_voice_emitter, VoiceMode
+
+        voice_emitter = create_voice_emitter(mode=VoiceMode.EPISODE)
+        game_state.voice_emitter = voice_emitter
+"""
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Any
+from typing import List, Dict, Optional, Any, Callable, Coroutine, TYPE_CHECKING
 import numpy as np
 from .enums import GamePhase, Role
+
+if TYPE_CHECKING:
+    from ..voice.voice_emitter import VoiceEmitter
 
 
 @dataclass
@@ -139,6 +154,22 @@ class GameState:
     # Structured events for UI timeline
     events: List[Dict[str, Any]] = field(default_factory=list)  # All game events with metadata
 
+    # Voice integration (optional)
+    voice_emitter: Optional["VoiceEmitter"] = None
+    voice_emit_callback: Optional[Callable[[Any], Coroutine[Any, Any, None]]] = None
+
+    # Event types that trigger voice emission
+    VOICE_ENABLED_EVENTS: set = field(default_factory=lambda: {
+        "MURDER",
+        "BANISHMENT",
+        "MISSION_COMPLETE",
+        "PHASE_CHANGE",
+        "RECRUITMENT",
+        "SHIELD_AWARDED",
+        "DAGGER_USED",
+        "GAME_END",
+    })
+
     @property
     def alive_players(self) -> List[Player]:
         """Get list of alive players."""
@@ -194,6 +225,9 @@ class GameState:
         """
         Record a structured game event for UI timeline.
 
+        Also emits voice events for significant game moments if voice_emitter
+        is configured. Voice-enabled event types are defined in VOICE_ENABLED_EVENTS.
+
         Args:
             event_type: Type of event (MURDER, BANISHMENT, VOTE_TALLY, MISSION_COMPLETE, etc.)
             phase: Game phase (breakfast, mission, social, roundtable, turret)
@@ -212,6 +246,88 @@ class GameState:
             "narrative": narrative,
         }
         self.events.append(event)
+
+        # Emit voice event if configured and event type is voice-enabled
+        if self.voice_emitter and event_type in self.VOICE_ENABLED_EVENTS and narrative:
+            self._queue_voice_event(event_type, phase, narrative, data or {})
+
+    def _queue_voice_event(
+        self,
+        event_type: str,
+        phase: str,
+        narrative: str,
+        data: Dict[str, Any],
+    ) -> None:
+        """Queue a voice event for emission (sync wrapper for async emit).
+
+        Args:
+            event_type: Type of game event
+            phase: Game phase
+            narrative: Text to synthesize
+            data: Event metadata
+        """
+        if not self.voice_emitter:
+            return
+
+        try:
+            from ..voice.voice_emitter import VoiceEvent, VoiceEventType, EmotionHint
+
+            # Map event types to voice event types
+            type_map = {
+                "MURDER": VoiceEventType.EVENT_MURDER,
+                "BANISHMENT": VoiceEventType.EVENT_BANISHMENT,
+                "MISSION_COMPLETE": VoiceEventType.EVENT_MISSION_COMPLETE,
+                "RECRUITMENT": VoiceEventType.EVENT_RECRUITMENT,
+                "SHIELD_AWARDED": VoiceEventType.EVENT_SHIELD,
+                "DAGGER_USED": VoiceEventType.EVENT_DAGGER,
+                "GAME_END": VoiceEventType.SYSTEM_GAME_END,
+                "PHASE_CHANGE": VoiceEventType.SYSTEM_PHASE_TRANSITION,
+            }
+            voice_type = type_map.get(event_type, VoiceEventType.NARRATOR)
+
+            # Determine emotion from event type
+            emotion_map = {
+                "MURDER": EmotionHint.SOMBER,
+                "BANISHMENT": EmotionHint.DRAMATIC,
+                "MISSION_COMPLETE": EmotionHint.NEUTRAL,
+                "GAME_END": EmotionHint.TRIUMPHANT,
+            }
+            emotion = emotion_map.get(event_type, EmotionHint.NEUTRAL)
+
+            voice_event = VoiceEvent(
+                event_type=voice_type,
+                text=narrative,
+                speaker_id="narrator",
+                speaker_name="The Host",
+                emotion=emotion,
+                day=self.day,
+                phase=phase,
+                priority=3,  # Medium-high priority for game events
+                metadata={"game_event_type": event_type, **data},
+            )
+
+            # Use callback if provided (for async contexts)
+            if self.voice_emit_callback:
+                import asyncio
+                try:
+                    loop = asyncio.get_running_loop()
+                    loop.create_task(self.voice_emit_callback(voice_event))
+                except RuntimeError:
+                    # No running loop, use synchronous approach
+                    asyncio.run(self.voice_emitter.emit(voice_event))
+            else:
+                # Try to emit directly (works if emitter.emit is sync-compatible)
+                import asyncio
+                try:
+                    loop = asyncio.get_running_loop()
+                    loop.create_task(self.voice_emitter.emit(voice_event))
+                except RuntimeError:
+                    # No running loop - queue for later
+                    pass
+
+        except Exception as e:
+            # Voice emission should never break game logic
+            print(f"Warning: Failed to queue voice event: {e}")
 
     def capture_trust_snapshot(self, phase: str) -> Dict[str, Any]:
         """

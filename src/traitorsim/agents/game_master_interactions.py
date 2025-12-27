@@ -2,15 +2,29 @@
 
 This module implements the Game Master using Google's Interactions API with
 server-side state management (previous_interaction_id) for 55-day conversation persistence.
+
+Voice Integration:
+    The Game Master can optionally emit voice events for narrator announcements.
+    Pass a VoiceEmitter to enable voice synthesis for dramatic narration.
+
+    Example:
+        from traitorsim.voice import create_voice_emitter, VoiceMode
+
+        voice_emitter = create_voice_emitter(mode=VoiceMode.EPISODE)
+        gm = GameMasterInteractions(game_state, voice_emitter=voice_emitter)
 """
 
 import os
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, TYPE_CHECKING
 
 from google import genai
 
 from ..core.game_state import GameState, GamePhase
 from ..core.enums import Role
+
+# Type checking import to avoid circular dependency
+if TYPE_CHECKING:
+    from ..voice.voice_emitter import VoiceEmitter
 
 
 class GameMasterInteractions:
@@ -26,6 +40,7 @@ class GameMasterInteractions:
         api_key: Optional[str] = None,
         model_name: str = "gemini-3-flash-preview",
         world_bible_path: str = "WORLD_BIBLE.md",
+        voice_emitter: Optional["VoiceEmitter"] = None,
     ):
         """Initialize Game Master with Interactions API.
 
@@ -34,9 +49,11 @@ class GameMasterInteractions:
             api_key: Gemini API key (or from GEMINI_API_KEY env var)
             model_name: Gemini model to use
             world_bible_path: Path to World Bible file for lore grounding
+            voice_emitter: Optional VoiceEmitter for narrator voice synthesis
         """
         self.game_state = game_state
         self.model_name = model_name
+        self.voice_emitter = voice_emitter
 
         # Configure Gemini client
         api_key = api_key or os.getenv("GEMINI_API_KEY")
@@ -101,6 +118,61 @@ class GameMasterInteractions:
 - Turret: "Under cover of darkness, the Traitors convene to select their next victim..."
 
 Generate only the narration requested. Do not add meta-commentary or explanations."""
+
+    async def _emit_narrator_voice(
+        self,
+        text: str,
+        event_type: str = "narrator",
+        phase: str = "unknown",
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Emit a narrator voice event if voice emitter is configured.
+
+        Args:
+            text: Narration text to synthesize
+            event_type: Type of narrator event (narrator, narrator_dramatic, narrator_whisper)
+            phase: Current game phase for context
+            metadata: Additional event metadata
+        """
+        if not self.voice_emitter or not text:
+            return
+
+        try:
+            # Import here to avoid circular dependency at module level
+            from ..voice.voice_emitter import VoiceEvent, VoiceEventType, EmotionHint
+
+            # Map event type string to enum
+            type_map = {
+                "narrator": VoiceEventType.NARRATOR,
+                "narrator_dramatic": VoiceEventType.NARRATOR_DRAMATIC,
+                "narrator_whisper": VoiceEventType.NARRATOR_WHISPER,
+            }
+            voice_event_type = type_map.get(event_type, VoiceEventType.NARRATOR)
+
+            # Infer emotion from event type
+            emotion_map = {
+                "narrator_dramatic": EmotionHint.DRAMATIC,
+                "narrator_whisper": EmotionHint.CONSPIRATORIAL,
+            }
+            emotion = emotion_map.get(event_type, EmotionHint.NEUTRAL)
+
+            event = VoiceEvent(
+                event_type=voice_event_type,
+                text=text,
+                speaker_id="narrator",
+                speaker_name="The Host",
+                emotion=emotion,
+                day=self.game_state.day,
+                phase=phase,
+                priority=2,  # Narrator events are high priority
+                metadata=metadata or {},
+            )
+
+            await self.voice_emitter.emit(event)
+
+        except Exception as e:
+            # Voice emission should never break game logic
+            print(f"Warning: Failed to emit narrator voice: {e}")
 
     async def _send_message_async(self, prompt: str) -> str:
         """Send message via Interactions API with server-side state.
@@ -174,7 +246,17 @@ Generate only the narration requested. Do not add meta-commentary or explanation
 Create a dramatic opening narration (2-3 sentences) welcoming contestants and hinting at the betrayal to come."""
 
         response = await self._send_message_async(prompt)
-        return response if response else self._fallback_game_start(players)
+        result = response if response else self._fallback_game_start(players)
+
+        # Emit narrator voice event
+        await self._emit_narrator_voice(
+            text=result,
+            event_type="narrator_dramatic",
+            phase="init",
+            metadata={"player_count": len(players), "traitor_count": len(traitors)},
+        )
+
+        return result
 
     async def announce_murder_async(self, victim_name: str, day: int) -> str:
         """Generate murder announcement for Breakfast phase.
@@ -196,7 +278,17 @@ Create a dramatic opening narration (2-3 sentences) welcoming contestants and hi
 Create a dramatic reveal (2-3 sentences) announcing this death to the remaining contestants."""
 
         response = await self._send_message_async(prompt)
-        return response if response else self._fallback_murder(victim_name, day)
+        result = response if response else self._fallback_murder(victim_name, day)
+
+        # Emit narrator voice event (somber/dramatic for murder)
+        await self._emit_narrator_voice(
+            text=result,
+            event_type="narrator_dramatic",
+            phase="breakfast",
+            metadata={"victim": victim_name, "day": day},
+        )
+
+        return result
 
     async def describe_mission_async(
         self, mission_type: str, difficulty: float, day: int
@@ -231,7 +323,17 @@ Create a dramatic reveal (2-3 sentences) announcing this death to the remaining 
 Create a dramatic mission briefing (2-3 sentences) building tension around this challenge."""
 
         response = await self._send_message_async(prompt)
-        return response if response else self._fallback_mission(mission_type, difficulty)
+        result = response if response else self._fallback_mission(mission_type, difficulty)
+
+        # Emit narrator voice event
+        await self._emit_narrator_voice(
+            text=result,
+            event_type="narrator",
+            phase="mission",
+            metadata={"mission_type": mission_type, "difficulty": difficulty},
+        )
+
+        return result
 
     async def announce_mission_result_async(
         self, success_rate: float, earnings: float, day: int
@@ -261,7 +363,17 @@ Create a dramatic mission briefing (2-3 sentences) building tension around this 
 Create a dramatic announcement (2-3 sentences) revealing these results."""
 
         response = await self._send_message_async(prompt)
-        return response if response else self._fallback_mission_result(success_rate, earnings)
+        result = response if response else self._fallback_mission_result(success_rate, earnings)
+
+        # Emit narrator voice event
+        await self._emit_narrator_voice(
+            text=result,
+            event_type="narrator",
+            phase="mission",
+            metadata={"success_rate": success_rate, "earnings": earnings},
+        )
+
+        return result
 
     async def announce_banishment_async(
         self, banished_name: str, role: str, votes: Dict[str, int], day: int
@@ -290,7 +402,17 @@ Create a dramatic announcement (2-3 sentences) revealing these results."""
 Create a dramatic announcement (2-3 sentences) revealing the banishment and their true role."""
 
         response = await self._send_message_async(prompt)
-        return response if response else self._fallback_banishment(banished_name, role)
+        result = response if response else self._fallback_banishment(banished_name, role)
+
+        # Emit narrator voice event (dramatic reveal)
+        await self._emit_narrator_voice(
+            text=result,
+            event_type="narrator_dramatic",
+            phase="roundtable",
+            metadata={"banished": banished_name, "role": role, "votes": votes},
+        )
+
+        return result
 
     async def announce_finale_async(self, winner: str, survivors: List[str]) -> str:
         """Generate finale announcement.
@@ -314,7 +436,17 @@ Create a dramatic announcement (2-3 sentences) revealing the banishment and thei
 Create a dramatic finale narration (3-4 sentences) wrapping up the game and declaring the victors."""
 
         response = await self._send_message_async(prompt)
-        return response if response else self._fallback_finale(winner, survivors)
+        result = response if response else self._fallback_finale(winner, survivors)
+
+        # Emit narrator voice event (triumphant finale)
+        await self._emit_narrator_voice(
+            text=result,
+            event_type="narrator_dramatic",
+            phase="finale",
+            metadata={"winner": winner, "survivors": survivors},
+        )
+
+        return result
 
     # Fallback methods for when Gemini API is unavailable
 
