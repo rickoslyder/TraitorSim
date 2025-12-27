@@ -100,10 +100,8 @@ class GameEngineAsync:
                 self.logger.error(f"Failed to load persona library: {e}")
                 self.logger.error("Falling back to random personality generation")
                 self._initialize_random_players()
-                return
         else:
             self._initialize_random_players()
-            return
 
         # Assign traitor roles
         traitor_indices = random.sample(
