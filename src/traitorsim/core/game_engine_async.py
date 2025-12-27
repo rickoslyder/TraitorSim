@@ -8,7 +8,8 @@ This engine orchestrates the complete game loop using:
 
 import asyncio
 import os
-from typing import List, Dict, Optional, Tuple
+import random
+from typing import List, Dict, Optional, Set, Tuple
 from collections import Counter
 
 from ..agents.player_agent_sdk import PlayerAgentSDK
@@ -186,19 +187,24 @@ class GameEngineAsync:
         )
         self.logger.info(f"\n{opening}\n")
 
-        # Main game loop
+        # Main game loop starts with Day 1 containing the first mission/roundtable
+        # (Traitors are selected before this point per show canon; first breakfast
+        # to reveal a murder happens on Day 2).
+        self.game_state.day = 1
+
         while self.game_state.day <= self.config.max_days:
-            self.game_state.day += 1
             self.logger.info(f"\n{'='*60}")
             self.logger.info(f"DAY {self.game_state.day}")
             self.logger.info(f"{'='*60}\n")
 
-            # Run 5-phase cycle
-            await self._run_breakfast_phase_async()
+            # In the real format, Day 1 starts with introductions/mission and no
+            # overnight murder to reveal. Breakfast begins on Day 2.
+            if self.game_state.day > 1:
+                await self._run_breakfast_phase_async()
 
-            winner = self.game_state.check_win_condition()
-            if winner:
-                break
+                winner = self.game_state.check_win_condition()
+                if winner:
+                    break
 
             await self._run_mission_phase_async()
 
@@ -216,6 +222,8 @@ class GameEngineAsync:
             winner = self.game_state.check_win_condition()
             if winner:
                 break
+
+            self.game_state.day += 1
 
         # Finale
         winner = self.game_state.check_win_condition()
@@ -246,8 +254,11 @@ class GameEngineAsync:
             # Agents reflect on murder
             events = [f"{self.game_state.last_murder_victim} was murdered"]
             await self._parallel_reflection_async(events)
+
+            # Clear last murder victim to avoid stale announcements
+            self.game_state.last_murder_victim = None
         else:
-            self.logger.info("No murder last night (first day).")
+            self.logger.info("No murder last night.")
 
     async def _run_mission_phase_async(self) -> None:
         """Mission phase: Execute mission challenge."""
@@ -300,11 +311,18 @@ class GameEngineAsync:
         self.logger.info("\n--- Round Table Phase ---")
 
         # Collect votes in parallel
-        votes = await self._collect_votes_parallel_async()
+        initial_votes = await self._collect_votes_parallel_async()
 
         # Tally votes
-        vote_counts = Counter(votes.values())
-        banished_id = vote_counts.most_common(1)[0][0]
+        vote_counts = Counter(initial_votes.values())
+        if not vote_counts:
+            self.logger.warning("No votes were cast. Skipping banishment.")
+            return
+
+        # Resolve any ties (UK/US style: revote among tied, then random fallback)
+        banished_id, final_votes, tie_info = await self._resolve_vote_tie_async(
+            vote_counts, initial_votes
+        )
 
         # Get player
         banished_player = self.game_state.get_player(banished_id)
@@ -317,16 +335,17 @@ class GameEngineAsync:
         self.game_state.banished_players.append(banished_player.name)
 
         # GM announces banishment
+        final_vote_counts = Counter(final_votes.values())
         narrative = await self.gm.announce_banishment_async(
             banished_player.name,
             banished_player.role.value,
-            dict(vote_counts),
+            dict(final_vote_counts),
             self.game_state.day,
         )
         self.logger.info(narrative)
 
         # Log votes
-        for voter_id, target_id in votes.items():
+        for voter_id, target_id in final_votes.items():
             voter = self.game_state.get_player(voter_id)
             target = self.game_state.get_player(target_id)
             if voter and target:
@@ -337,6 +356,12 @@ class GameEngineAsync:
             f"{banished_player.name} was banished",
             f"They were a {banished_player.role.value.upper()}",
         ]
+        if tie_info.get("random_resolution"):
+            events.append(
+                f"Tie between {', '.join(tie_info['tied_names'])} resolved randomly after revote"
+            )
+        elif tie_info.get("revote_triggered"):
+            events.append("Revote among tied players decided the banishment")
         await self._parallel_reflection_async(events)
 
     async def _run_turret_phase_async(self) -> None:
@@ -349,6 +374,7 @@ class GameEngineAsync:
 
         if not alive_traitors:
             self.logger.info("No traitors alive to murder.")
+            self.game_state.last_murder_victim = None
             return
 
         # First traitor chooses (simplified - no conferencing in MVP)
@@ -358,11 +384,13 @@ class GameEngineAsync:
 
         if not victim_id:
             self.logger.warning("No murder victim chosen")
+            self.game_state.last_murder_victim = None
             return
 
         victim = self.game_state.get_player(victim_id)
         if not victim:
             self.logger.error(f"Invalid victim: {victim_id}")
+            self.game_state.last_murder_victim = None
             return
 
         # Murder victim
@@ -372,8 +400,13 @@ class GameEngineAsync:
 
         self.logger.info(f"Traitors murdered: {victim.name}")
 
-    async def _collect_votes_parallel_async(self) -> Dict[str, str]:
+    async def _collect_votes_parallel_async(
+        self, allowed_targets: Optional[Set[str]] = None
+    ) -> Dict[str, str]:
         """Collect votes from all alive players in parallel.
+
+        Args:
+            allowed_targets: Optional set of valid target IDs (for revotes among tied players)
 
         Returns:
             Dict mapping player_id -> voted_player_id
@@ -389,10 +422,17 @@ class GameEngineAsync:
             """Vote with error handling."""
             try:
                 target = await agent.cast_vote_async()
-                return (player_id, target if target else self._emergency_vote(player_id))
+                if target and (allowed_targets is None or target in allowed_targets):
+                    return (player_id, target)
+                if target and allowed_targets is not None and target not in allowed_targets:
+                    self.logger.info(
+                        f"{agent.player.name} voted for {target} outside tied candidates; "
+                        "selecting from tied candidates instead."
+                    )
+                return (player_id, self._emergency_vote(player_id, allowed_targets))
             except Exception as e:
                 self.logger.error(f"Error getting vote from {agent.player.name}: {e}")
-                return (player_id, self._emergency_vote(player_id))
+                return (player_id, self._emergency_vote(player_id, allowed_targets))
 
         # Execute votes in parallel
         vote_tasks = [vote_with_fallback(pid, agent) for pid, agent in alive_agents]
@@ -402,6 +442,71 @@ class GameEngineAsync:
         votes = {pid: target for pid, target in vote_results}
 
         return votes
+
+    async def _resolve_vote_tie_async(
+        self, vote_counts: Counter, initial_votes: Dict[str, str]
+    ) -> Tuple[str, Dict[str, str], Dict]:
+        """Resolve voting ties using UK/US style revote, then random fallback.
+
+        Args:
+            vote_counts: Counter of votes per player
+            initial_votes: Original votes dict
+
+        Returns:
+            Tuple of (banished_id, final_votes, tie_info_dict)
+        """
+        top_votes = vote_counts.most_common()
+        highest_count = top_votes[0][1]
+        tied_ids = [player_id for player_id, count in vote_counts.items() if count == highest_count]
+
+        tie_info: Dict = {"revote_triggered": False, "random_resolution": False, "tied_names": []}
+
+        # No tie - return winner directly
+        if len(tied_ids) == 1:
+            return tied_ids[0], initial_votes, tie_info
+
+        # TIE DETECTED - Initiate revote among tied players
+        tie_info["revote_triggered"] = True
+        tied_names = [
+            self.game_state.get_player(pid).name if self.game_state.get_player(pid) else pid
+            for pid in tied_ids
+        ]
+        tie_info["tied_names"] = tied_names
+
+        self.logger.info(
+            f"⚖️  Tie detected: {', '.join(tied_names)} with {highest_count} votes each. "
+            "Initiating revote among tied players."
+        )
+
+        # Revote - only votes for tied players count
+        revote = await self._collect_votes_parallel_async(set(tied_ids))
+        revote_counts = Counter(revote.values())
+
+        top_revotes = revote_counts.most_common()
+        highest_revote = top_revotes[0][1]
+        still_tied_ids = [player_id for player_id, count in revote_counts.items() if count == highest_revote]
+
+        # Check if tie persists after revote
+        if len(still_tied_ids) > 1:
+            tie_info["random_resolution"] = True
+            banished_id = random.choice(still_tied_ids)
+            still_tied_names = [
+                self.game_state.get_player(pid).name if self.game_state.get_player(pid) else pid
+                for pid in still_tied_ids
+            ]
+            tie_info["tied_names"] = still_tied_names
+            banished_name = (
+                self.game_state.get_player(banished_id).name
+                if self.game_state.get_player(banished_id) else banished_id
+            )
+            self.logger.info(
+                f"⚖️  Tie persisted after revote between {', '.join(still_tied_names)}. "
+                f"Selecting {banished_name} at random per fallback rules."
+            )
+        else:
+            banished_id = top_revotes[0][0]
+
+        return banished_id, revote, tie_info
 
     async def _parallel_reflection_async(self, events: List[str]) -> None:
         """Have all alive agents reflect on events in parallel.
@@ -419,19 +524,22 @@ class GameEngineAsync:
         # Execute in parallel
         await asyncio.gather(*reflection_tasks, return_exceptions=True)
 
-    def _emergency_vote(self, player_id: str) -> str:
+    def _emergency_vote(
+        self, player_id: str, allowed_targets: Optional[Set[str]] = None
+    ) -> str:
         """Emergency fallback vote.
 
         Args:
             player_id: ID of voting player
+            allowed_targets: Optional set of valid target IDs (for revotes)
 
         Returns:
             Random valid target
         """
-        import random
-
         valid_targets = [
-            p.id for p in self.game_state.alive_players if p.id != player_id
+            p.id
+            for p in self.game_state.alive_players
+            if p.id != player_id and (allowed_targets is None or p.id in allowed_targets)
         ]
         return random.choice(valid_targets) if valid_targets else player_id
 

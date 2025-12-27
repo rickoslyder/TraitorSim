@@ -244,20 +244,25 @@ class GameEngineContainerized:
         )
         self.logger.info(f"\n{opening}\n")
 
-        # Main game loop
+        # Main game loop starts with Day 1 containing the first mission/roundtable
+        # (Traitors are selected before this point per show canon; first breakfast
+        # to reveal a murder happens on Day 2).
+        self.game_state.day = 1
+
         while self.game_state.day <= self.config.max_days:
-            self.game_state.day += 1
             self.logger.info(f"\n{'='*60}")
             self.logger.info(f"DAY {self.game_state.day}")
             self.logger.info(f"{'='*60}\n")
 
-            # Run 5-phase cycle
-            await self._run_breakfast_phase_async()
-            self.game_state.capture_trust_snapshot("breakfast")
+            # In the real format, Day 1 starts with introductions/mission and no
+            # overnight murder to reveal. Breakfast begins on Day 2.
+            if self.game_state.day > 1:
+                await self._run_breakfast_phase_async()
+                self.game_state.capture_trust_snapshot("breakfast")
 
-            winner = self.game_state.check_win_condition()
-            if winner:
-                break
+                winner = self.game_state.check_win_condition()
+                if winner:
+                    break
 
             await self._run_mission_phase_async()
             self.game_state.capture_trust_snapshot("mission")
@@ -287,6 +292,8 @@ class GameEngineContainerized:
                 winner = await self._run_end_game_async()
                 if winner:
                     break
+
+            self.game_state.day += 1
 
         # Finale
         winner = self.game_state.check_win_condition()
@@ -350,8 +357,11 @@ class GameEngineContainerized:
                 events.append(f"{last_player.name} entered breakfast last (potential Tell)")
 
             await self._parallel_reflection_async(events)
+
+            # Clear last murder victim to avoid stale announcements
+            self.game_state.last_murder_victim = None
         else:
-            self.logger.info("No murder last night (first day).")
+            self.logger.info("No murder last night.")
 
     def _generate_breakfast_entry_order(self) -> List[str]:
         """Generate breakfast entry order (dramatic or random).
@@ -988,6 +998,7 @@ class GameEngineContainerized:
 
         if not alive_traitors:
             self.logger.info("No traitors alive to murder.")
+            self.game_state.last_murder_victim = None
             return
 
         import random
@@ -1008,11 +1019,13 @@ class GameEngineContainerized:
 
         if not victim_id:
             self.logger.warning("No murder victim chosen")
+            self.game_state.last_murder_victim = None
             return
 
         victim = self.game_state.get_player(victim_id)
         if not victim:
             self.logger.error(f"Invalid victim: {victim_id}")
+            self.game_state.last_murder_victim = None
             return
 
         # Validate victim is on Death List if enabled
@@ -1039,6 +1052,7 @@ class GameEngineContainerized:
             self.logger.info(f"🛡️  {victim.name} was PROTECTED by the Shield!")
             self.logger.info("The murder attempt failed!")
             # No murder happened - victim survives
+            self.game_state.last_murder_victim = None
             return
 
         # Murder victim
