@@ -1,0 +1,330 @@
+[
+  {
+    "player1": "Wilfred",
+    "player2": "Amanda",
+    "type": "alliance",
+    "strength": 0.9,
+    "evolution": "Formed on Day 1 as original Traitors, maintaining a strong, strategic partnership throughout the initial phases of the game.",
+    "key_moments": [
+      "E1S2: Both selected as original Traitors.",
+      "E1S5: Discussing and jointly selecting Ayesha as the first murder target.",
+      "E2S0: Both successfully feigning shock and sadness at Ayesha's murder."
+    ]
+  },
+  {
+    "player1": "Wilfred",
+    "player2": "Alyssa",
+    "type": "alliance",
+    "strength": 0.9,
+    "evolution": "Formed on Day 1 as original Traitors, maintaining a strong, strategic partnership throughout the initial phases of the game.",
+    "key_moments": [
+      "E1S2: Both selected as original Traitors.",
+      "E1S5: Discussing and jointly selecting Ayesha as the first murder target.",
+      "E2S0: Both successfully feigning shock and sadness at Ayesha's murder."
+    ]
+  },
+  {
+    "player1": "Amanda",
+    "player2": "Alyssa",
+    "type": "alliance",
+    "strength": 0.9,
+    "evolution": "Formed on Day 1 as original Traitors, maintaining a strong, strategic partnership throughout the initial phases of the game. Alyssa's cunning complemented Amanda's confidence.",
+    "key_moments": [
+      "E1S2: Both selected as original Traitors.",
+      "E1S5: Discussing and jointly selecting Ayesha as the first murder target.",
+      "E3S0: Alyssa advises other Traitors to view victims as 'players,' not people."
+    ]
+  },
+  {
+    "player1": "Alex",
+    "player2": "Tom",
+    "type": "romantic",
+    "strength": 0.9,
+    "evolution": "Pre-existing romantic relationship, kept secret for strategic advantage within the game, causing high anxiety for each other.",
+    "key_moments": [
+      "E2S0: Alex reveals her secret relationship with Tom.",
+      "E3S0: Tom expresses extreme nervousness and anxiety during the breakfast reveal, especially for Alex's safety."
+    ]
+  },
+  {
+    "player1": "Theo",
+    "player2": "Imran",
+    "type": "rivalry",
+    "strength": 0.7,
+    "evolution": "Began with a direct accusation from Theo, leading to Imran's defensiveness and continued suspicion from Theo.",
+    "key_moments": [
+      "E1S4: Tom observes Theo 'calling out' Imran during a challenge.",
+      "E2S0: Imran expresses concern that 'Theo kind of went for Imran last night.'",
+      "E3S0: Theo becomes explicitly suspicious of Imran after Claire's murder."
+    ]
+  },
+  {
+    "player1": "Fay",
+    "player2": "Nicky",
+    "type": "suspicious",
+    "strength": 0.8,
+    "evolution": "Fay developed strong and vocal suspicions about Nicky's role, contributing significantly to Nicky's banishment.",
+    "key_moments": [
+      "E2S3: Fay is 'very critical of others' actions' and 'appears to believe Nicky is a Traitor.'",
+      "E2S4: Nicky is banished, with Fay expressing sadness and regret but also having voted for her."
+    ]
+  },
+  {
+    "player1": "Wilfred",
+    "player2": "Andrea",
+    "type": "trust",
+    "strength": 0.7,
+    "evolution": "Wilfred, as a Traitor, successfully built trust with Andrea, who empathized with his feigned distress.",
+    "key_moments": [
+      "E3S0: Andrea shows comfort to Wilfred when he's feigning distress after Claire's murder, indicating his deception is working."
+    ]
+  },
+  {
+    "player1": "Alex",
+    "player2": "Ayesha",
+    "type": "friendship",
+    "strength": 0.8,
+    "evolution": "A strong, close friendship established early in the game, which unfortunately made them a target for the Traitors.",
+    "key_moments": [
+      "E1S5: Traitors note Alex is 'very close' to Ayesha, marking them both as potential targets.",
+      "E2S0: Ayesha is murdered by the Traitors, abruptly ending the friendship in the game."
+    ]
+  },
+  {
+    "player1": "Matt",
+    "player2": "Alex",
+    "type": "romantic",
+    "strength": 0.4,
+    "evolution": "Matt expressed an initial romantic interest in Alex, but the relationship did not develop further due to Alex's existing secret relationship.",
+    "key_moments": [
+      "E1S1: Matt openly compliments Alex's appearance.",
+      "E2S0: Matt explicitly states he 'fancies Alex.'"
+    ]
+  },
+  {
+    "player1": "Aaron",
+    "player2": "Matt",
+    "type": "alliance",
+    "strength": 0.6,
+    "evolution": "Formed an early social bond, identified by Traitors as part of a 'young lot' or 'clique.'",
+    "key_moments": [
+      "E1S5: Traitors discuss Matt and Aaron as part of a 'young lot' or 'clique' that might pose a collective threat."
+    ]
+  },
+  {
+    "player1": "Wilfred",
+    "player2": "Faithfuls",
+    "type": "suspicious",
+    "strength": 0.8,
+    "evolution": "Wilfred, as a Traitor, constantly worked to build trust with the Faithfuls to deflect suspicion, using calculated manipulation.",
+    "key_moments": [
+      "E1S1: Wilfred states his plan to 'make friends' so people 'don't want to vote us off.'",
+      "E2S1: Wilfred outlines his strategy of 'lying by telling the truth 90% of the time' and 'mirroring' Faithfuls.",
+      "E2S4: Wilfred expresses immense relief after a Faithful (Nicky) is banished, feeling he 'got away with it.'"
+    ]
+  },
+  {
+    "player1": "Amanda",
+    "player2": "Faithfuls",
+    "type": "suspicious",
+    "strength": 0.8,
+    "evolution": "Amanda, as a Traitor, used her 'mum role' persona to gain trust while actively managing social dynamics to avoid detection.",
+    "key_moments": [
+      "E1S2: Amanda expresses desire to 'murder them at night' despite seeing herself in a 'mum role.'",
+      "E1S5: Amanda views the game as managing social cliques and relationships among the Faithfuls.",
+      "E2S0: Amanda states she was 'absolutely fine' with committing murder, showcasing her ruthless Traitor side."
+    ]
+  },
+  {
+    "player1": "Alyssa",
+    "player2": "Faithfuls",
+    "type": "suspicious",
+    "strength": 0.8,
+    "evolution": "Alyssa, as a Traitor, embraced her role with ambition, actively planning to sow discord and manipulate the Faithfuls.",
+    "key_moments": [
+      "E1S2: Alyssa expresses ambition and plans to 'sow discord' among the Faithfuls.",
+      "E2S0: Alyssa proclaims 'It's my game now' and successfully feigns emotions to blend in.",
+      "E3S0: Alyssa advises fellow Traitors to view victims as mere 'players' to maintain emotional detachment."
+    ]
+  },
+  {
+    "player1": "Aaron",
+    "player2": "Nicky",
+    "type": "suspicious",
+    "strength": 0.6,
+    "evolution": "Aaron initially voted for Nicky based on some suspicion but later expressed strong regret and frustration after her banishment.",
+    "key_moments": [
+      "E2S4: Aaron votes for Nicky, then feels 'idiotic' and frustrated, realizing he was swayed by others after her reveal as a Faithful."
+    ]
+  },
+  {
+    "player1": "Imran",
+    "player2": "Nicky",
+    "type": "suspicious",
+    "strength": 0.5,
+    "evolution": "Imran voted for Nicky based on perceived changes in her 'energy,' but was confused and questioning after she was revealed as a Faithful.",
+    "key_moments": [
+      "E2S4: Imran votes for Nicky based on observing a 'change in her energy,' then expresses confusion asking, 'How did we all get it so wrong?'"
+    ]
+  },
+  {
+    "player1": "Meryl",
+    "player2": "Nicky",
+    "type": "suspicious",
+    "strength": 0.6,
+    "evolution": "Meryl developed suspicion towards Nicky based on her perceived 'offish/reclusive behavior' and voted for her.",
+    "key_moments": [
+      "E2S4: Meryl explains her rationale for voting for Nicky, citing 'offish/reclusive behavior' as a sign of a Traitor."
+    ]
+  },
+  {
+    "player1": "Hannah",
+    "player2": "Nicky",
+    "type": "suspicious",
+    "strength": 0.5,
+    "evolution": "Hannah directly questioned Nicky's actions, contributing to the general suspicion, and felt upset and confused after Nicky's banishment.",
+    "key_moments": [
+      "E2S4: Hannah directly questions Nicky's actions if she were a Faithful, then appears visibly upset and confused after Nicky is revealed to be a Faithful."
+    ]
+  },
+  {
+    "player1": "Matt",
+    "player2": "Nicky",
+    "type": "suspicious",
+    "strength": 0.5,
+    "evolution": "Matt directly accused Nicky of being a Traitor, but became confused after her reveal as a Faithful.",
+    "key_moments": [
+      "E2S4: Matt directly states he thinks Nicky is a Traitor, then appears confused and rubs his temples after the reveal of Nicky as a Faithful."
+    ]
+  },
+  {
+    "player1": "Alyssa",
+    "player2": "Nicky",
+    "type": "suspicious",
+    "strength": 0.7,
+    "evolution": "Nicky was identified by Traitors as a potential target for Faithful banishment. Alyssa later feigned guilt during Nicky's actual banishment.",
+    "key_moments": [
+      "E1S5: Traitors discuss Nicky as someone the Faithfuls might banish, making her a 'strategic' non-murder target.",
+      "E2S4: Alyssa is seen wiping away tears, admitting to 'genuine tears' for Nicky but justifying her actions as a Traitor."
+    ]
+  },
+  {
+    "player1": "Fay",
+    "player2": "Traitors",
+    "type": "rivalry",
+    "strength": 0.7,
+    "evolution": "From the first murder, Fay expressed strong determination to quickly identify and eliminate the Traitors.",
+    "key_moments": [
+      "E2S1: Fay is direct and determined, stating her clear goal to eliminate Traitors quickly and hoping for a banishment."
+    ]
+  },
+  {
+    "player1": "Claire",
+    "player2": "Traitors",
+    "type": "rivalry",
+    "strength": 0.7,
+    "evolution": "Claire, with her police background, actively sought to uncover Traitors using analytical skills, making her a threat to them.",
+    "key_moments": [
+      "E2S1: Claire believes her police background makes her good at spotting lies and applies analytical thinking to the game.",
+      "E3S0: Claire is murdered by the Traitors, confirming her as a perceived threat."
+    ]
+  },
+  {
+    "player1": "John",
+    "player2": "Traitors",
+    "type": "suspicious",
+    "strength": 0.6,
+    "evolution": "John was analytical and probing in his attempts to understand the game and identify Traitors, leading to frustration after wrongful banishments.",
+    "key_moments": [
+      "E2S1: John is analytical and probing, asking clarifying questions to understand group dynamics.",
+      "E3S0: After the wrongful banishment of Nicky, John expresses regret and frustration at the Traitors' deception."
+    ]
+  },
+  {
+    "player1": "Imran",
+    "player2": "Traitors",
+    "type": "rivalry",
+    "strength": 0.7,
+    "evolution": "Imran consistently sought logical and evidence-based approaches to expose the Traitors, viewing it as an intellectual challenge.",
+    "key_moments": [
+      "E2S1: Imran discusses using 'academic principles' to detect Traitors.",
+      "E2S5: Imran emphasizes the need for 'evidence' before making judgments, reflecting his logical approach."
+    ]
+  },
+  {
+    "player1": "Hannah",
+    "player2": "Faithfuls",
+    "type": "trust",
+    "strength": 0.6,
+    "evolution": "Hannah consistently engaged emotionally with the game, contributing positively to group tasks and expressing a desire for Faithful success.",
+    "key_moments": [
+      "E1S3: Hannah directs team members in a mission, expressing pride in her team's performance.",
+      "E2S2: Hannah is humorous and expressive, enjoying the energy and 'run around' of challenges, showcasing teamwork."
+    ]
+  },
+  {
+    "player1": "Andrea",
+    "player2": "Faithfuls",
+    "type": "trust",
+    "strength": 0.7,
+    "evolution": "Andrea maintained a warm, enthusiastic, and supportive presence among the Faithfuls, consistently emphasizing teamwork.",
+    "key_moments": [
+      "E1S1: Andrea expresses immense excitement, conveying enthusiasm and warmth to the group.",
+      "E2S1: Andrea emphasizes the importance of winning missions and working together, regardless of roles.",
+      "E2S0: Andrea is a cheerful and supportive presence at breakfast after the first murder."
+    ]
+  },
+  {
+    "player1": "Aaron",
+    "player2": "Ayesha",
+    "type": "friendship",
+    "strength": 0.7,
+    "evolution": "Formed an early friendship, with Aaron expressing genuine sadness and regret after Ayesha was murdered.",
+    "key_moments": [
+      "E2S0: Aaron expresses sadness at Ayesha's murder, noting 'she was just fun to be around.'"
+    ]
+  },
+  {
+    "player1": "Amanda",
+    "player2": "Ayesha",
+    "type": "suspicious",
+    "strength": 0.8,
+    "evolution": "Ayesha was identified early by Traitor Amanda as a strong personality and significant threat that needed to be eliminated strategically.",
+    "key_moments": [
+      "E1S5: Traitors discuss Ayesha as someone who 'wanted to be a Traitor' and 'would do anything' to expose them, marking her as a threat.",
+      "E2S0: Amanda states she was 'absolutely fine' with committing murder, implying Ayesha was a cold, strategic target."
+    ]
+  },
+  {
+    "player1": "Aaron",
+    "player2": "Faithfuls",
+    "type": "suspicious",
+    "strength": 0.7,
+    "evolution": "Aaron demonstrated a critical perspective on group dynamics, initially participating in groupthink during a banishment but later regretting it.",
+    "key_moments": [
+      "E2S4: Aaron feels 'idiotic' and frustrated, realizing he was wrong and others 'jumped on the bandwagon' in banishing Nicky.",
+      "E3S0: Aaron, critical of others 'who jumped on the bandwagon,' emphasizes his honesty and independent thinking."
+    ]
+  },
+  {
+    "player1": "Imran",
+    "player2": "Faithfuls",
+    "type": "suspicious",
+    "strength": 0.5,
+    "evolution": "Imran displayed skepticism towards group consensus, valuing evidence over 'herd mentality' and feeling unfairly targeted by arbitrary accusations.",
+    "key_moments": [
+      "E2S5: Imran feels unfairly targeted, describing accusations as 'very petty things' and attributing them to 'herd mentality,' highlighting his critical view of group dynamics."
+    ]
+  },
+  {
+    "player1": "Alex",
+    "player2": "Faithfuls",
+    "type": "trust",
+    "strength": 0.6,
+    "evolution": "Alex maintained a cautious and empathetic approach to group decisions, valuing evidence and expressing genuine regret when voting against presumed Faithfuls.",
+    "key_moments": [
+      "E2S3: Alex is cautious and admits to 'throwing stones in the dark,' valuing evidence over gut feelings during discussions.",
+      "E2S4: Alex appears very anxious and thoughtful throughout the voting process, expressing genuine regret at having to vote for someone."
+    ]
+  }
+]

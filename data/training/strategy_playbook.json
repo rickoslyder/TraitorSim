@@ -1,0 +1,566 @@
+{
+  "traitor_strategies": [
+    {
+      "name": "The Puppet Master",
+      "description": "A Traitor forms close alliances with Faithfuls, gaining their trust. They then subtly influence their allies' voting decisions, directing suspicion away from themselves and towards their chosen targets, effectively controlling the banishment outcome from behind the scenes.",
+      "effectiveness": 0.9,
+      "risk_level": "medium",
+      "best_phase": "roundtable",
+      "counter_strategies": [
+        "Track individual voting patterns",
+        "Share theories widely beyond small alliances",
+        "Question the source of information or suggestions"
+      ],
+      "examples": [
+        "Wilfred's long-term strategy of making friends 'so people don't want to vote us off' and his stated goal to 'stick together like a puppet master' (Episode 1). He successfully navigated multiple banishments while being a Traitor."
+      ]
+    },
+    {
+      "name": "Feigned Guilt & Distress",
+      "description": "Traitors visibly express strong emotions such as shock, sadness, or regret following murders or wrongful banishments. This performance aims to convince Faithfuls of their genuine 'Faithful' status, deflecting suspicion and building empathy.",
+      "effectiveness": 0.8,
+      "risk_level": "low",
+      "best_phase": "breakfast",
+      "counter_strategies": [
+        "Observe body language for inconsistencies",
+        "Compare reactions to general personality",
+        "Look for 'dry tears' or over-the-top displays"
+      ],
+      "examples": [
+        "Wilfred 'exhibited feigned guilt and moral conflict, showing distress at others' eliminations' (Episode 3). Alyssa 'wiping away tears and looking distressed during the reveal' of Nicky, admitting to 'genuine tears' but justifying it as a Traitor (Episode 2)."
+      ]
+    },
+    {
+      "name": "Strategic Truth-Telling (90/10)",
+      "description": "A player, typically a Traitor, builds trust by sharing mostly factual information or genuine thoughts, interspersed with critical deceptions. The bulk of truth-telling makes the occasional lie more believable and earns credibility with Faithfuls.",
+      "effectiveness": 0.7,
+      "risk_level": "medium",
+      "best_phase": "social",
+      "counter_strategies": [
+        "Focus on specific pieces of information",
+        "Cross-reference stories with other players",
+        "Look for slight inconsistencies in minor details"
+      ],
+      "examples": [
+        "Imran discusses using a '90/10 strategy' of truth-telling to gain trust (Episode 2). Wilfred's successful long-term deception suggests he employed this to maintain credibility while making strategic moves."
+      ]
+    },
+    {
+      "name": "Emotional Performance/Bluffing",
+      "description": "Traitors actively manage their outward persona, feigning emotions like enthusiasm, nervousness, or excitement in situations where a Faithful would genuinely feel them. This helps them blend in and maintain their cover, preventing suspicion.",
+      "effectiveness": 0.8,
+      "risk_level": "medium",
+      "best_phase": "breakfast",
+      "counter_strategies": [
+        "Look for over-emoting or under-emoting",
+        "Observe micro-expressions for incongruity",
+        "Compare current behavior to past observations"
+      ],
+      "examples": [
+        "Alyssa 'is good at feigning emotions, acting 'shaking' and 'excited' at breakfast despite being a Traitor' (Episode 2). She also stated, 'This is my time to shine. This is when I could truly act' (Episode 3)."
+      ]
+    },
+    {
+      "name": "Planting Seeds of Doubt",
+      "description": "Traitors subtly direct suspicion towards Faithful players by making casual observations, asking leading questions, or subtly implying negative traits about others. This deflects attention from themselves and sets up targets for banishment.",
+      "effectiveness": 0.8,
+      "risk_level": "medium",
+      "best_phase": "social",
+      "counter_strategies": [
+        "Identify who benefits from specific accusations",
+        "Trace the origin of suspicion",
+        "Ask for concrete evidence rather than vague feelings"
+      ],
+      "examples": [
+        "Wilfred was described as 'strategic in his traitor role by planting seeds of doubt' (Episode 2)."
+      ]
+    },
+    {
+      "name": "Maternal Figure Façade",
+      "description": "A player, often a Traitor, adopts a nurturing, caring, and empathetic persona, acting like a 'mum' or 'dad' figure to gain trust and make themselves seem innocuous and trustworthy. This can be used to comfort Faithfuls while secretly betraying them.",
+      "effectiveness": 0.8,
+      "risk_level": "low",
+      "best_phase": "social",
+      "counter_strategies": [
+        "Look beyond the persona; does their voting or strategic input align with a truly 'Faithful' approach?",
+        "Are they too comforting after a murder?",
+        "Track their subtle influence in discussions."
+      ],
+      "examples": [
+        "Amanda 'sees herself in a 'mum role' but also wanting to 'murder them at night'' (Episode 1). She effectively used this persona to build trust while being a Traitor."
+      ]
+    },
+    {
+      "name": "Targeting Strong Faithful / Vocal Suspects",
+      "description": "Traitors identify Faithfuls who are intelligent, observant, charismatic, or actively trying to expose Traitors. These 'threats' are then targeted for murder to eliminate their investigative capabilities and sow chaos among the remaining Faithfuls.",
+      "effectiveness": 0.9,
+      "risk_level": "low",
+      "best_phase": "murder",
+      "counter_strategies": [
+        "Faithfuls should recognize strong players are at risk and try to protect them",
+        "Spread theories widely so one person's elimination doesn't halt progress",
+        "Disguise your strength or observational skills"
+      ],
+      "examples": [
+        "The Traitors targeted Theo, describing him as 'the popular kid' whose popularity would create 'maximum impact and deflect suspicion' if he was murdered (Episode 1). They considered Ayesha a threat because she 'wanted to be a Traitor' and 'would do anything' to expose them (Episode 1)."
+      ]
+    },
+    {
+      "name": "Secret Murders:",
+      "description": "The most direct way Traitors hide their identity is by operating under the cloak of night. The visual of a hooded figure writing and delivering a \"murder\" letter (0:51-1:00) highlights this secrecy. The victims are simply eliminated without knowing who the Traitor is.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Blending in with Faithful behavior:",
+      "description": "The primary strategy is to act as indistinguishably from a Faithful as possible. This involves participating in the discussions, expressing concern (or faking it, as Amanda does), and casting votes.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Creating plausible reasons for votes:",
+      "description": "As seen with Amanda, Traitors will craft narratives, even if they are misleading, to justify their votes and redirect suspicion away from themselves and other Traitors. This can involve exploiting emotional reactions or perceived weaknesses of Faithfuls.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Denial of Accusations:",
+      "description": "When confronted, a player quickly retorts, \"I'm not a Traitor, I swear on everything!\" (1:13-1:14). This is a straightforward defense against suspicion.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Claiming Transparency:",
+      "description": "Aaron, a property agent, says, \"I'm quite like an open book, like I'm quite easy to read. Like I'm a salesman's dream\" (2:16-2:18). Similarly, Aisha, a Master's Graduate, states, \"I'm a motor mouth... I tell everybody everything\" (4:16-4:21). Both present themselves as honest and easy to understand, potentially to deflect suspicion.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Hiding Perceptive Skills:",
+      "description": "Alex, a presenter and actor, reveals, \"I got a first in psychology from UCL, but no one here needs to know that\" (3:09-3:11). She deliberately conceals her background in human psychology, recognizing it might make her appear too perceptive or manipulative, potentially making her a target for either side.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Pre-empting Suspicion by Acknowledging Skills:",
+      "description": "Tom, a magician, openly states, \"The art of magic, there is some manipulation, you know, deception, which of course I'm going to bring into this game, but I'm going to be keeping my cards close to my chest\" (3:28-3:34). Wilfred, a senior fundraiser, also admits to being \"amazing at positive persuasion\" and \"good at ethical manipulation\" (6:17-6:19). By owning these potentially deceptive traits upfront but framing them positively or vaguely, they might try to control how others perceive them.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Playing a Low Profile:",
+      "description": "Kieran, a solutions consultant, intentionally positions himself at the \"least likely to win\" end of the line: \"I thought, I don't want to be the cocky, confident one... I'm just gonna rock up at the end space\" (9:30-9:36). Wilfred also takes this approach (9:44-9:46). This strategy aims to avoid drawing attention and being an early target for either Traitors or suspicious Faithfuls.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    }
+  ],
+  "faithful_strategies": [
+    {
+      "name": "Direct Accusation & Pressure",
+      "description": "A player openly names a suspect and provides reasons for their suspicion, often directly confronting the accused. This strategy aims to rally others to their cause and force a banishment, but carries the risk of isolating the accuser if they are wrong.",
+      "effectiveness": 0.6,
+      "risk_level": "high",
+      "best_phase": "roundtable",
+      "counter_strategies": [
+        "Demand concrete evidence",
+        "Question the accuser's motives",
+        "Don't let emotion or assertiveness sway a vote without solid reasoning"
+      ],
+      "examples": [
+        "Theo was 'direct with his accusations, believes Traitors need to be eliminated quickly' (Episode 2). Fay was 'very critical of others' actions and constantly talks about other people' (Episode 2)."
+      ]
+    },
+    {
+      "name": "Secret Alliance/Relationship",
+      "description": "Two players enter the game with a pre-existing, hidden relationship (e.g., romantic partners). They use this bond to share information, protect each other from banishment or murder, and strategize in private, giving them a significant advantage.",
+      "effectiveness": 0.7,
+      "risk_level": "high",
+      "best_phase": "social",
+      "counter_strategies": [
+        "Observe unusually close interactions",
+        "Look for consistent mutual defense",
+        "Note if two players always seem to have the same information or theories"
+      ],
+      "examples": [
+        "Alex and Tom kept their romantic relationship a secret (Episode 2, 3) to avoid suspicion and use it strategically."
+      ]
+    },
+    {
+      "name": "Logical Deduction & Evidence-Based Accusation",
+      "description": "Players attempt to identify Traitors by systematically analyzing behavior, voting patterns, and inconsistencies in stories, rather than relying solely on gut feelings. They seek concrete 'evidence' or logical reasoning to support their accusations.",
+      "effectiveness": 0.7,
+      "risk_level": "medium",
+      "best_phase": "social",
+      "counter_strategies": [
+        "Traitors can create false evidence or misdirection",
+        "Use emotional appeals to override logic",
+        "Discredit the accuser's analytical abilities"
+      ],
+      "examples": [
+        "Imran discusses using 'academic principles' to detect Traitors and emphasizes the need for 'evidence' (Episode 2). Alex 'values evidence over gut feelings' (Episode 2)."
+      ]
+    },
+    {
+      "name": "Observation and Scrutiny:",
+      "description": "The Round Table scene is a clear example of Faithfuls (and potentially Traitors trying to appear Faithful) actively observing and listening to each other. People are seen looking intently, some with skeptical expressions (1:04-1:07, 1:18-1:22).",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Direct Questioning and Accusation:",
+      "description": "Participants directly challenge each other's loyalty, as heard in the dialogue: \"Is that because you're a Traitor?\" and \"You're a liar and you're a liar\" (1:12-1:17). This is their primary tool for trying to unmask Traitors.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Alliance Formation for Collective Wisdom:",
+      "description": "Wilfred explicitly suggests this strategy: \"What we need to do when we're in the castle, we need to break off into other groups and make friends with them so they don't want to vote us off, but we stick together like a puppet master\" (6:20-6:28). This tactic aims to create trust networks to pool information and identify inconsistencies in others' behavior.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Trust Based on Shared Experience/Vibes:",
+      "description": "Amos forms an immediate bond with Andrea on the train, stating he \"knew she was just amazing energy and she could do anything. I walked her straight to the front [of the 'most likely to win' line]\" (9:11-9:16). This shows how early interactions are crucial for forming judgments and potential alliances.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Identifying Suspects Through Observation:",
+      "description": "The Traitors mention that Fay, Nicky, and Imran are already being targeted by others (02:32-02:40). This implies the Faithfuls are observing behavior, interactions, and possibly making deductions based on previous discussions or votes.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Direct Confrontation/Accusations:",
+      "description": "Theo confronting Imran (03:15-03:16) suggests that Faithfuls directly challenge each other, leading to potential Traitor unmasking or banishment.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Judging Character and Ambition:",
+      "description": "The Traitors discuss Ayesha's desire to be a Traitor (04:31-04:35), indicating that Faithfuls also observe personality traits and perceived ambition as indicators.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Emotional Reactions to Accusations:",
+      "description": "The \"Next Time\" segment shows players crying and emotionally denying being a Traitor (\"I'm not a Traitor!\" 07:20), which can be a key factor in how Faithfuls try to discern truth from deception.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Playing a Role:",
+      "description": "(already covered under Traitors' strategies) Alyssa's \"happy chappy\" facade (01:31).",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Framing Others:",
+      "description": "(already covered under Traitors' strategies) The plan to kill Theo to frame Imran (03:29-03:36).",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Voting Strategically (Defense):",
+      "description": "The Traitors plan to be \"a step ahead each time\" (02:57-02:58) in selecting targets, avoiding those already on the Faithfuls' radar to preserve their own positions.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Creating Confusion:",
+      "description": "Wilfred states, \"We need to make a statement tonight. A big one, like.\" (03:00-03:03). This \"statement\" is the murder, intended to be shocking and create widespread confusion rather than clear suspicion.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Denial (Anticipated):",
+      "description": "The \"Next Time\" segment shows a Faithful vehemently denying being a Traitor (07:20), a common defense tactic in such games.\n\nIn essence, the Traitors' primary strategy revolves around using their covert power to murder strategically, not just to eliminate rivals, but to actively manipulate the Faithfuls' perceptions, sow discord, and divert suspicion away from themselves. They leverage their observations of the Faithfuls' current suspicions and alliances to orchestrate events that will benefit their hidden agenda.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Emotional and behavioral analysis:",
+      "description": "Faithfuls rely heavily on reading body language, facial expressions, and speech patterns for signs of deception or discomfort (e.g., \"didn't convince me,\" \"forced emotions,\" \"blank canvas\"). This is a highly subjective and often unreliable method, as demonstrated by Imran's banishment, despite him being Faithful.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Seeking consistency (or inconsistency):",
+      "description": "Players look for patterns in voting, discussions, and how individuals defend themselves or others. Inconsistent behavior can raise red flags, but sometimes consistency can also be a well-maintained facade.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Considering past suspicions:",
+      "description": "The \"question mark over you for a long time\" comment indicates Faithfuls are tracking doubts over multiple days.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    }
+  ],
+  "universal_strategies": [
+    {
+      "name": "Alliance Building & Trust Cultivation",
+      "description": "Players actively seek out and form small, trusted groups. These alliances serve as information-sharing networks and voting blocks, providing a sense of security and a platform for strategic discussion, crucial for both Faithfuls and Traitors.",
+      "effectiveness": 0.9,
+      "risk_level": "low",
+      "best_phase": "arrival",
+      "counter_strategies": [
+        "Don't put all your trust in one alliance",
+        "Keep an open mind to information from outside your group",
+        "Share information across different groups to identify inconsistencies"
+      ],
+      "examples": [
+        "Kieran stating he wants to 'mingle with people' to 'start building my alliances' (Episode 1). Wilfred's core strategy of 'make friends' (Episode 1). Matt and Aaron were described as a 'clique' (Episode 1)."
+      ]
+    },
+    {
+      "name": "Leveraging Professional Background",
+      "description": "Players highlight their real-world skills or professions (e.g., police officer, psychologist, magician, fundraiser) that are relevant to deduction, deception, or persuasion. This can be used to establish credibility, intimidate opponents, or mislead.",
+      "effectiveness": 0.6,
+      "risk_level": "medium",
+      "best_phase": "arrival",
+      "counter_strategies": [
+        "Don't assume professional background directly translates to game skill",
+        "Observe actual gameplay over stated ability",
+        "Be wary of those who heavily lean on their profession as proof"
+      ],
+      "examples": [
+        "Alex mentioning her psychology degree but 'no one here needs to know that' (Episode 1). Tom the magician talking about 'manipulation, deception' (Episode 1). Fleur stating she's 'very good at sniffing out liars' due to her police background (Episode 1)."
+      ]
+    },
+    {
+      "name": "Herd Mentality Exploitation",
+      "description": "Traitors or influential Faithfuls subtly guide the group towards a popular consensus, often targeting a less vocal or isolated player. This relies on players being swayed by the majority opinion rather than independent thought, leading to easy banishments.",
+      "effectiveness": 0.7,
+      "risk_level": "low",
+      "best_phase": "roundtable",
+      "counter_strategies": [
+        "Encourage independent thinking and secret ballot justifications",
+        "Question why a consensus formed so quickly",
+        "Speak up if you feel pressured to vote against your convictions"
+      ],
+      "examples": [
+        "Matt admitted to being 'swayed' by others' opinions (Episode 2). Imran described accusations against him as 'very petty things' and attributed them to 'herd mentality' (Episode 2). Aaron felt 'idiotic' when he realized he 'jumped on the bandwagon' (Episode 2)."
+      ]
+    },
+    {
+      "name": "Blending In & Low Profile",
+      "description": "A player deliberately avoids becoming the center of attention, either by not leading missions, staying quiet in discussions, or not voicing strong opinions. This strategy aims to avoid drawing suspicion or becoming an early target for murder or banishment.",
+      "effectiveness": 0.6,
+      "risk_level": "medium",
+      "best_phase": "all phases",
+      "counter_strategies": [
+        "Actively engage quiet players in conversation",
+        "Question their lack of participation",
+        "Note if they only speak when prompted"
+      ],
+      "examples": [
+        "Ivan revealing a strategic approach of 'not wanting to 'stand out' or be the 'loudest guy in the room,' preferring to blend in' (Episode 1). Imran was perceived as suspicious for being 'quiet and reserved' (Episode 2)."
+      ]
+    },
+    {
+      "name": "Emotional regret from Faithfuls:",
+      "description": "Wilf (05:00) exclaims \"I fucked up\" and expresses feeling \"sick\" (05:16), showing the emotional impact of wrongly banishing a Faithful. Maddy and others also react with dismay (08:20, 08:27, 08:38).\n\nThe clip highlights the intense psychological nature of \"The Traitors,\" where truth and deception are constantly at play, and emotional reactions often influence critical decisions, sometimes leading to the banishment of innocent Faithfuls.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Example (9:50-10:00, Claudia):",
+      "description": "Claudia reveals the ultimate twist: \"The Traitors did meet. There wasn't a murder last night. Instead, they have put three players... on trial, and they have recruited another.\" This is the highest level of Traitor deception in the clip, designed to completely reset the Faithfuls' understanding of the game and create widespread doubt.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Creating a Diversion:",
+      "description": "By letting Alex and Tom's lie take center stage, the actual Traitors (Amanda, Wilfred, and Alyssa) effectively divert attention away from themselves. The Faithfuls become consumed by the perceived betrayal of the couple, rather than searching for actual Traitors.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "3:30 (Tom):",
+      "description": "Tom directly accuses Ivan of being a Traitor, stating he's \"really good\" at the role. This is a Faithful attempting to detect a Traitor through observation and intuition.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "8:48 (Matt's Confessional):",
+      "description": "Matt reiterates his hurt, \"They've now lied... it's so upsetting.\" The lie has damaged his ability to trust them in the game.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Building Trust and Alliances:",
+      "description": "Many contestants are shown actively engaging in conversation, hugging, and trying to get to know each other on the train and upon arrival (e.g., Amanda and Aaron at 2:05, multiple greetings at 3:15, groups chatting on the train). This is foundational for survival in a social deduction game.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Projecting Confidence:",
+      "description": "Imran, the scientist, boldly places himself at the \"most likely to win\" end, showcasing his academic achievement and determination to win (8:52-9:02). This can be a way to establish authority or deter others from targeting him.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    },
+    {
+      "name": "Expressing Frustration with Group Dynamics:",
+      "description": "The Round Table dialogue \"We are never going to find them if we keep arguing!\" (1:20-1:21) highlights the challenge of maintaining group cohesion when deception is rife.\n\nThe game officially begins when they board the train (8:00-8:06), making all subsequent interactions part of the strategic play, whether consciously or subconsciously.",
+      "effectiveness": 0.5,
+      "risk_level": "medium"
+    }
+  ],
+  "phase_strategies": {
+    "roundtable": [
+      "The Puppet Master",
+      "Direct Accusation & Pressure",
+      "Herd Mentality Exploitation"
+    ],
+    "breakfast": [
+      "Feigned Guilt & Distress",
+      "Emotional Performance/Bluffing"
+    ],
+    "social": [
+      "Strategic Truth-Telling (90/10)",
+      "Planting Seeds of Doubt",
+      "Maternal Figure Façade",
+      "Secret Alliance/Relationship",
+      "Logical Deduction & Evidence-Based Accusation"
+    ],
+    "arrival": [
+      "Alliance Building & Trust Cultivation",
+      "Leveraging Professional Background"
+    ],
+    "all phases": [
+      "Blending In & Low Profile"
+    ],
+    "murder": [
+      "Targeting Strong Faithful / Vocal Suspects"
+    ]
+  },
+  "counter_strategies": {
+    "Track individual voting patterns": [
+      "The Puppet Master"
+    ],
+    "Share theories widely beyond small alliances": [
+      "The Puppet Master"
+    ],
+    "Question the source of information or suggestions": [
+      "The Puppet Master"
+    ],
+    "Observe body language for inconsistencies": [
+      "Feigned Guilt & Distress"
+    ],
+    "Compare reactions to general personality": [
+      "Feigned Guilt & Distress"
+    ],
+    "Look for 'dry tears' or over-the-top displays": [
+      "Feigned Guilt & Distress"
+    ],
+    "Focus on specific pieces of information": [
+      "Strategic Truth-Telling (90/10)"
+    ],
+    "Cross-reference stories with other players": [
+      "Strategic Truth-Telling (90/10)"
+    ],
+    "Look for slight inconsistencies in minor details": [
+      "Strategic Truth-Telling (90/10)"
+    ],
+    "Look for over-emoting or under-emoting": [
+      "Emotional Performance/Bluffing"
+    ],
+    "Observe micro-expressions for incongruity": [
+      "Emotional Performance/Bluffing"
+    ],
+    "Compare current behavior to past observations": [
+      "Emotional Performance/Bluffing"
+    ],
+    "Identify who benefits from specific accusations": [
+      "Planting Seeds of Doubt"
+    ],
+    "Trace the origin of suspicion": [
+      "Planting Seeds of Doubt"
+    ],
+    "Ask for concrete evidence rather than vague feelings": [
+      "Planting Seeds of Doubt"
+    ],
+    "Don't put all your trust in one alliance": [
+      "Alliance Building & Trust Cultivation"
+    ],
+    "Keep an open mind to information from outside your group": [
+      "Alliance Building & Trust Cultivation"
+    ],
+    "Share information across different groups to identify inconsistencies": [
+      "Alliance Building & Trust Cultivation"
+    ],
+    "Demand concrete evidence": [
+      "Direct Accusation & Pressure"
+    ],
+    "Question the accuser's motives": [
+      "Direct Accusation & Pressure"
+    ],
+    "Don't let emotion or assertiveness sway a vote without solid reasoning": [
+      "Direct Accusation & Pressure"
+    ],
+    "Don't assume professional background directly translates to game skill": [
+      "Leveraging Professional Background"
+    ],
+    "Observe actual gameplay over stated ability": [
+      "Leveraging Professional Background"
+    ],
+    "Be wary of those who heavily lean on their profession as proof": [
+      "Leveraging Professional Background"
+    ],
+    "Look beyond the persona; does their voting or strategic input align with a truly 'Faithful' approach?": [
+      "Maternal Figure Façade"
+    ],
+    "Are they too comforting after a murder?": [
+      "Maternal Figure Façade"
+    ],
+    "Track their subtle influence in discussions.": [
+      "Maternal Figure Façade"
+    ],
+    "Encourage independent thinking and secret ballot justifications": [
+      "Herd Mentality Exploitation"
+    ],
+    "Question why a consensus formed so quickly": [
+      "Herd Mentality Exploitation"
+    ],
+    "Speak up if you feel pressured to vote against your convictions": [
+      "Herd Mentality Exploitation"
+    ],
+    "Observe unusually close interactions": [
+      "Secret Alliance/Relationship"
+    ],
+    "Look for consistent mutual defense": [
+      "Secret Alliance/Relationship"
+    ],
+    "Note if two players always seem to have the same information or theories": [
+      "Secret Alliance/Relationship"
+    ],
+    "Actively engage quiet players in conversation": [
+      "Blending In & Low Profile"
+    ],
+    "Question their lack of participation": [
+      "Blending In & Low Profile"
+    ],
+    "Note if they only speak when prompted": [
+      "Blending In & Low Profile"
+    ],
+    "Faithfuls should recognize strong players are at risk and try to protect them": [
+      "Targeting Strong Faithful / Vocal Suspects"
+    ],
+    "Spread theories widely so one person's elimination doesn't halt progress": [
+      "Targeting Strong Faithful / Vocal Suspects"
+    ],
+    "Disguise your strength or observational skills": [
+      "Targeting Strong Faithful / Vocal Suspects"
+    ],
+    "Traitors can create false evidence or misdirection": [
+      "Logical Deduction & Evidence-Based Accusation"
+    ],
+    "Use emotional appeals to override logic": [
+      "Logical Deduction & Evidence-Based Accusation"
+    ],
+    "Discredit the accuser's analytical abilities": [
+      "Logical Deduction & Evidence-Based Accusation"
+    ]
+  }
+}

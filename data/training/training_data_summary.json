@@ -1,0 +1,56 @@
+{
+  "generated_from": "The Traitors UK Season 1 Analysis",
+  "players_count": 41,
+  "traitors": [
+    "Alissa",
+    "Alyssa",
+    "Amanda",
+    "Wilfred"
+  ],
+  "faithfuls": [
+    "Aaron",
+    "Aisha",
+    "Alex",
+    "Amos",
+    "Andrea",
+    "Ayesha",
+    "Brian",
+    "Chloe",
+    "Claire",
+    "Fay",
+    "Fleur",
+    "Hannah",
+    "Imani",
+    "Imran",
+    "Ivan",
+    "John",
+    "Maddy",
+    "Mairi",
+    "Matt",
+    "Meryl",
+    "Misha",
+    "Nicky",
+    "Rayan",
+    "Ross",
+    "Theo",
+    "Tom",
+    "Will"
+  ],
+  "strategies_count": 46,
+  "relationship_patterns": 4,
+  "dialogue_contexts": [
+    "accusation",
+    "defense",
+    "alliance_building",
+    "emotional_expression",
+    "strategic_planning"
+  ],
+  "game_phases": [
+    "arrival",
+    "breakfast",
+    "mission",
+    "social",
+    "roundtable",
+    "murder"
+  ]
+}

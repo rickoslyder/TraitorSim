@@ -1,0 +1,1657 @@
+[
+  {
+    "name": "Alissa",
+    "age": null,
+    "occupation": null,
+    "role": "traitor",
+    "role_confidence": 1.0,
+    "role_evidence": "Role: TRAITOR (visible in the Traitors' turret scene with Wilfred and Amanda from 05:09 onwards) (Episode 3, Segment 5).",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.5,
+      "agreeableness": 0.5,
+      "neuroticism": 0.8
+    },
+    "archetype": "The Paranoid",
+    "archetype_confidence": 0.5966561272888439,
+    "self_descriptions": [
+      "The Traitors,",
+      " implying his own sacrifice is inevitable, making Alex feel "
+    ],
+    "observed_behaviors": [
+      "Emotional and expressive; visibly distressed by the Traitor activity (e.g., covering her face, crying); appears to quickly back up her fellow Traitors."
+    ],
+    "relationships": [],
+    "strategies_used": []
+  },
+  {
+    "name": "Alyssa",
+    "age": 54,
+    "occupation": "- Occupation: Estate Agent",
+    "role": "traitor",
+    "role_confidence": 1.0,
+    "role_evidence": "Explicitly stated as 'Role: Traitor' multiple times: 'Revealed at 2:54, 5:59, 7:02, 7:22, 7:57' (Ep1, Seg2), 'Role: Traitor' (Ep1, Seg3), 'Role: Traitor' (Ep1, Seg4), 'Role: Traitor' (Ep1, Seg5), 'Role: Traitor' (Ep2, Seg0).",
+    "ocean": {
+      "openness": 0.65,
+      "conscientiousness": 0.5,
+      "extraversion": 0.65,
+      "agreeableness": 0.19999999999999998,
+      "neuroticism": 0.35
+    },
+    "archetype": "The Charming Sociopath",
+    "archetype_confidence": 0.605640391641038,
+    "self_descriptions": [
+      "I obviously know she's not guilty, but you know, I have to accuse her and that's the name of the game.",
+      "I'm not a Traitor.",
+      "Who is the most gullible?",
+      "The Traitors,",
+      "I genuinely have no idea of how they're going to go about this. What would a Faithful do? I just need to get into that zone. I really think like a Faithful."
+    ],
+    "observed_behaviors": [
+      "Confident and outwardly expresses emotions, but is also a Traitor.",
+      "Publicly has to accuse Faithfuls despite knowing they are not Traitors, indicating a strategic and deceptive approach.",
+      "Strategic and cunning, she devises the \"Ted Bundy theory\" to deflect suspicion from Wilfred. She's protective of her fellow traitors and actively manipulates conversations.",
+      "Direct and firm in her accusations. She clearly states her reasoning for voting for Aaron."
+    ],
+    "relationships": [
+      {
+        "partner": "Wilfred",
+        "type": "alliance",
+        "strength": 0.9
+      },
+      {
+        "partner": "Amanda",
+        "type": "alliance",
+        "strength": 0.9
+      },
+      {
+        "partner": "Faithfuls",
+        "type": "suspicious",
+        "strength": 0.8
+      },
+      {
+        "partner": "Nicky",
+        "type": "suspicious",
+        "strength": 0.7
+      }
+    ],
+    "strategies_used": [
+      {
+        "strategy": "Feigned Guilt & Distress",
+        "effectiveness": 0.8
+      },
+      {
+        "strategy": "Emotional Performance/Bluffing",
+        "effectiveness": 0.8
+      }
+    ]
+  },
+  {
+    "name": "Amanda",
+    "age": 54,
+    "occupation": "Estate Agent",
+    "role": "traitor",
+    "role_confidence": 1.0,
+    "role_evidence": "Explicitly stated as 'Role: Traitor' multiple times: 'Revealed at 3:32, 5:37, 8:08' (Ep1, Seg2), 'Role: Traitor' (Ep1, Seg4), 'Role: Traitor' (Ep1, Seg5), 'Role: Traitor' (Ep2, Seg0).",
+    "ocean": {
+      "openness": 0.65,
+      "conscientiousness": 0.8,
+      "extraversion": 0.65,
+      "agreeableness": 0.5,
+      "neuroticism": 0.19999999999999998
+    },
+    "archetype": "The Prodigy",
+    "archetype_confidence": 0.609878781382201,
+    "self_descriptions": [
+      "weaponize information",
+      "The Traitors,",
+      "useful",
+      "use this now.",
+      "I'll cry if it's Amanda"
+    ],
+    "observed_behaviors": [
+      "Describes herself as \"glamour\" and asserts she \"can spot a liar a mile away,\" suggesting confidence, a maternal instinct (mentioning her children and grandchildren), and sharp observation skills.",
+      "Confident and outwardly expresses emotions, but is also a Traitor.",
+      "Calculating and focused on the Traitors' goals, she immediately recognizes the disadvantage if Faithfuls are correctly identified during the mission. She is determined to \"murder\" perceived threats to the Traitors.",
+      "Highly strategic and manipulative. She dramatically switches her vote at the last moment and expresses strong, performative empathy for the accused, comparing it to her own children.",
+      "Strategic and composed; confident in the Traitors' control over the game; views the Faithful's desperation to find a Traitor as a good sign for her team."
+    ],
+    "relationships": [
+      {
+        "partner": "Wilfred",
+        "type": "alliance",
+        "strength": 0.9
+      },
+      {
+        "partner": "Alyssa",
+        "type": "alliance",
+        "strength": 0.9
+      },
+      {
+        "partner": "Faithfuls",
+        "type": "suspicious",
+        "strength": 0.8
+      },
+      {
+        "partner": "Ayesha",
+        "type": "suspicious",
+        "strength": 0.8
+      }
+    ],
+    "strategies_used": [
+      {
+        "strategy": "Maternal Figure Façade",
+        "effectiveness": 0.8
+      }
+    ]
+  },
+  {
+    "name": "Wilfred",
+    "age": 28,
+    "occupation": "Senior Fundraiser",
+    "role": "traitor",
+    "role_confidence": 1.0,
+    "role_evidence": "Explicitly stated as 'Role: Traitor' multiple times: 'Revealed at 3:16, 9:14' (Ep1, Seg2), 'Role: Traitor' (Ep1, Seg4), 'Role: Traitor' (Ep1, Seg5), 'Role: Traitor' (Ep2, Seg0), 'Role: Traitor' (Ep2, Seg1).",
+    "ocean": {
+      "openness": 0.65,
+      "conscientiousness": 0.5,
+      "extraversion": 0.8,
+      "agreeableness": 0.5,
+      "neuroticism": 0.35
+    },
+    "archetype": "The Charming Sociopath",
+    "archetype_confidence": 0.6995103836466939,
+    "self_descriptions": [
+      "threw Theo to the wolves",
+      "The Traitors,",
+      "We're gonna kill Theo. They're gonna banish Imran... they're gonna be like, 'Well, who killed Theo?'",
+      "useful",
+      "JOHN"
+    ],
+    "observed_behaviors": [
+      "Confidently states he's \"amazing at positive persuasion\" and \"good at ethical manipulation,\" indicating a charismatic, influential, and potentially cunning personality. He plans to \"make friends\" so people \"don't want to vote us off\" while he \"sticks together like a puppet master.\"",
+      "Confident and outwardly expresses emotions, but is also a Traitor.",
+      "Strategic as a Traitor, acknowledging the risk of having his name mentioned during the mission. He expresses a desire to participate but also shows some apprehension about the outcome.",
+      "Strategic and cunning; openly admits to intentionally being \"OTT\" with emotions to deflect suspicion; supportive of his fellow Traitors."
+    ],
+    "relationships": [
+      {
+        "partner": "Amanda",
+        "type": "alliance",
+        "strength": 0.9
+      },
+      {
+        "partner": "Alyssa",
+        "type": "alliance",
+        "strength": 0.9
+      },
+      {
+        "partner": "Andrea",
+        "type": "trust",
+        "strength": 0.7
+      },
+      {
+        "partner": "Faithfuls",
+        "type": "suspicious",
+        "strength": 0.8
+      }
+    ],
+    "strategies_used": [
+      {
+        "strategy": "The Puppet Master",
+        "effectiveness": 0.9
+      },
+      {
+        "strategy": "Feigned Guilt & Distress",
+        "effectiveness": 0.8
+      },
+      {
+        "strategy": "Strategic Truth-Telling (90/10)",
+        "effectiveness": 0.7
+      },
+      {
+        "strategy": "Planting Seeds of Doubt",
+        "effectiveness": 0.8
+      },
+      {
+        "strategy": "Alliance Building & Trust Cultivation",
+        "effectiveness": 0.9
+      }
+    ]
+  },
+  {
+    "name": "Aaron",
+    "age": 24,
+    "occupation": "Property Agent",
+    "role": "faithful",
+    "role_confidence": 1.0,
+    "role_evidence": "Initially 'Not revealed in this clip (Later revealed as a Faithful in the show)' (Ep1, Seg2); explicitly stated as 'Role: Faithful' (Ep2, Seg0).",
+    "ocean": {
+      "openness": 0.65,
+      "conscientiousness": 0.5,
+      "extraversion": 0.8,
+      "agreeableness": 0.5,
+      "neuroticism": 0.65
+    },
+    "archetype": "The Wildcard",
+    "archetype_confidence": 0.567157287525381,
+    "self_descriptions": [
+      "It is possible that the Traitors were doing that because she fancied you, you thought she was all right, maybe they were trying to sort of pin it on you a little bit.",
+      "is exactly the same as everybody else's.",
+      "all like you're on a lads' holiday",
+      "The Traitors,",
+      "I'll cry if it's Amanda"
+    ],
+    "observed_behaviors": [
+      "States he's an \"open book\" and \"easy to read,\" calling himself \"a salesman's dream.\" Appears friendly and confident, possibly transparent.",
+      "Confident and outwardly expresses emotions, but is also a Traitor.",
+      "Expresses strong opinions about other players' roles, appears strategic in his thinking.",
+      "Highly emotional, prone to tears and appearing overwhelmed under pressure. He expresses deep distress when accused by multiple players.",
+      "Emotional and defensive when confronted; prone to feeling attacked from \"every single angle\"; believes those questioning him are \"nasty.\""
+    ],
+    "relationships": [
+      {
+        "partner": "Matt",
+        "type": "alliance",
+        "strength": 0.6
+      },
+      {
+        "partner": "Nicky",
+        "type": "suspicious",
+        "strength": 0.6
+      },
+      {
+        "partner": "Ayesha",
+        "type": "friendship",
+        "strength": 0.7
+      },
+      {
+        "partner": "Faithfuls",
+        "type": "suspicious",
+        "strength": 0.7
+      }
+    ],
+    "strategies_used": [
+      {
+        "strategy": "Alliance Building & Trust Cultivation",
+        "effectiveness": 0.9
+      },
+      {
+        "strategy": "Herd Mentality Exploitation",
+        "effectiveness": 0.7
+      }
+    ]
+  },
+  {
+    "name": "Aisha",
+    "age": 23,
+    "occupation": "Master's Graduate",
+    "role": "faithful",
+    "role_confidence": 1.0,
+    "role_evidence": "Confirmed as 'The first murder has already occurred (Aisha)' (Episode 2, Segment 1), indicating she was a Faithful player who was murdered.",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.65,
+      "agreeableness": 0.5,
+      "neuroticism": 0.35
+    },
+    "archetype": "The Alpha",
+    "archetype_confidence": 0.572732712531769,
+    "self_descriptions": [
+      "absolutely buzzing",
+      "Dependable Doctor",
+      "darting left and right constantly watching everyone,",
+      "money money money!",
+      "disingenuous"
+    ],
+    "observed_behaviors": [
+      "Describes herself as a \"mouth a mile\" with \"no filter,\" saying she \"tells everybody everything.\" This indicates an open, perhaps overly talkative and trusting personality.",
+      "Confident and outwardly expresses emotions, but is also a Traitor."
+    ],
+    "relationships": [],
+    "strategies_used": []
+  },
+  {
+    "name": "Alex",
+    "age": 26,
+    "occupation": "Presenter & Actor",
+    "role": "faithful",
+    "role_confidence": 1.0,
+    "role_evidence": "Initially 'Not revealed in this clip (Later revealed as a Faithful in the show)' (Ep1, Seg2); explicitly stated as 'Role: Faithful' (Ep2, Seg0).",
+    "ocean": {
+      "openness": 0.65,
+      "conscientiousness": 0.65,
+      "extraversion": 0.8,
+      "agreeableness": 0.35,
+      "neuroticism": 0.35
+    },
+    "archetype": "The Charming Sociopath",
+    "archetype_confidence": 0.6466561272888439,
+    "self_descriptions": [
+      "We're keeping that to ourselves.",
+      "The Traitors,",
+      "first in psychology from UCL, but no one here needs to know that.",
+      "prove",
+      "take the burden"
+    ],
+    "observed_behaviors": [
+      "Mentions her first-class degree in psychology from UCL, but deliberately states, \"no one here needs to know that,\" indicating a strategic, potentially manipulative side, and a desire to blend in rather than stand out. She also appears friendly and smiles frequently.",
+      "Confident and outwardly expresses emotions, but is also a Traitor.",
+      "Cautious and admits to \"throwing stones in the dark,\" values evidence over gut feelings.",
+      "Resolute in her convictions, even when expressing hope that she isn't wrong.",
+      "Observant and analytical; suggests strategic voting for someone \"everyone's going to vote for\"; expresses suspicion about Hannah's \"weird vibes.\""
+    ],
+    "relationships": [
+      {
+        "partner": "Tom",
+        "type": "romantic",
+        "strength": 0.9
+      },
+      {
+        "partner": "Ayesha",
+        "type": "friendship",
+        "strength": 0.8
+      },
+      {
+        "partner": "Matt",
+        "type": "romantic",
+        "strength": 0.4
+      },
+      {
+        "partner": "Faithfuls",
+        "type": "trust",
+        "strength": 0.6
+      }
+    ],
+    "strategies_used": [
+      {
+        "strategy": "Leveraging Professional Background",
+        "effectiveness": 0.6
+      },
+      {
+        "strategy": "Secret Alliance/Relationship",
+        "effectiveness": 0.7
+      },
+      {
+        "strategy": "Logical Deduction & Evidence-Based Accusation",
+        "effectiveness": 0.7
+      }
+    ]
+  },
+  {
+    "name": "Amos",
+    "age": 30,
+    "occupation": "Doctor",
+    "role": "faithful",
+    "role_confidence": 0.95,
+    "role_evidence": "Role: Not revealed in this clip (Later revealed as a Faithful in the show) (Ep1, Seg2); later noted 'not explicitly shown in this segment, but later episodes indicate he is a Faithful' (Ep1, Seg3).",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.65,
+      "extraversion": 0.65,
+      "agreeableness": 0.8,
+      "neuroticism": 0.19999999999999998
+    },
+    "archetype": "The Sage",
+    "archetype_confidence": 0.7209389550752652,
+    "self_descriptions": [
+      "complete and utter devastation",
+      "who do we think is going to go out first?",
+      "100 percent, definitely. We're just...",
+      "The Traitors,",
+      "target lists"
+    ],
+    "observed_behaviors": [
+      "Describes himself as \"dependable\" and someone \"people rely on the most,\" known for giving \"good advice.\" Projects a calm, trustworthy, and supportive demeanor.",
+      "Confident and outwardly expresses emotions, but is also a Traitor."
+    ],
+    "relationships": [],
+    "strategies_used": []
+  },
+  {
+    "name": "Andrea",
+    "age": 72,
+    "occupation": "Retired",
+    "role": "faithful",
+    "role_confidence": 1.0,
+    "role_evidence": "Initially 'Not revealed in this clip (Later revealed as a Faithful in the show)' (Ep1, Seg2); explicitly stated as 'Role: Faithful' multiple times (Ep1, Seg3; Ep2, Seg0; Ep2, Seg1).",
+    "ocean": {
+      "openness": 0.65,
+      "conscientiousness": 0.5,
+      "extraversion": 0.65,
+      "agreeableness": 0.65,
+      "neuroticism": 0.35
+    },
+    "archetype": "The Prodigy",
+    "archetype_confidence": 0.5573530172450977,
+    "self_descriptions": [
+      "gutted",
+      "Shield",
+      "kinder",
+      "Scientist",
+      "who do we think is going to go out first?"
+    ],
+    "observed_behaviors": [
+      "Expresses immense excitement for the \"chance in life\" at her age, conveying enthusiasm, warmth, and a sense of adventure.",
+      "Confident and outwardly expresses emotions, but is also a Traitor.",
+      "Uncertain about who to vote for, emphasizes the difficulty of knowing who is a Traitor.",
+      "Active and adventurous, she embraces new challenges and has an optimistic, can-do attitude, stating \"If you really want to, and if you have the health, you can bloody well do it.\"",
+      "Appears empathetic and regretful when voting for Aaron, saying \"I'm sorry, kid.\""
+    ],
+    "relationships": [
+      {
+        "partner": "Wilfred",
+        "type": "trust",
+        "strength": 0.7
+      },
+      {
+        "partner": "Faithfuls",
+        "type": "trust",
+        "strength": 0.7
+      }
+    ],
+    "strategies_used": []
+  },
+  {
+    "name": "Ayesha",
+    "age": 54,
+    "occupation": "- Occupation: Estate Agent",
+    "role": "faithful",
+    "role_confidence": 1.0,
+    "role_evidence": "Explicitly stated as 'Role: Faithful' (Ep1, Seg4 as Aisha); later confirmed as 'Role: Faithful (murdered)' (Ep2, Seg0).",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.65,
+      "agreeableness": 0.5,
+      "neuroticism": 0.35
+    },
+    "archetype": "The Alpha",
+    "archetype_confidence": 0.572732712531769,
+    "self_descriptions": [
+      "Next Time",
+      "lovely",
+      "she was just fun to be around.",
+      "You know what? Absolutely fine. It's them or us.",
+      "absolutely fine"
+    ],
+    "observed_behaviors": [
+      "Confident and outwardly expresses emotions, but is also a Traitor."
+    ],
+    "relationships": [
+      {
+        "partner": "Alex",
+        "type": "friendship",
+        "strength": 0.8
+      },
+      {
+        "partner": "Aaron",
+        "type": "friendship",
+        "strength": 0.7
+      },
+      {
+        "partner": "Amanda",
+        "type": "suspicious",
+        "strength": 0.8
+      }
+    ],
+    "strategies_used": [
+      {
+        "strategy": "Targeting Strong Faithful / Vocal Suspects",
+        "effectiveness": 0.9
+      }
+    ]
+  },
+  {
+    "name": "Brian",
+    "age": 23,
+    "occupation": "",
+    "role": "faithful",
+    "role_confidence": 1.0,
+    "role_evidence": "Explicitly stated as 'Role: Faithful (revealed after Nicky's banishment)' (Episode 2, Segment 4).",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.5,
+      "agreeableness": 0.5,
+      "neuroticism": 0.5
+    },
+    "archetype": "The Underdog",
+    "archetype_confidence": 0.56227204043104,
+    "self_descriptions": [
+      "with regrets, Nicky",
+      "Imran <3"
+    ],
+    "observed_behaviors": [],
+    "relationships": [],
+    "strategies_used": []
+  },
+  {
+    "name": "Chloe",
+    "age": 54,
+    "occupation": "Estate Agent (revealed with on-screen text at 09:36)",
+    "role": "faithful",
+    "role_confidence": 0.9,
+    "role_evidence": "Role: Faithful (not explicitly stated in this clip, but implied by others' discussions) (Episode 3, Segment 3).",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.5,
+      "agreeableness": 0.5,
+      "neuroticism": 0.5
+    },
+    "archetype": "The Underdog",
+    "archetype_confidence": 0.56227204043104,
+    "self_descriptions": [
+      "unfortunate",
+      "We are killing it,",
+      "dark horse",
+      "people go with their gut instincts",
+      "dark horse,"
+    ],
+    "observed_behaviors": [],
+    "relationships": [],
+    "strategies_used": []
+  },
+  {
+    "name": "Claire",
+    "age": 54,
+    "occupation": "- Occupation: Estate Agent",
+    "role": "faithful",
+    "role_confidence": 1.0,
+    "role_evidence": "Explicitly stated as 'Role: Faithful' (Ep1, Seg3) and (Ep2, Seg1).",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.65,
+      "agreeableness": 0.5,
+      "neuroticism": 0.35
+    },
+    "archetype": "The Alpha",
+    "archetype_confidence": 0.572732712531769,
+    "self_descriptions": [
+      "The Traitors,",
+      "disperse everyone and we're sort of taking control.",
+      "It's quite a hard decision but I had to be true to myself, what I came here to do was to befriend and betray... This is going to pay for my wedding... it's gonna help so much more people... just having that little bit more of financial security.",
+      "safety blanket,",
+      "absolutely bawling and crying like he'd lost his mum"
+    ],
+    "observed_behaviors": [
+      "Confident and outwardly expresses emotions, but is also a Traitor."
+    ],
+    "relationships": [
+      {
+        "partner": "Traitors",
+        "type": "rivalry",
+        "strength": 0.7
+      }
+    ],
+    "strategies_used": []
+  },
+  {
+    "name": "Fay",
+    "age": 54,
+    "occupation": "- Occupation: Estate Agent",
+    "role": "faithful",
+    "role_confidence": 1.0,
+    "role_evidence": "Explicitly stated as 'Role: Faithful (Revealed at 8:25, confirmed in interview)' (Ep1, Seg2); also 'Role: Faithful' (Ep2, Seg0 as Faye) and (Ep2, Seg1).",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.65,
+      "agreeableness": 0.5,
+      "neuroticism": 0.35
+    },
+    "archetype": "The Alpha",
+    "archetype_confidence": 0.572732712531769,
+    "self_descriptions": [
+      "We need to get rid of them [Traitors] very quickly, and I'm hoping that we can banish one tonight.",
+      "magic has got deception",
+      "Who is the most gullible?",
+      "JOHN",
+      "We need to get rid of them very quickly. And I'm hoping that we can banish one tonight"
+    ],
+    "observed_behaviors": [
+      "Confident and outwardly expresses emotions, but is also a Traitor.",
+      "Very critical of others' actions and constantly talks about other people; appears to believe Nicky is a Traitor.",
+      "Direct with her vote for Imran. She expresses extreme, audible shock when Imran is revealed to be a Faithful."
+    ],
+    "relationships": [
+      {
+        "partner": "Nicky",
+        "type": "suspicious",
+        "strength": 0.8
+      },
+      {
+        "partner": "Traitors",
+        "type": "rivalry",
+        "strength": 0.7
+      }
+    ],
+    "strategies_used": [
+      {
+        "strategy": "Direct Accusation & Pressure",
+        "effectiveness": 0.6
+      }
+    ]
+  },
+  {
+    "name": "Fleur",
+    "age": 54,
+    "occupation": "- Occupation: Estate Agent",
+    "role": "faithful",
+    "role_confidence": 0.95,
+    "role_evidence": "Role: Not revealed in this clip (Later revealed as a Faithful in the show) (Ep1, Seg2).",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.5,
+      "agreeableness": 0.5,
+      "neuroticism": 0.5
+    },
+    "archetype": "The Underdog",
+    "archetype_confidence": 0.56227204043104,
+    "self_descriptions": [
+      "very good at sniffing out liars"
+    ],
+    "observed_behaviors": [],
+    "relationships": [],
+    "strategies_used": [
+      {
+        "strategy": "Leveraging Professional Background",
+        "effectiveness": 0.6
+      }
+    ]
+  },
+  {
+    "name": "Hannah",
+    "age": 54,
+    "occupation": "- Occupation: Estate Agent",
+    "role": "faithful",
+    "role_confidence": 1.0,
+    "role_evidence": "Initially 'Not revealed in this clip (Later revealed as a Faithful in the show)' (Ep1, Seg2); explicitly stated as 'Role: Faithful' (Ep1, Seg3).",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.65,
+      "agreeableness": 0.5,
+      "neuroticism": 0.35
+    },
+    "archetype": "The Alpha",
+    "archetype_confidence": 0.572732712531769,
+    "self_descriptions": [
+      "group's getting so much smaller,",
+      "The Traitors,",
+      "\n    *   **Strategic Proximity (",
+      "Tell me someone doesn't like you...",
+      "Ivan is a traitor... if I'm wrong, kill me tomorrow"
+    ],
+    "observed_behaviors": [
+      "Confident and outwardly expresses emotions, but is also a Traitor.",
+      "Appears confident in her ability to identify Traitors, uses hand gestures to emphasize her points.",
+      "Direct and has clear, long-standing suspicions about Imran, which she voices when casting her vote."
+    ],
+    "relationships": [
+      {
+        "partner": "Nicky",
+        "type": "suspicious",
+        "strength": 0.5
+      },
+      {
+        "partner": "Faithfuls",
+        "type": "trust",
+        "strength": 0.6
+      }
+    ],
+    "strategies_used": []
+  },
+  {
+    "name": "Imani",
+    "age": 54,
+    "occupation": "- Occupation: Estate Agent",
+    "role": "faithful",
+    "role_confidence": 0.95,
+    "role_evidence": "Role: Not revealed in this clip (Later revealed as a Faithful in the show) (Ep1, Seg2).",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.5,
+      "agreeableness": 0.5,
+      "neuroticism": 0.5
+    },
+    "archetype": "The Underdog",
+    "archetype_confidence": 0.56227204043104,
+    "self_descriptions": [
+      "who do we think is going to go out first?"
+    ],
+    "observed_behaviors": [],
+    "relationships": [],
+    "strategies_used": []
+  },
+  {
+    "name": "Imran",
+    "age": 23,
+    "occupation": "Scientist",
+    "role": "faithful",
+    "role_confidence": 1.0,
+    "role_evidence": "Initially noted 'not explicitly shown in this segment, but later episodes indicate he is a Faithful' (Ep1, Seg3); explicitly stated as 'Role: Faithful' (Ep1, Seg4) and (Ep2, Seg0).",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.35,
+      "agreeableness": 0.35,
+      "neuroticism": 0.04999999999999999
+    },
+    "archetype": "The Prodigy",
+    "archetype_confidence": 0.6357905851952681,
+    "self_descriptions": [
+      "90/10 strategy",
+      "I remember saying that the Blue team we had are more disadvantaged than the Green team because the Green team had more younger people in there.",
+      "100 percent, definitely. We're just...",
+      "dropping everyone's name",
+      "The Traitors,"
+    ],
+    "observed_behaviors": [
+      "Highlights his achievement of a PhD at 22, being the \"youngest in the world\" for his discipline, and is \"certainly here to win this competition.\" This points to extreme intelligence, high ambition, and strong self-belief.",
+      "Confident and outwardly expresses emotions, but is also a Traitor.",
+      "Quiet and reserved, which some players interpret as suspicious; values evidence over gut feelings.",
+      "Competitive and logical, he views himself as perhaps \"less sensitive\" than others. He is proud of his academic achievements (youngest person to obtain a PhD in Astrophysics).",
+      "Initially appears calm, even slightly amused or smug when others are under fire. He maintains a composed demeanor even when votes turn against him. When banished, he accepts it gracefully and expresses having enjoyed the challenge."
+    ],
+    "relationships": [
+      {
+        "partner": "Theo",
+        "type": "rivalry",
+        "strength": 0.7
+      },
+      {
+        "partner": "Nicky",
+        "type": "suspicious",
+        "strength": 0.5
+      },
+      {
+        "partner": "Traitors",
+        "type": "rivalry",
+        "strength": 0.7
+      },
+      {
+        "partner": "Faithfuls",
+        "type": "suspicious",
+        "strength": 0.5
+      }
+    ],
+    "strategies_used": [
+      {
+        "strategy": "Strategic Truth-Telling (90/10)",
+        "effectiveness": 0.7
+      },
+      {
+        "strategy": "Herd Mentality Exploitation",
+        "effectiveness": 0.7
+      },
+      {
+        "strategy": "Blending In & Low Profile",
+        "effectiveness": 0.6
+      },
+      {
+        "strategy": "Logical Deduction & Evidence-Based Accusation",
+        "effectiveness": 0.7
+      }
+    ]
+  },
+  {
+    "name": "Ivan",
+    "age": 54,
+    "occupation": "- Occupation: Estate Agent",
+    "role": "faithful",
+    "role_confidence": 1.0,
+    "role_evidence": "Initially 'Not revealed in this clip (Later revealed as a Faithful in the show)' (Ep1, Seg2); explicitly stated as 'Role: Faithful' (Ep1, Seg3) and (Ep2, Seg0).",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.65,
+      "agreeableness": 0.5,
+      "neuroticism": 0.35
+    },
+    "archetype": "The Alpha",
+    "archetype_confidence": 0.572732712531769,
+    "self_descriptions": [
+      "head over heart",
+      "Wheel of Fun",
+      "who do we think is going to go out first?",
+      "role",
+      "The Traitors,"
+    ],
+    "observed_behaviors": [
+      "Confident and outwardly expresses emotions, but is also a Traitor.",
+      "Expresses apprehension and a sense of dread about the upcoming physical challenge, describing his mouth filling with \"potential vomit.\" He clearly hopes not to be chosen for the challenge.",
+      "Appears reluctant to vote but maintains his belief that Imran is a Traitor."
+    ],
+    "relationships": [],
+    "strategies_used": [
+      {
+        "strategy": "Blending In & Low Profile",
+        "effectiveness": 0.6
+      }
+    ]
+  },
+  {
+    "name": "John",
+    "age": 54,
+    "occupation": "- Occupation: Estate Agent",
+    "role": "faithful",
+    "role_confidence": 1.0,
+    "role_evidence": "Initially 'Not revealed in this clip (Later revealed as a Faithful in the show)' (Ep1, Seg2); explicitly stated as 'Role: Faithful' (Ep1, Seg3) and (Ep1, Seg4).",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.65,
+      "agreeableness": 0.5,
+      "neuroticism": 0.5
+    },
+    "archetype": "The Paranoid",
+    "archetype_confidence": 0.6081700230501735,
+    "self_descriptions": [
+      " (9:17 - 9:27)\n*   **Second Question: ",
+      "is exactly the same as everybody else's.",
+      "lovely and innocent",
+      "take the burden",
+      "Faithful"
+    ],
+    "observed_behaviors": [
+      "Confident and outwardly expresses emotions, but is also a Traitor.",
+      "Appears nervous and anxious about being banished, doesn't want to go first.",
+      "Sensitive, revealing his feelings were hurt by Imran's comments. He is direct and assertive, stating \"I'm nobody's fool\" and describing his reaction as \"fight or flight.\"",
+      "Calm and collected when making his vote, stating it was \"unfortunate\" to vote for Aaron.",
+      "Opinionated and direct; believes the game is a competition where players will be attacked; finds it disrespectful when interrupted or talked through."
+    ],
+    "relationships": [
+      {
+        "partner": "Traitors",
+        "type": "suspicious",
+        "strength": 0.6
+      }
+    ],
+    "strategies_used": []
+  },
+  {
+    "name": "Maddy",
+    "age": 54,
+    "occupation": "- Occupation: Estate Agent",
+    "role": "faithful",
+    "role_confidence": 1.0,
+    "role_evidence": "Initially 'Not revealed in this clip (Later revealed as a Faithful in the show)' (Ep1, Seg2); explicitly stated as 'Role: Faithful' (Ep1, Seg4) and (Ep2, Seg1).",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.65,
+      "extraversion": 0.65,
+      "agreeableness": 0.5,
+      "neuroticism": 0.5
+    },
+    "archetype": "The Truthseeker",
+    "archetype_confidence": 0.6236221918808008,
+    "self_descriptions": [
+      "Who is the most gullible?",
+      "The Traitors,",
+      "too strong",
+      "dodgy.",
+      "100s"
+    ],
+    "observed_behaviors": [
+      "Confident and outwardly expresses emotions, but is also a Traitor.",
+      "Observant and analytical, she expresses her \"epiphany\" about Aaron's voting. She appears trusting of her immediate group, feeling like she's in a \"good bunch.\"",
+      "Highly emotional, tearful, and expresses strong conviction in her vote against Aaron. She is visibly heartbroken and regretful after Imran's reveal."
+    ],
+    "relationships": [],
+    "strategies_used": []
+  },
+  {
+    "name": "Mairi",
+    "age": 29,
+    "occupation": "Receptionist & Actor",
+    "role": "faithful",
+    "role_confidence": 0.9,
+    "role_evidence": "Role: Faithful (implied by not being a Traitor and surviving) (Episode 3, Segment 0).",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.5,
+      "agreeableness": 0.5,
+      "neuroticism": 0.5
+    },
+    "archetype": "The Underdog",
+    "archetype_confidence": 0.56227204043104,
+    "self_descriptions": [
+      "backhanded, this is a backstab"
+    ],
+    "observed_behaviors": [],
+    "relationships": [],
+    "strategies_used": []
+  },
+  {
+    "name": "Matt",
+    "age": 23,
+    "occupation": "BMX Athlete",
+    "role": "faithful",
+    "role_confidence": 1.0,
+    "role_evidence": "Initially 'Not revealed in this clip (Later revealed as a Faithful in the show)' (Ep1, Seg2); explicitly stated as 'Role: Faithful' (Ep2, Seg0).",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.9500000000000001,
+      "agreeableness": 0.5,
+      "neuroticism": 0.35
+    },
+    "archetype": "The Social Butterfly",
+    "archetype_confidence": 0.6569566564851032,
+    "self_descriptions": [
+      "head over heart",
+      "Traitor",
+      "Shield",
+      "play completely dumb, and nobody will suspect.",
+      "Wheel of Fun"
+    ],
+    "observed_behaviors": [
+      "Comes across as friendly and outgoing, openly complimenting Alex's appearance. Seems easygoing and enjoys social interaction.",
+      "Confident and outwardly expresses emotions, but is also a Traitor.",
+      "Expresses uncertainty and doesn't want to be responsible for banishing someone.",
+      "Despite being a BMX athlete, he is \"absolutely petrified\" of going upside down. He finds the idea of being upside down unnatural and expresses significant fear about the mission."
+    ],
+    "relationships": [
+      {
+        "partner": "Alex",
+        "type": "romantic",
+        "strength": 0.4
+      },
+      {
+        "partner": "Aaron",
+        "type": "alliance",
+        "strength": 0.6
+      },
+      {
+        "partner": "Nicky",
+        "type": "suspicious",
+        "strength": 0.5
+      }
+    ],
+    "strategies_used": [
+      {
+        "strategy": "Alliance Building & Trust Cultivation",
+        "effectiveness": 0.9
+      },
+      {
+        "strategy": "Herd Mentality Exploitation",
+        "effectiveness": 0.7
+      }
+    ]
+  },
+  {
+    "name": "Meryl",
+    "age": 54,
+    "occupation": "- Occupation: Estate Agent",
+    "role": "faithful",
+    "role_confidence": 1.0,
+    "role_evidence": "Initially 'Not revealed in this clip (Later revealed as a Faithful in the show)' (Ep1, Seg2); explicitly stated as 'Role: Faithful' (Ep2, Seg0).",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.65,
+      "agreeableness": 0.5,
+      "neuroticism": 0.5
+    },
+    "archetype": "The Truthseeker",
+    "archetype_confidence": 0.5695090772311827,
+    "self_descriptions": [
+      "head over heart",
+      "I did feel like she was quite like closed off and stuff, and I felt like that was probably one of the few people that I haven't really connected with",
+      ").\n        *   Noise/Clarity Model: Simulate the chaotic communication with a variable ",
+      "Reputation",
+      "too strong"
+    ],
+    "observed_behaviors": [
+      "Confident and outwardly expresses emotions, but is also a Traitor.",
+      "Appears genuinely distressed and regretful when voting for Imran, stating it's \"nothing personal.\""
+    ],
+    "relationships": [
+      {
+        "partner": "Nicky",
+        "type": "suspicious",
+        "strength": 0.6
+      }
+    ],
+    "strategies_used": []
+  },
+  {
+    "name": "Misha",
+    "age": 54,
+    "occupation": "- Occupation: Estate Agent",
+    "role": "faithful",
+    "role_confidence": 0.9,
+    "role_evidence": "Not explicitly shown in this segment, but later episodes indicate she is a Faithful (Ep1, Seg3).",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.65,
+      "agreeableness": 0.5,
+      "neuroticism": 0.35
+    },
+    "archetype": "The Alpha",
+    "archetype_confidence": 0.572732712531769,
+    "self_descriptions": [
+      "young alpha male boys"
+    ],
+    "observed_behaviors": [
+      "Confident and outwardly expresses emotions, but is also a Traitor."
+    ],
+    "relationships": [],
+    "strategies_used": []
+  },
+  {
+    "name": "Nicky",
+    "age": 54,
+    "occupation": "- Occupation: Estate Agent",
+    "role": "faithful",
+    "role_confidence": 1.0,
+    "role_evidence": "Initially 'Not revealed in this clip (Later revealed as a Faithful in the show)' (Ep1, Seg2); explicitly stated as 'Role: Faithful' (Ep1, Seg3) and (Ep2, Seg0 as Nicky).",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.65,
+      "agreeableness": 0.5,
+      "neuroticism": 0.35
+    },
+    "archetype": "The Alpha",
+    "archetype_confidence": 0.572732712531769,
+    "self_descriptions": [
+      "having two working hands again",
+      "The Traitors,",
+      "When we are raised our glass to the Faithful, the other day you didn't raise your glass and that's the only thing.",
+      " This shows immediate strategic thinking and a willingness to deflect suspicion onto others.\n\n**Faithfuls' Strategies (Detection and Defense):**\n\n1.  **Identifying potential Traitor characteristics (Pre-selection):**\n    *   **Nicky (1:02):** States she's a ",
+      "take the burden"
+    ],
+    "observed_behaviors": [
+      "Confident and outwardly expresses emotions, but is also a Traitor.",
+      "Defends herself strongly against accusations, perceives herself as someone who backs off in group discussions rather than fighting."
+    ],
+    "relationships": [
+      {
+        "partner": "Fay",
+        "type": "suspicious",
+        "strength": 0.8
+      },
+      {
+        "partner": "Aaron",
+        "type": "suspicious",
+        "strength": 0.6
+      },
+      {
+        "partner": "Imran",
+        "type": "suspicious",
+        "strength": 0.5
+      },
+      {
+        "partner": "Meryl",
+        "type": "suspicious",
+        "strength": 0.6
+      },
+      {
+        "partner": "Hannah",
+        "type": "suspicious",
+        "strength": 0.5
+      },
+      {
+        "partner": "Matt",
+        "type": "suspicious",
+        "strength": 0.5
+      },
+      {
+        "partner": "Alyssa",
+        "type": "suspicious",
+        "strength": 0.7
+      }
+    ],
+    "strategies_used": [
+      {
+        "strategy": "Feigned Guilt & Distress",
+        "effectiveness": 0.8
+      }
+    ]
+  },
+  {
+    "name": "Rayan",
+    "age": 54,
+    "occupation": "- Occupation: Estate Agent",
+    "role": "faithful",
+    "role_confidence": 1.0,
+    "role_evidence": "Explicitly stated as 'Role: Faithful (Revealed at 9:43, confirmed in interview)' (Ep1, Seg2); also 'Role: Faithful' (Ep1, Seg3) and (Ep1, Seg4).",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.65,
+      "agreeableness": 0.5,
+      "neuroticism": 0.35
+    },
+    "archetype": "The Alpha",
+    "archetype_confidence": 0.572732712531769,
+    "self_descriptions": [
+      "head over heart",
+      "reputation",
+      "who do we think is going to go out first?",
+      "I was quite happy with that. If people can't remember my name, they're not going to put it down at the round table.",
+      "a really honest person, which could be really helpful to help us find the Traitors."
+    ],
+    "observed_behaviors": [
+      "Confident and outwardly expresses emotions, but is also a Traitor."
+    ],
+    "relationships": [],
+    "strategies_used": []
+  },
+  {
+    "name": "Ross",
+    "age": 42,
+    "occupation": "Solutions Consultant",
+    "role": "faithful",
+    "role_confidence": 0.9,
+    "role_evidence": "Role: Faithful (not explicitly stated in this clip, but implied by others' discussions) (Episode 3, Segment 3).",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.5,
+      "agreeableness": 0.5,
+      "neuroticism": 0.5
+    },
+    "archetype": "The Underdog",
+    "archetype_confidence": 0.56227204043104,
+    "self_descriptions": [
+      "lovely"
+    ],
+    "observed_behaviors": [],
+    "relationships": [],
+    "strategies_used": []
+  },
+  {
+    "name": "Theo",
+    "age": 54,
+    "occupation": "- Occupation: Estate Agent",
+    "role": "faithful",
+    "role_confidence": 1.0,
+    "role_evidence": "Explicitly stated as 'Role: Faithful (Revealed at 8:46, confirmed in interview)' (Ep1, Seg2); also 'Role: Faithful' (Ep1, Seg3) and (Ep2, Seg0).",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.9500000000000001,
+      "agreeableness": 0.5,
+      "neuroticism": 0.35
+    },
+    "archetype": "The Alpha",
+    "archetype_confidence": 0.6170216385250582,
+    "self_descriptions": [
+      "). Traitors, in turn, attempt to deflect suspicion by mimicking Faithful behavior or redirecting blame.\n    *   **Actionable AI Implementation:** AI agents have an ",
+      "worst nightmare.",
+      "100s",
+      " This reveals how individual safety and deflection of suspicion become paramount.\n    *   **General Tension (Amanda) (07:41):** Amanda (Traitor) observes the heightened anxiety with satisfaction: ",
+      "Maybe that's it, maybe it's random. Just totally and utterly random."
+    ],
+    "observed_behaviors": [
+      "Confident and outwardly expresses emotions, but is also a Traitor.",
+      "Direct with his accusations, believes Traitors need to be eliminated quickly.",
+      "Appears energetic and enthusiastic, even when faced with the daunting mission. He maintains a positive outlook despite the challenge of being strapped to a spinning wheel.",
+      "Articulate and critical in his reasoning for his vote, accusing Imran of having \"forced\" emotions. He appears upset and slightly resigned when he receives a vote himself."
+    ],
+    "relationships": [
+      {
+        "partner": "Imran",
+        "type": "rivalry",
+        "strength": 0.7
+      }
+    ],
+    "strategies_used": [
+      {
+        "strategy": "Direct Accusation & Pressure",
+        "effectiveness": 0.6
+      },
+      {
+        "strategy": "Targeting Strong Faithful / Vocal Suspects",
+        "effectiveness": 0.9
+      }
+    ]
+  },
+  {
+    "name": "Tom",
+    "age": 24,
+    "occupation": "Magician",
+    "role": "faithful",
+    "role_confidence": 1.0,
+    "role_evidence": "Initially 'Not revealed in this clip (Later revealed as a Faithful in the show)' (Ep1, Seg2); explicitly stated as 'Role: Faithful' (Ep1, Seg4) and (Ep2, Seg0).",
+    "ocean": {
+      "openness": 0.65,
+      "conscientiousness": 0.5,
+      "extraversion": 0.8,
+      "agreeableness": 0.35,
+      "neuroticism": 0.35
+    },
+    "archetype": "The Charming Sociopath",
+    "archetype_confidence": 0.6364369692288212,
+    "self_descriptions": [
+      "It is possible that the Traitors were doing that because she fancied you, you thought she was all right, maybe they were trying to sort of pin it on you a little bit.",
+      "We're keeping that to ourselves.",
+      "The Traitors,",
+      "I'm not a Traitor.",
+      "crowd following,"
+    ],
+    "observed_behaviors": [
+      "Enthusiastically talks about bringing \"manipulation, deception\" from magic into the game and plans to keep his \"cards close to his chest,\" suggesting he is cunning, playful, and strategic.",
+      "Confident and outwardly expresses emotions, but is also a Traitor.",
+      "Reflective and self-critical about his voting choices; acknowledges the difficulty of the game for the Faithful; prone to \"crumbling\" under pressure."
+    ],
+    "relationships": [
+      {
+        "partner": "Alex",
+        "type": "romantic",
+        "strength": 0.9
+      }
+    ],
+    "strategies_used": [
+      {
+        "strategy": "Leveraging Professional Background",
+        "effectiveness": 0.6
+      },
+      {
+        "strategy": "Secret Alliance/Relationship",
+        "effectiveness": 0.7
+      }
+    ]
+  },
+  {
+    "name": "Will",
+    "age": 23,
+    "occupation": "",
+    "role": "faithful",
+    "role_confidence": 0.9,
+    "role_evidence": "Role: Faithful (as perceived by John in this clip) (Episode 3, Segment 3); also seen expressing distress about banishing a Faithful (Episode 3, Segment 4), implying he is Faithful.",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.5,
+      "agreeableness": 0.5,
+      "neuroticism": 0.8
+    },
+    "archetype": "The Paranoid",
+    "archetype_confidence": 0.5966561272888439,
+    "self_descriptions": [
+      "dropped like a piece of shit",
+      "too strong",
+      "\n*   **Trust/Perception:** This question creates immediate tension as ",
+      "If everybody's putting, 'Yeah, Fay's ruthless, woo! Yeah, Fay's two-faced, woo!' What is that sowing in their head? Sowing those seeds, isn't it?",
+      "on to me,"
+    ],
+    "observed_behaviors": [
+      "Becomes visibly distressed and emotional when voting for Aaron. He later expresses intense regret, saying \"I fucked up\" and \"I feel sick.\""
+    ],
+    "relationships": [],
+    "strategies_used": []
+  },
+  {
+    "name": "Andria",
+    "age": null,
+    "occupation": null,
+    "role": "unknown",
+    "role_confidence": 0.0,
+    "role_evidence": "Role: Not explicitly revealed in this clip. (Episode 4, Segment 0). Likely Andrea, but spelled differently and no explicit role.",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.5,
+      "agreeableness": 0.5,
+      "neuroticism": 0.5
+    },
+    "archetype": "The Underdog",
+    "archetype_confidence": 0.56227204043104,
+    "self_descriptions": [
+      "easy"
+    ],
+    "observed_behaviors": [],
+    "relationships": [],
+    "strategies_used": []
+  },
+  {
+    "name": "Faithfuls",
+    "age": 54,
+    "occupation": "- Occupation: Estate Agent",
+    "role": "unknown",
+    "role_confidence": 0.0,
+    "role_evidence": "",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.5,
+      "agreeableness": 0.5,
+      "neuroticism": 0.5
+    },
+    "archetype": "The Underdog",
+    "archetype_confidence": 0.56227204043104,
+    "self_descriptions": [
+      "Every decision you make... has a consequence. Nothing's just for fun.",
+      "90/10 strategy",
+      "I obviously know she's not guilty, but you know, I have to accuse her and that's the name of the game.",
+      "We need to get rid of them [Traitors] very quickly, and I'm hoping that we can banish one tonight.",
+      "The Traitors,"
+    ],
+    "observed_behaviors": [],
+    "relationships": [
+      {
+        "partner": "Wilfred",
+        "type": "suspicious",
+        "strength": 0.8
+      },
+      {
+        "partner": "Amanda",
+        "type": "suspicious",
+        "strength": 0.8
+      },
+      {
+        "partner": "Alyssa",
+        "type": "suspicious",
+        "strength": 0.8
+      },
+      {
+        "partner": "Hannah",
+        "type": "trust",
+        "strength": 0.6
+      },
+      {
+        "partner": "Andrea",
+        "type": "trust",
+        "strength": 0.7
+      },
+      {
+        "partner": "Aaron",
+        "type": "suspicious",
+        "strength": 0.7
+      },
+      {
+        "partner": "Imran",
+        "type": "suspicious",
+        "strength": 0.5
+      },
+      {
+        "partner": "Alex",
+        "type": "trust",
+        "strength": 0.6
+      }
+    ],
+    "strategies_used": []
+  },
+  {
+    "name": "Faye",
+    "age": 54,
+    "occupation": "- Occupation: Estate Agent",
+    "role": "unknown",
+    "role_confidence": 0.0,
+    "role_evidence": "",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.65,
+      "agreeableness": 0.5,
+      "neuroticism": 0.35
+    },
+    "archetype": "The Alpha",
+    "archetype_confidence": 0.572732712531769,
+    "self_descriptions": [
+      "she was just fun to be around.",
+      "kin",
+      " The Traitors decide *not* to murder these individuals because they are likely to be banished by the Faithful anyway, thus preserving the Traitors' anonymity. Alyssa remarks, ",
+      ") to avoid targeting those who are already on the chopping block, effectively getting "
+    ],
+    "observed_behaviors": [
+      "Confident and outwardly expresses emotions, but is also a Traitor."
+    ],
+    "relationships": [],
+    "strategies_used": []
+  },
+  {
+    "name": "Kieran",
+    "age": 42,
+    "occupation": "Solutions Consultant",
+    "role": "unknown",
+    "role_confidence": 0.0,
+    "role_evidence": "Roles (Traitor/Faithful) are not revealed in this introductory segment; no further role information provided.",
+    "ocean": {
+      "openness": 0.65,
+      "conscientiousness": 0.5,
+      "extraversion": 0.65,
+      "agreeableness": 0.35,
+      "neuroticism": 0.35
+    },
+    "archetype": "The Alpha",
+    "archetype_confidence": 0.6144958743879548,
+    "self_descriptions": [
+      "complete and utter devastation",
+      "100 percent, definitely. We're just...",
+      "I feel like the people in the middle are probably doing that.",
+      "The Traitors,",
+      "valid member"
+    ],
+    "observed_behaviors": [
+      "States he's \"ready to get cracking\" and wants to \"mingle with people\" to \"start building my alliances,\" suggesting a strategic, competitive, and observant nature. He also aims to not appear overly confident."
+    ],
+    "relationships": [],
+    "strategies_used": [
+      {
+        "strategy": "Alliance Building & Trust Cultivation",
+        "effectiveness": 0.9
+      }
+    ]
+  },
+  {
+    "name": "Maddie",
+    "age": null,
+    "occupation": null,
+    "role": "unknown",
+    "role_confidence": 0.0,
+    "role_evidence": "",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.5,
+      "agreeableness": 0.5,
+      "neuroticism": 0.5
+    },
+    "archetype": "The Underdog",
+    "archetype_confidence": 0.56227204043104,
+    "self_descriptions": [
+      "Traitors"
+    ],
+    "observed_behaviors": [],
+    "relationships": [],
+    "strategies_used": []
+  },
+  {
+    "name": "Mat",
+    "age": 54,
+    "occupation": "Estate Agent",
+    "role": "unknown",
+    "role_confidence": 0.0,
+    "role_evidence": "Role: Not revealed in this clip (Episode 3, Segment 4). No explicit Faithful/Traitor statement here.",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.5,
+      "agreeableness": 0.5,
+      "neuroticism": 0.5
+    },
+    "archetype": "The Underdog",
+    "archetype_confidence": 0.56227204043104,
+    "self_descriptions": [
+      "head over heart",
+      "Traitor",
+      "Shield",
+      "play completely dumb, and nobody will suspect.",
+      "Wheel of Fun"
+    ],
+    "observed_behaviors": [
+      "Appears firm in his decision and straightforward when casting his vote for Imran."
+    ],
+    "relationships": [],
+    "strategies_used": [
+      {
+        "strategy": "Alliance Building & Trust Cultivation",
+        "effectiveness": 0.9
+      },
+      {
+        "strategy": "Herd Mentality Exploitation",
+        "effectiveness": 0.7
+      }
+    ]
+  },
+  {
+    "name": "Nikki",
+    "age": 54,
+    "occupation": "- Occupation: Estate Agent",
+    "role": "unknown",
+    "role_confidence": 0.0,
+    "role_evidence": "",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.65,
+      "agreeableness": 0.5,
+      "neuroticism": 0.35
+    },
+    "archetype": "The Alpha",
+    "archetype_confidence": 0.572732712531769,
+    "self_descriptions": [
+      "think a little bit more",
+      "I did feel like she was quite like closed off and stuff, and I felt like that was probably one of the few people that I haven't really connected with",
+      "red flags",
+      ") suggests a complex AI reasoning: predicting how *others* expect a Traitor to behave and then acting accordingly.\n    *   **Decision-Making:** AI Traitors should evaluate public suspicion and choose targets that create a convincing narrative of ",
+      "safe"
+    ],
+    "observed_behaviors": [
+      "Confident and outwardly expresses emotions, but is also a Traitor."
+    ],
+    "relationships": [],
+    "strategies_used": []
+  },
+  {
+    "name": "Ray",
+    "age": 54,
+    "occupation": "- Occupation: Estate Agent",
+    "role": "unknown",
+    "role_confidence": 0.0,
+    "role_evidence": "Role: Not revealed in clip (Episode 3, Segment 5). This is likely Rayan, but not explicitly linked.",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.5,
+      "agreeableness": 0.5,
+      "neuroticism": 0.5
+    },
+    "archetype": "The Underdog",
+    "archetype_confidence": 0.56227204043104,
+    "self_descriptions": [
+      "head over heart",
+      "reputation",
+      "who do we think is going to go out first?",
+      "I was quite happy with that. If people can't remember my name, they're not going to put it down at the round table.",
+      "a really honest person, which could be really helpful to help us find the Traitors."
+    ],
+    "observed_behaviors": [
+      "Admits to changing his mind and being influenced; struggles with making definitive decisions under pressure; believes decisions are better made outside the round table."
+    ],
+    "relationships": [],
+    "strategies_used": []
+  },
+  {
+    "name": "Ryan",
+    "age": 24,
+    "occupation": "Property Agent (mentioned at 01:34)",
+    "role": "unknown",
+    "role_confidence": 0.0,
+    "role_evidence": "Role: Not revealed in this clip (Episode 3, Segment 4). No explicit Faithful/Traitor statement here.",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.5,
+      "agreeableness": 0.5,
+      "neuroticism": 0.35
+    },
+    "archetype": "The Sage",
+    "archetype_confidence": 0.5510271659073164,
+    "self_descriptions": [
+      "The Traitors,",
+      "Justification Statement",
+      "safer",
+      "every single angle"
+    ],
+    "observed_behaviors": [
+      "Calm and apologetic when placing his vote against Aaron."
+    ],
+    "relationships": [],
+    "strategies_used": []
+  },
+  {
+    "name": "Traitors",
+    "age": 54,
+    "occupation": "Estate Agent",
+    "role": "unknown",
+    "role_confidence": 0.0,
+    "role_evidence": "",
+    "ocean": {
+      "openness": 0.5,
+      "conscientiousness": 0.5,
+      "extraversion": 0.5,
+      "agreeableness": 0.5,
+      "neuroticism": 0.5
+    },
+    "archetype": "The Underdog",
+    "archetype_confidence": 0.56227204043104,
+    "self_descriptions": [
+      "Every decision you make... has a consequence. Nothing's just for fun.",
+      " and the mission's questions aim to help Faithfuls identify Traitors (and vice-versa, for Traitors to deflect suspicion).\n\n**Special Items or Powers:**\n*   **Voting Cards:** Small white cards used by non-participating players to write down their chosen answer/name.\n*   **Colored Balls with Names:** Used by the host to randomly select which players will take part in the current round of the challenge.\n*   **The ",
+      " (9:17 - 9:27)\n*   **Second Question: ",
+      "dropped like a piece of shit",
+      "We need to get rid of them [Traitors] very quickly, and I'm hoping that we can banish one tonight."
+    ],
+    "observed_behaviors": [],
+    "relationships": [
+      {
+        "partner": "Fay",
+        "type": "rivalry",
+        "strength": 0.7
+      },
+      {
+        "partner": "Claire",
+        "type": "rivalry",
+        "strength": 0.7
+      },
+      {
+        "partner": "John",
+        "type": "suspicious",
+        "strength": 0.6
+      },
+      {
+        "partner": "Imran",
+        "type": "rivalry",
+        "strength": 0.7
+      }
+    ],
+    "strategies_used": [
+      {
+        "strategy": "Direct Accusation & Pressure",
+        "effectiveness": 0.6
+      },
+      {
+        "strategy": "Targeting Strong Faithful / Vocal Suspects",
+        "effectiveness": 0.9
+      },
+      {
+        "strategy": "Logical Deduction & Evidence-Based Accusation",
+        "effectiveness": 0.7
+      }
+    ]
+  }
+]

@@ -1,0 +1,203 @@
+[
+  {
+    "phase": "arrival",
+    "expected_behaviors": [
+      "arrival at the castle, players are asked to physically arrange themselves in a line from \"Most Likely to Win\" to \"Least Likely to Win,\" implying an immediate assessment of confidence and perceived competence among the contestants.",
+      "Arrival at the Castle & Claudia's Revelation (07:19 - 08:35):**\nThe contestants arrive at the castle, expressing awe and excitement.",
+      "Arrivals & Reactions (2:10 - 5:40)**\nThis scene is critical as players discover who survived the night.",
+      "Training Data Synthesis\n\nGenerated: 2026-01-03 13:58:15\n\nThis document synthesizes analysis from 12 episodes of The Traitors UK Season 1 into structured training data for an AI game simulator.",
+      "Trainee Lawyer (Mentioned at 9:43)\n    *   **Personality Observations:** Appears analytical and observant; initially stated he would \"keep trusting people until they give me reason not to\"; believes Alyssa to be honest, which he thinks could be helpful.",
+      "Trainee Lawyer\n    *   **Role:** Faithful\n    *   **Personality Observations:** Seems enthusiastic and excited about the challenges.",
+      "Trainee Lawyer\n    *   **Role:** Faithful\n    *   **Personality Observations:** Experienced physical discomfort during the mission (\"made me gag\"), expressing hope that others won't hold it against him.",
+      "Trainee Lawyer\n    *   **Role:** Faithful\n    *   **Personality Observations:** Calm and analytical; proud of his team's performance; enjoys the social aspect of the game.",
+      "castle, players are asked to physically arrange themselves in a line from \"Most Likely to Win\" to \"Least Likely to Win,\" implying an immediate assessment of confidence and perceived competence among the contestants.",
+      "castle at night, wearing hooded cloaks to discuss strategy and make their murder decision.",
+      "castle at night to their secret meeting place.",
+      "introduction with their name, age, and occupation in this clip.",
+      "Introductions on the Train (01:35 - 06:12):**\nThe contestants arrive via a vintage steam train, sharing tea and conversation, which Claudia later reveals is where the game *began*.",
+      "introductions reveal some initial traits and potential strategies:\n\n*   **Amanda (54, Estate Agent) - 01:57:** States, \"Having five children and five grandchildren, I can spot a liar a mile away.",
+      "Introduction of Game Mechanics and Players' Reactions (2:10 - 3:00)**\n\n*   **Trust and Deception:** Claudia explains the core concept: \"Every decision has a consequence.",
+      "introduction of \"Traitors\" and \"Faithfuls\" immediately creates an \"us vs."
+    ],
+    "common_topics": [],
+    "typical_alliances_activity": "",
+    "suspicion_dynamics": "",
+    "traitor_specific": [
+      "Train",
+      "train",
+      "introduction with their name, age, and occupation in this clip."
+    ],
+    "faithful_specific": [
+      "Train",
+      "train",
+      "introduction with their name, age, and occupation in this clip."
+    ]
+  },
+  {
+    "phase": "breakfast",
+    "expected_behaviors": [
+      "breakfast despite being a Traitor.",
+      "breakfast, mentioning \"it's a mad experience.",
+      "morning, and their portrait is removed (or turns grey, as shown).",
+      "morning, players gather for breakfast, and the identity of the murdered player is revealed by their absence.",
+      "Morning After: Breakfast Arrivals & Reactions (2:10 - 5:40)**\nThis scene is critical as players discover who survived the night.",
+      "Murder Revealed: Aisha Is Out (5:32 - 9:43)**\n*   **Suspicions about Theo/Aisha (6:21-6:35):** Ivan (Faithful) explicitly states, \"I didn't think it'd be down to these two, but I think that's Theo.",
+      "Murder Reveal (1:47 - 6:40)**\n*   **Arrival Ritual:** Players arrive one by one for breakfast.",
+      "murder reveal, mission outcome, round table banishment).",
+      "victim)\n    *   **Age & Occupation:** Not mentioned\n    *   **Personality:** Described by the Traitors as \"the popular kid\" and someone who confronted Imran; his popularity makes him a significant target to create maximum impact and deflect suspicion.",
+      "victims as \"players\" not people.",
+      "victim, revealed at 6:38)\n    *   **Age/Occupation:** Not explicitly mentioned in the clip.",
+      "victim strategically."
+    ],
+    "common_topics": [],
+    "typical_alliances_activity": "",
+    "suspicion_dynamics": "",
+    "traitor_specific": [
+      "victim)\n    *   **Age & Occupation:** Not mentioned\n    *   **Personality:** Described by the Traitors as \"the popular kid\" and someone who confronted Imran; his popularity makes him a significant target to create maximum impact and deflect suspicion.",
+      "Traitor, proclaiming \"It's my game now.\" She is good at feigning emotions, acting \"shaking\" and \"excited\" at breakfast",
+      "Traitor, finding it \"so great.\" He successfully acts surprised at breakfast"
+    ],
+    "faithful_specific": [
+      "victim)\n    *   **Age & Occupation:** Not mentioned\n    *   **Personality:** Described by the Traitors as \"the popular kid\" and someone who confronted Imran; his popularity makes him a significant target to create maximum impact and deflect suspicion.",
+      "Faithful players arrive at breakfast",
+      "morning"
+    ]
+  },
+  {
+    "phase": "mission",
+    "expected_behaviors": [
+      "mission, indicating a focus on the game despite her traitor role.",
+      "mission setup (\"I don't know\").",
+      "mission objectives, demonstrating good communication skills.",
+      "mission location and task.",
+      "challenge, loudly encouraging her team.",
+      "task, smiling and engaged in the physical challenge.",
+      "prize pot; strategic in her traitor role.",
+      "prize pot starts at zero and can be built up to 120,000 pounds by the team.",
+      "prize pot starts at **£120,000**.",
+      "prize pot, aiming for up to £120,000.",
+      "money, exclaiming \"money money money!\" She is also quite observant and direct, expressing suspicion about Nikki's behavior.",
+      "money for his children, showing a strong personal drive.",
+      "money for the prize pot; strategic in her traitor role.",
+      "Money:** A prize pot starts at zero and can be built up to 120,000 pounds by the team."
+    ],
+    "common_topics": [],
+    "typical_alliances_activity": "",
+    "suspicion_dynamics": "",
+    "traitor_specific": [
+      "challenge",
+      "challenge",
+      "task"
+    ],
+    "faithful_specific": [
+      "challenge",
+      "challenge",
+      "task"
+    ]
+  },
+  {
+    "phase": "social",
+    "expected_behaviors": [
+      "social_dynamics | 64 | 493,185 |\n| strategies | 69 | 375,640 |\n| simulator_ideas | 66 | 346,266 |\n\n---\n\n## 1.",
+      "social gathering and having a cocktail, appreciative of the opportunity to \"get dressed up.",
+      "social cliques and relationships; decisive in making murder decisions and believes in their collective ability to avoid detection.",
+      "conversation inside the car, asking \"who do we think is going to go out first?\".",
+      "conversation, especially when Imran is discussing the accusations.",
+      "conversations easily), seems to follow the flow of discussion.",
+      "conversations and seems to be forming his own conclusions.",
+      "alliances,\" suggesting a strategic, competitive, and observant nature.",
+      "alliances are revealed.",
+      "alliances form among players.",
+      "Alliance formation, accusations, trust networks, and group behavior.",
+      "alliances based on the provided clip:\n\n**Game Overview (00:00 - 01:35):**\nThe clip opens with the Paramount+ logo and then transitions to scenic shots of the Scottish Highlands and the castle where the game takes place.",
+      "private moments with her for strategic discussion, shows relief and happiness when no one is murdered.",
+      "privately with him, feels \"on-edgeness\" and stress, relieved when no one is murdered and genuinely believes Matt is faithful.",
+      "privately write down their answers (the name of a player on the wheel) and then reveal them.",
+      "private cue to choose a target.",
+      "private communication channel to coordinate their nightly murders and strategic votes.",
+      "chatting on the train).",
+      "Chatroom\" or \"Meeting Space\" where AI Traitors can exchange information, propose targets, discuss strategies, and vote on the final murder."
+    ],
+    "common_topics": [],
+    "typical_alliances_activity": "",
+    "suspicion_dynamics": "",
+    "traitor_specific": [
+      "alliance",
+      "conversation",
+      "Traitor group; sees the game as managing social"
+    ],
+    "faithful_specific": [
+      "alliance",
+      "conversation",
+      "conversation"
+    ]
+  },
+  {
+    "phase": "roundtable",
+    "expected_behaviors": [
+      "Round Table\" where they will individually vote to banish someone from the game.",
+      "Round Table\" for the banishment process.",
+      "vote us off\" while he \"sticks together like a puppet master.",
+      "vote for, emphasizes the difficulty of knowing who is a Traitor.",
+      "vote for someone, particularly someone who might be a Faithful.",
+      "vote, explaining her reasoning (looking for someone to \"take the burden\").",
+      "votes accumulate against her.",
+      "banish, suggesting she is perceived as a potentially weak or easy target by the Faithful themselves.",
+      "banish, making her a strategic \"safe\" non-target for the Traitors.",
+      "banish if Theo is murdered, making him part of a strategic misdirection plan.",
+      "banished, doesn't want to go first.",
+      "accusations, believes Traitors need to be eliminated quickly.",
+      "accusations, perceives herself as someone who backs off in group discussions rather than fighting.",
+      "accuse Faithfuls despite knowing they are not Traitors, indicating a strategic and deceptive approach.",
+      "accusing her of not having \"behaved\" like the others, suggesting a judgment based on social interaction.",
+      "accusations as \"very petty things\" and attributing them to \"herd mentality."
+    ],
+    "common_topics": [],
+    "typical_alliances_activity": "",
+    "suspicion_dynamics": "",
+    "traitor_specific": [
+      "vote",
+      "banish",
+      "banish"
+    ],
+    "faithful_specific": [
+      "vote",
+      "banish",
+      "banish"
+    ]
+  },
+  {
+    "phase": "murder",
+    "expected_behaviors": [
+      "murder them at night\"; highly excited and ready to \"play it well\" after being selected.",
+      "murdered due to her vocal presence.",
+      "murdering hour\" and the game's tension.",
+      "murder, not wanting to be the initial target.",
+      "night\"; highly excited and ready to \"play it well\" after being selected.",
+      "night, saying \"Oh my god made it, past day one!\" He also mentions he fancies Alex.",
+      "night and being among the first to arrive at breakfast.",
+      "Traitors meet to decide who to \"murder.",
+      "Traitors meet in a secluded, candle-lit room within the castle at night, wearing hooded cloaks to discuss strategy and make their murder decision.",
+      "Traitors meet in a hidden, dimly lit chamber within the castle, emphasizing the need for absolute secrecy.",
+      "kills and recognizing the team imbalance later in the mission.",
+      "killing off who I want\" thrilling, showing enthusiasm for her Traitor role.",
+      "eliminate Traitors quickly, and hopes for a banishment.",
+      "eliminate all Faithful.",
+      "eliminated, the remaining Faithfuls share the prize money.",
+      "eliminated based on their pessimistic predictions about their performance, even before the Traitors were formally chosen."
+    ],
+    "common_topics": [],
+    "typical_alliances_activity": "",
+    "suspicion_dynamics": "",
+    "traitor_specific": [
+      "kill",
+      "Traitor, expressed disbelief and happiness; plans to make friends to avoid suspicion when he \"murder",
+      "Traitor, seeing herself in a \"mum role\" but also wanting to \"murder"
+    ],
+    "faithful_specific": [
+      "kill",
+      "night",
+      "kill"
+    ]
+  }
+]

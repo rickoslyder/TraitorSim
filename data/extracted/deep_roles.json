@@ -1,0 +1,224 @@
+{
+  "Amanda": {
+    "name": "Amanda",
+    "role": "traitor",
+    "confidence": 1.0,
+    "evidence": "Explicitly stated as 'Role: Traitor' multiple times: 'Revealed at 3:32, 5:37, 8:08' (Ep1, Seg2), 'Role: Traitor' (Ep1, Seg4), 'Role: Traitor' (Ep1, Seg5), 'Role: Traitor' (Ep2, Seg0)."
+  },
+  "Aaron": {
+    "name": "Aaron",
+    "role": "faithful",
+    "confidence": 1.0,
+    "evidence": "Initially 'Not revealed in this clip (Later revealed as a Faithful in the show)' (Ep1, Seg2); explicitly stated as 'Role: Faithful' (Ep2, Seg0)."
+  },
+  "Andrea": {
+    "name": "Andrea",
+    "role": "faithful",
+    "confidence": 1.0,
+    "evidence": "Initially 'Not revealed in this clip (Later revealed as a Faithful in the show)' (Ep1, Seg2); explicitly stated as 'Role: Faithful' multiple times (Ep1, Seg3; Ep2, Seg0; Ep2, Seg1)."
+  },
+  "Alex": {
+    "name": "Alex",
+    "role": "faithful",
+    "confidence": 1.0,
+    "evidence": "Initially 'Not revealed in this clip (Later revealed as a Faithful in the show)' (Ep1, Seg2); explicitly stated as 'Role: Faithful' (Ep2, Seg0)."
+  },
+  "Tom": {
+    "name": "Tom",
+    "role": "faithful",
+    "confidence": 1.0,
+    "evidence": "Initially 'Not revealed in this clip (Later revealed as a Faithful in the show)' (Ep1, Seg2); explicitly stated as 'Role: Faithful' (Ep1, Seg4) and (Ep2, Seg0)."
+  },
+  "Ayesha": {
+    "name": "Ayesha",
+    "role": "faithful",
+    "confidence": 1.0,
+    "evidence": "Explicitly stated as 'Role: Faithful' (Ep1, Seg4 as Aisha); later confirmed as 'Role: Faithful (murdered)' (Ep2, Seg0)."
+  },
+  "Matt": {
+    "name": "Matt",
+    "role": "faithful",
+    "confidence": 1.0,
+    "evidence": "Initially 'Not revealed in this clip (Later revealed as a Faithful in the show)' (Ep1, Seg2); explicitly stated as 'Role: Faithful' (Ep2, Seg0)."
+  },
+  "Kieran": {
+    "name": "Kieran",
+    "role": "unknown",
+    "confidence": 0.0,
+    "evidence": "Roles (Traitor/Faithful) are not revealed in this introductory segment; no further role information provided."
+  },
+  "Amos": {
+    "name": "Amos",
+    "role": "faithful",
+    "confidence": 0.95,
+    "evidence": "Role: Not revealed in this clip (Later revealed as a Faithful in the show) (Ep1, Seg2); later noted 'not explicitly shown in this segment, but later episodes indicate he is a Faithful' (Ep1, Seg3)."
+  },
+  "Wilfred": {
+    "name": "Wilfred",
+    "role": "traitor",
+    "confidence": 1.0,
+    "evidence": "Explicitly stated as 'Role: Traitor' multiple times: 'Revealed at 3:16, 9:14' (Ep1, Seg2), 'Role: Traitor' (Ep1, Seg4), 'Role: Traitor' (Ep1, Seg5), 'Role: Traitor' (Ep2, Seg0), 'Role: Traitor' (Ep2, Seg1)."
+  },
+  "Imran": {
+    "name": "Imran",
+    "role": "faithful",
+    "confidence": 1.0,
+    "evidence": "Initially noted 'not explicitly shown in this segment, but later episodes indicate he is a Faithful' (Ep1, Seg3); explicitly stated as 'Role: Faithful' (Ep1, Seg4) and (Ep2, Seg0)."
+  },
+  "Alyssa": {
+    "name": "Alyssa",
+    "role": "traitor",
+    "confidence": 1.0,
+    "evidence": "Explicitly stated as 'Role: Traitor' multiple times: 'Revealed at 2:54, 5:59, 7:02, 7:22, 7:57' (Ep1, Seg2), 'Role: Traitor' (Ep1, Seg3), 'Role: Traitor' (Ep1, Seg4), 'Role: Traitor' (Ep1, Seg5), 'Role: Traitor' (Ep2, Seg0)."
+  },
+  "Meryl": {
+    "name": "Meryl",
+    "role": "faithful",
+    "confidence": 1.0,
+    "evidence": "Initially 'Not revealed in this clip (Later revealed as a Faithful in the show)' (Ep1, Seg2); explicitly stated as 'Role: Faithful' (Ep2, Seg0)."
+  },
+  "Rayan": {
+    "name": "Rayan",
+    "role": "faithful",
+    "confidence": 1.0,
+    "evidence": "Explicitly stated as 'Role: Faithful (Revealed at 9:43, confirmed in interview)' (Ep1, Seg2); also 'Role: Faithful' (Ep1, Seg3) and (Ep1, Seg4)."
+  },
+  "Fay": {
+    "name": "Fay",
+    "role": "faithful",
+    "confidence": 1.0,
+    "evidence": "Explicitly stated as 'Role: Faithful (Revealed at 8:25, confirmed in interview)' (Ep1, Seg2); also 'Role: Faithful' (Ep2, Seg0 as Faye) and (Ep2, Seg1)."
+  },
+  "Nicky": {
+    "name": "Nicky",
+    "role": "faithful",
+    "confidence": 1.0,
+    "evidence": "Initially 'Not revealed in this clip (Later revealed as a Faithful in the show)' (Ep1, Seg2); explicitly stated as 'Role: Faithful' (Ep1, Seg3) and (Ep2, Seg0 as Nicky)."
+  },
+  "Maddy": {
+    "name": "Maddy",
+    "role": "faithful",
+    "confidence": 1.0,
+    "evidence": "Initially 'Not revealed in this clip (Later revealed as a Faithful in the show)' (Ep1, Seg2); explicitly stated as 'Role: Faithful' (Ep1, Seg4) and (Ep2, Seg1)."
+  },
+  "Hannah": {
+    "name": "Hannah",
+    "role": "faithful",
+    "confidence": 1.0,
+    "evidence": "Initially 'Not revealed in this clip (Later revealed as a Faithful in the show)' (Ep1, Seg2); explicitly stated as 'Role: Faithful' (Ep1, Seg3)."
+  },
+  "Fleur": {
+    "name": "Fleur",
+    "role": "faithful",
+    "confidence": 0.95,
+    "evidence": "Role: Not revealed in this clip (Later revealed as a Faithful in the show) (Ep1, Seg2)."
+  },
+  "John": {
+    "name": "John",
+    "role": "faithful",
+    "confidence": 1.0,
+    "evidence": "Initially 'Not revealed in this clip (Later revealed as a Faithful in the show)' (Ep1, Seg2); explicitly stated as 'Role: Faithful' (Ep1, Seg3) and (Ep1, Seg4)."
+  },
+  "Imani": {
+    "name": "Imani",
+    "role": "faithful",
+    "confidence": 0.95,
+    "evidence": "Role: Not revealed in this clip (Later revealed as a Faithful in the show) (Ep1, Seg2)."
+  },
+  "Ivan": {
+    "name": "Ivan",
+    "role": "faithful",
+    "confidence": 1.0,
+    "evidence": "Initially 'Not revealed in this clip (Later revealed as a Faithful in the show)' (Ep1, Seg2); explicitly stated as 'Role: Faithful' (Ep1, Seg3) and (Ep2, Seg0)."
+  },
+  "Misha": {
+    "name": "Misha",
+    "role": "faithful",
+    "confidence": 0.9,
+    "evidence": "Not explicitly shown in this segment, but later episodes indicate she is a Faithful (Ep1, Seg3)."
+  },
+  "Claire": {
+    "name": "Claire",
+    "role": "faithful",
+    "confidence": 1.0,
+    "evidence": "Explicitly stated as 'Role: Faithful' (Ep1, Seg3) and (Ep2, Seg1)."
+  },
+  "Theo": {
+    "name": "Theo",
+    "role": "faithful",
+    "confidence": 1.0,
+    "evidence": "Explicitly stated as 'Role: Faithful (Revealed at 8:46, confirmed in interview)' (Ep1, Seg2); also 'Role: Faithful' (Ep1, Seg3) and (Ep2, Seg0)."
+  },
+  "Brian": {
+    "name": "Brian",
+    "role": "faithful",
+    "confidence": 1.0,
+    "evidence": "Explicitly stated as 'Role: Faithful (revealed after Nicky's banishment)' (Episode 2, Segment 4)."
+  },
+  "Mairi": {
+    "name": "Mairi",
+    "role": "faithful",
+    "confidence": 0.9,
+    "evidence": "Role: Faithful (implied by not being a Traitor and surviving) (Episode 3, Segment 0)."
+  },
+  "Ross": {
+    "name": "Ross",
+    "role": "faithful",
+    "confidence": 0.9,
+    "evidence": "Role: Faithful (not explicitly stated in this clip, but implied by others' discussions) (Episode 3, Segment 3)."
+  },
+  "Will": {
+    "name": "Will",
+    "role": "faithful",
+    "confidence": 0.9,
+    "evidence": "Role: Faithful (as perceived by John in this clip) (Episode 3, Segment 3); also seen expressing distress about banishing a Faithful (Episode 3, Segment 4), implying he is Faithful."
+  },
+  "Chloe": {
+    "name": "Chloe",
+    "role": "faithful",
+    "confidence": 0.9,
+    "evidence": "Role: Faithful (not explicitly stated in this clip, but implied by others' discussions) (Episode 3, Segment 3)."
+  },
+  "Ryan": {
+    "name": "Ryan",
+    "role": "unknown",
+    "confidence": 0.0,
+    "evidence": "Role: Not revealed in this clip (Episode 3, Segment 4). No explicit Faithful/Traitor statement here."
+  },
+  "Mat": {
+    "name": "Mat",
+    "role": "unknown",
+    "confidence": 0.0,
+    "evidence": "Role: Not revealed in this clip (Episode 3, Segment 4). No explicit Faithful/Traitor statement here."
+  },
+  "Ray": {
+    "name": "Ray",
+    "role": "unknown",
+    "confidence": 0.0,
+    "evidence": "Role: Not revealed in clip (Episode 3, Segment 5). This is likely Rayan, but not explicitly linked."
+  },
+  "Alissa": {
+    "name": "Alissa",
+    "role": "traitor",
+    "confidence": 1.0,
+    "evidence": "Role: TRAITOR (visible in the Traitors' turret scene with Wilfred and Amanda from 05:09 onwards) (Episode 3, Segment 5)."
+  },
+  "Andria": {
+    "name": "Andria",
+    "role": "unknown",
+    "confidence": 0.0,
+    "evidence": "Role: Not explicitly revealed in this clip. (Episode 4, Segment 0). Likely Andrea, but spelled differently and no explicit role."
+  },
+  "Aisha": {
+    "name": "Aisha",
+    "role": "faithful",
+    "confidence": 1.0,
+    "evidence": "Confirmed as 'The first murder has already occurred (Aisha)' (Episode 2, Segment 1), indicating she was a Faithful player who was murdered."
+  },
+  "Evie": {
+    "name": "Evie",
+    "role": "faithful",
+    "confidence": 0.9,
+    "evidence": "Explicitly stated as 'Evie (Faithful) shares a specific observation' (Episode 1, Segment 4)."
+  }
+}

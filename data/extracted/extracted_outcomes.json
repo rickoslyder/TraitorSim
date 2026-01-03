@@ -1,0 +1,448 @@
+{
+  "winner": "faithfuls",
+  "final_players": [],
+  "eliminations": [
+    {
+      "name": "Traitors",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Theo",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Alyssa",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Theo",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Theo",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Theo",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Faithfuls",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Alex",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "John",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "John",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "John",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "John",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "John",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Tom",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Faithfuls",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Mat",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Faithfuls",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Amanda",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Amos",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Faithfuls",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Alex",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Alex",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Alex",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Alex",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Aaron",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Hannah",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Hannah",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Amos",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Aaron",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Maddy",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Faithfuls",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Fay",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Fay",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Faithfuls",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Maddy",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Maddy",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Andrea",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Andrea",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Faithfuls",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "murder",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Imran",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Imran",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Imran",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Nicky",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Ivan",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Ivan",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Wilfred",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Hannah",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Alyssa",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Alyssa",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Maddy",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Amanda",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Hannah",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Traitors",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Meryl",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Kieran",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Will",
+      "type": "banishment",
+      "role": "unknown"
+    },
+    {
+      "name": "Wilfred",
+      "type": "banishment",
+      "role": "unknown"
+    }
+  ],
+  "strategy_success": {},
+  "archetype_success": {}
+}

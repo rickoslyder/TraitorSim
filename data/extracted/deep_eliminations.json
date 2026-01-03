@@ -1,0 +1,49 @@
+{
+  "elimination_order": [
+    {
+      "episode": 2,
+      "name": "Ayesha",
+      "method": "murder",
+      "role": "faithful",
+      "reason": "Perceived by Traitors as a significant threat who 'wanted to be a Traitor' and 'would do anything' to expose them; also described as a 'lovely' and 'so funny' strong personality, making her an impactful first elimination to create shock and confusion."
+    },
+    {
+      "episode": 2,
+      "name": "Nicky",
+      "method": "banishment",
+      "role": "faithful",
+      "reason": "Accused of 'lack of participation', having a 'change in her energy', and 'not having behaved' like others. Several Faithfuls admitted to 'jumping on the bandwagon' without strong evidence, based on social cues and perceived 'bossy demeanor'."
+    },
+    {
+      "episode": 3,
+      "name": "Claire",
+      "method": "murder",
+      "role": "faithful",
+      "reason": "Murdered via a 'backhanded' method. Her elimination caused significant emotional distress and distrust among Faithfuls, particularly Theo, making her a target likely chosen for strategic impact and to remove a perceived strong, analytical player (ex-police officer, analytical mindset mentioned in E1S3)."
+    }
+  ],
+  "murder_patterns": {
+    "target_selection_criteria": [
+      "Faithfuls perceived as strong, analytical, or actively seeking to expose Traitors (e.g., Ayesha, Claire - an ex-police officer)",
+      "Players with strong social connections or influence, whose elimination would create significant emotional impact and chaos (e.g., Ayesha being 'lovely' and 'fun to be around')",
+      "Targets chosen to create misdirection or protect a Traitor's cover (e.g., discussion around Theo initially, though Ayesha was ultimately murdered)."
+    ],
+    "timing_patterns": "Murders occurred nightly after the Round Table, targeting specific individuals who posed a threat or whose elimination would sow discord among the Faithfuls."
+  },
+  "banishment_accuracy": {
+    "correct_banishments": 0,
+    "incorrect_banishments": 1,
+    "accuracy_rate": 0.0,
+    "common_mistakes": [
+      "Voting out Faithfuls based on perceived social oddities ('lack of participation', 'energy change', 'not behaving like others').",
+      "Bandwagon voting, where players were swayed by group opinion rather than individual evidence, leading to wrongful banishments (e.g., Aaron's admission regarding Nicky's banishment)."
+    ]
+  },
+  "turning_points": [
+    {
+      "episode": 2,
+      "event": "Banishment of Nicky (Faithful)",
+      "impact": "This was the first banishment and a major misstep for the Faithfuls, revealing their susceptibility to groupthink and incorrect accusations. It instilled significant regret and distrust among them, with players like Aaron feeling 'idiotic' and 'sad and frustrated', highlighting the difficulty of the game and the Traitors' early success in evading detection. It made Faithfuls more cautious and wary of their own voting processes."
+    }
+  ]
+}
