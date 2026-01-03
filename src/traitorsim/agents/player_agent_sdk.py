@@ -3,6 +3,14 @@
 This module uses the proper Claude Agent SDK with MCP tools for
 autonomous, structured decision-making.
 
+Training Data Integration:
+    The agent uses training data extracted from The Traitors UK Season 1
+    to provide realistic behavioral patterns:
+    - Phase-appropriate behavior guidance
+    - Personality-modulated strategy recommendations
+    - Emotional reactions based on real player patterns
+    - Dialogue suggestions matching context and role
+
 Voice Integration:
     The player agent can optionally emit confessional voice events
     when making decisions (voting, murder selection). This captures
@@ -27,6 +35,37 @@ from ..mcp.sdk_tools import create_game_mcp_server
 
 if TYPE_CHECKING:
     from ..voice.voice_emitter import VoiceEmitter
+    from ..training import TrainingDataLoader, StrategyAdvisor, BehaviorModulator
+
+
+# Lazy load training components
+_training_components = None
+
+
+def _get_training_components():
+    """Lazy load training data components."""
+    global _training_components
+
+    if _training_components is None:
+        try:
+            from ..training import (
+                TrainingDataLoader,
+                StrategyAdvisor,
+                BehaviorModulator,
+                DialogueGenerator,
+            )
+            loader = TrainingDataLoader().load()
+            _training_components = {
+                "loader": loader,
+                "advisor": StrategyAdvisor(loader),
+                "modulator": BehaviorModulator(loader),
+                "dialogue": DialogueGenerator(loader),
+            }
+        except Exception as e:
+            print(f"Warning: Could not load training components: {e}")
+            _training_components = {}
+
+    return _training_components
 
 
 @dataclass
@@ -237,6 +276,81 @@ class PlayerAgentSDK:
         else:
             return "a unique perspective on human behavior"
 
+    def _get_phase_guidance(self, phase: str) -> str:
+        """Get phase-specific behavioral guidance from training data.
+
+        Args:
+            phase: Current game phase (breakfast, mission, social, roundtable, turret)
+
+        Returns:
+            Phase-specific guidance string
+        """
+        components = _get_training_components()
+        if not components or "modulator" not in components:
+            return ""
+
+        try:
+            from ..training.training_data_loader import OCEANTraits
+            ocean = OCEANTraits.from_dict(self.player.personality)
+
+            modulator = components["modulator"]
+            guidance = modulator.get_phase_guidance(
+                phase=phase,
+                role=self.player.role.value,
+                personality=ocean,
+                game_context={
+                    "day": self.game_state.day,
+                    "alive_count": len(list(self.game_state.alive_players)),
+                },
+            )
+
+            if guidance:
+                return f"\n**Phase Guidance for {phase.title()}**:\n{guidance.personality_summary}\n\nExpected behaviors:\n" + \
+                       "\n".join(f"- {b}" for b in guidance.expected_behaviors[:3]) + \
+                       "\n\nAvoid:\n" + \
+                       "\n".join(f"- {b}" for b in guidance.avoid_behaviors[:3])
+        except Exception as e:
+            pass  # Silently fall back to no guidance
+
+        return ""
+
+    def _get_strategy_recommendation(self, phase: str) -> str:
+        """Get strategy recommendation for the current context.
+
+        Args:
+            phase: Current game phase
+
+        Returns:
+            Strategy recommendation string
+        """
+        components = _get_training_components()
+        if not components or "advisor" not in components:
+            return ""
+
+        try:
+            from ..training.training_data_loader import OCEANTraits
+            ocean = OCEANTraits.from_dict(self.player.personality)
+
+            advisor = components["advisor"]
+            recommendations = advisor.get_recommendations(
+                role=self.player.role.value,
+                phase=phase,
+                personality=ocean,
+                game_context={
+                    "day": self.game_state.day,
+                    "alive_count": len(list(self.game_state.alive_players)),
+                },
+                top_k=2,
+            )
+
+            if recommendations:
+                rec = recommendations[0]
+                return f"\n**Recommended Strategy**: {rec.strategy.name}\n{rec.strategy.description[:150]}...\n\n{rec.example_application}"
+        except Exception:
+            pass
+
+        return ""
+
     def _build_options(self) -> ClaudeAgentOptions:
         """Build Claude Agent options with MCP server.
 
@@ -280,12 +394,18 @@ class PlayerAgentSDK:
         Returns:
             Player ID of vote target, or None if failed
         """
-        prompt = """It's Round Table voting time. You must vote to banish someone.
+        # Get training-data-driven guidance
+        phase_guidance = self._get_phase_guidance("roundtable")
+        strategy_rec = self._get_strategy_recommendation("roundtable")
+
+        prompt = f"""It's Round Table voting time. You must vote to banish someone.
 
 **Steps**:
 1. Call `get_game_state` to see who's alive
 2. Call `get_my_suspicions` to check your current suspicion scores
 3. Call `cast_vote` with your target_player_id and reasoning
+{phase_guidance}
+{strategy_rec}
 
 Think strategically based on your role and personality. You MUST call the cast_vote tool."""
 
@@ -334,12 +454,18 @@ Think strategically based on your role and personality. You MUST call the cast_v
         if self.player.role.value != "traitor":
             return None
 
-        prompt = """It's the Turret phase. You must choose a Faithful to murder tonight.
+        # Get training-data-driven guidance
+        phase_guidance = self._get_phase_guidance("turret")
+        strategy_rec = self._get_strategy_recommendation("turret")
+
+        prompt = f"""It's the Turret phase. You must choose a Faithful to murder tonight.
 
 **Steps**:
 1. Call `get_game_state` to see alive Faithfuls
 2. Call `get_my_suspicions` to see who suspects you
 3. Call `choose_murder_victim` with victim_player_id and strategic reasoning
+{phase_guidance}
+{strategy_rec}
 
 Consider: Who is the biggest threat? Who suspects you? What creates chaos?
 You MUST call the choose_murder_victim tool."""
@@ -385,6 +511,9 @@ You MUST call the choose_murder_victim tool."""
         """
         events_text = "\n".join([f"- {event}" for event in events])
 
+        # Get training-data-driven guidance for social reflection
+        phase_guidance = self._get_phase_guidance("social")
+
         prompt = f"""Reflect on today's events and update your suspicions.
 
 **Events**:
@@ -395,6 +524,14 @@ You MUST call the choose_murder_victim tool."""
 2. Call `get_my_suspicions` to see your current scores
 3. Analyze events based on your personality
 4. Call `update_suspicion` for any players whose suspicion changed
+{phase_guidance}
+
+**Key Observation Patterns** (from real Traitors games):
+- **Voting Clusters**: Do certain players always vote together?
+- **Defense Patterns**: Who rushes to defend whom?
+- **Survival Patterns**: Who never gets murdered? (Traitors protect Traitors)
+- **Breakfast Tells**: Who enters last but survives night after night?
+- **Mission Sabotage**: Unexplained failures may indicate Traitors
 
 Think about:
 - Who defended whom?
