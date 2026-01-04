@@ -87,7 +87,7 @@ class GameConfig:
     # MISSION SETTINGS
     # ===========================================
     mission_base_reward: float = 10000.0  # UK: £2,000-10,000, US: $5,000-30,000
-    mission_difficulty: float = 0.5
+    mission_difficulty: float = 0.3  # Lower = easier (0.5 was too hard, caused ~25% success)
     enable_dramatic_entry: bool = True  # Breakfast order tells
 
     # ===========================================

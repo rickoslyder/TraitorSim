@@ -339,6 +339,7 @@ class GameEngineAsync:
             banished_player.role.value,
             dict(final_vote_counts),
             self.game_state.day,
+            banished_id=banished_player.id,
         )
         self.logger.info(narrative)
 

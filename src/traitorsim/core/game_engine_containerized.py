@@ -761,6 +761,7 @@ class GameEngineContainerized:
                 banished_player.role.value,
                 dict(vote_counts),
                 self.game_state.day,
+                banished_id=banished_player.id,
             )
         else:
             # 2025 rule: Don't reveal role in endgame
@@ -769,6 +770,7 @@ class GameEngineContainerized:
                 "UNKNOWN",  # Role hidden
                 dict(vote_counts),
                 self.game_state.day,
+                banished_id=banished_player.id,
             )
             self.logger.info(f"🔒 2025 RULE: {banished_player.name}'s role is NOT revealed!")
         self.logger.info(narrative)
@@ -1266,9 +1268,11 @@ class GameEngineContainerized:
                     data = response.json()
                     target_id = data['target_player_id']
 
-                    # Ignore votes for tied players (they're immune)
-                    if target_id not in tied_players:
+                    # Only accept votes FOR tied players (they're the candidates)
+                    if target_id in tied_players:
                         revotes[voter.id] = target_id
+                    else:
+                        self.logger.debug(f"{voter.name} voted for {target_id} (not in tie), ignoring")
                 except Exception as e:
                     self.logger.error(f"Error in revote from {voter.name}: {e}")
 

@@ -376,15 +376,17 @@ Create a dramatic announcement (2-3 sentences) revealing these results."""
         return result
 
     async def announce_banishment_async(
-        self, banished_name: str, role: str, votes: Dict[str, int], day: int
+        self, banished_name: str, role: str, votes: Dict[str, int], day: int,
+        banished_id: Optional[str] = None
     ) -> str:
         """Generate banishment announcement for Round Table.
 
         Args:
             banished_name: Name of banished player
             role: Revealed role ("traitor" or "faithful")
-            votes: Vote counts per player
+            votes: Vote counts per player (keyed by player_id)
             day: Current day number
+            banished_id: Optional player ID for vote count lookup
 
         Returns:
             Round Table narration with vote reveal
@@ -392,12 +394,15 @@ Create a dramatic announcement (2-3 sentences) revealing these results."""
         if not self.client:
             return self._fallback_banishment(banished_name, role)
 
+        # Get vote count - votes dict is keyed by player_id, not name
+        vote_count = votes.get(banished_id, 0) if banished_id else max(votes.values()) if votes else 0
+
         prompt = f"""Generate the Round Table banishment announcement for Day {day}.
 
 **Result**:
 - Banished: {banished_name}
 - Revealed role: {role.upper()}
-- Vote count: {votes.get(banished_name, 0)} votes
+- Vote count: {vote_count} votes
 
 Create a dramatic announcement (2-3 sentences) revealing the banishment and their true role."""
 
