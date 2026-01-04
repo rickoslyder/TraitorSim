@@ -175,8 +175,12 @@ class VoiceEmitter(Protocol):
         """
         ...
 
-    async def flush(self) -> None:
-        """Flush any pending events (for batch mode)."""
+    async def flush(self) -> List[VoiceEvent]:
+        """Flush any pending events (for batch mode).
+
+        Returns:
+            List of flushed events (empty for HITL/Null emitters)
+        """
         ...
 
     def is_enabled(self) -> bool:
@@ -196,9 +200,9 @@ class NullVoiceEmitter:
         """Discard the event."""
         pass
 
-    async def flush(self) -> None:
-        """No-op."""
-        pass
+    async def flush(self) -> List[VoiceEvent]:
+        """No-op, returns empty list."""
+        return []
 
     def is_enabled(self) -> bool:
         """Always returns False."""
@@ -244,14 +248,15 @@ class EpisodeVoiceEmitter:
             self._queue = self._queue[dropped:]
             logger.warning(f"Episode queue overflow, dropped {dropped} oldest events")
 
-    async def flush(self) -> None:
+    async def flush(self) -> List[VoiceEvent]:
         """Get all queued events and clear the queue.
 
         Returns:
             List of queued events
         """
-        # This is called by EpisodeGenerator to get events
-        pass
+        events = self._queue
+        self._queue = []
+        return events
 
     def get_events(self) -> List[VoiceEvent]:
         """Get all queued events without clearing.
@@ -344,11 +349,16 @@ class HITLVoiceEmitter:
         except Exception as e:
             logger.error(f"Error processing voice event: {e}")
 
-    async def flush(self) -> None:
-        """Wait for all pending synthesis tasks to complete."""
+    async def flush(self) -> List[VoiceEvent]:
+        """Wait for all pending synthesis tasks to complete.
+
+        Returns:
+            Empty list (HITL doesn't queue events)
+        """
         if self._pending_tasks:
             await asyncio.gather(*self._pending_tasks, return_exceptions=True)
             self._pending_tasks = []
+        return []
 
     def is_enabled(self) -> bool:
         """Check if emitter is enabled."""
@@ -416,12 +426,22 @@ class CompositeVoiceEmitter:
             return_exceptions=True,
         )
 
-    async def flush(self) -> None:
-        """Flush all sub-emitters."""
-        await asyncio.gather(
+    async def flush(self) -> List[VoiceEvent]:
+        """Flush all sub-emitters and collect events.
+
+        Returns:
+            Combined list of events from all emitters
+        """
+        results = await asyncio.gather(
             *[e.flush() for e in self._emitters],
             return_exceptions=True,
         )
+        # Flatten results, filtering out exceptions
+        all_events: List[VoiceEvent] = []
+        for result in results:
+            if isinstance(result, list):
+                all_events.extend(result)
+        return all_events
 
     def is_enabled(self) -> bool:
         """Check if emitter is enabled."""

@@ -35,7 +35,7 @@ def test_trust_matrix_updates():
 
     # Decrease suspicion
     matrix.update_suspicion("player_01", "player_02", -0.3)
-    assert matrix.get_suspicion("player_01", "player_02") == 0.4
+    assert matrix.get_suspicion("player_01", "player_02") == pytest.approx(0.4)
 
     # Test clamping at bounds
     matrix.update_suspicion("player_01", "player_03", 1.0)

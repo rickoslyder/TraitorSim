@@ -18,8 +18,9 @@ from ..core.game_state import GameState, Player, Role
 from ..core.config import GameConfig
 from ..core.enums import GamePhase
 from ..memory.memory_manager import MemoryManager
-from ..missions.skill_check import SkillCheckMission
+from ..missions import MISSION_TYPES, MISSION_NAMES
 from ..utils.logger import setup_logger
+from ..voice import create_voice_emitter, VoiceMode
 
 
 class GameEngineAsync:
@@ -40,12 +41,25 @@ class GameEngineAsync:
         self.game_state = GameState()
         self.logger = setup_logger("game_engine")
 
+        # Create voice emitter if enabled
+        self.voice_emitter = create_voice_emitter(
+            mode=VoiceMode(self.config.voice_mode)
+            if self.config.voice_mode != "disabled"
+            else VoiceMode.DISABLED
+        )
+        if self.voice_emitter.is_enabled():
+            self.logger.info(f"🎤 Voice mode: {self.config.voice_mode}")
+
+        # Store voice emitter on game_state for access by other components
+        self.game_state.voice_emitter = self.voice_emitter
+
         # Initialize Game Master
         self.gm = GameMasterInteractions(
             self.game_state,
             api_key=self.config.gemini_api_key or os.getenv("GEMINI_API_KEY"),
             model_name=self.config.gemini_model,
             world_bible_path=self.config.world_bible_path,
+            voice_emitter=self.voice_emitter,
         )
 
         # Player agents (created after game state init)
@@ -263,12 +277,16 @@ class GameEngineAsync:
         self.game_state.phase = GamePhase.MISSION
         self.logger.info("\n--- Mission Phase ---")
 
-        # Create mission
-        mission = SkillCheckMission(self.game_state, self.config)
+        # Select random mission type for variety
+        mission_class = random.choice(MISSION_TYPES)
+        mission = mission_class(self.game_state, self.config)
+        mission_name = MISSION_NAMES.get(mission_class, "Challenge")
+
+        self.logger.info(f"Today's mission: {mission_name}")
 
         # GM describes mission
         narrative = await self.gm.describe_mission_async(
-            "Skill Check", self.config.mission_difficulty, self.game_state.day
+            mission_name, self.config.mission_difficulty, self.game_state.day
         )
         self.logger.info(narrative)
 
@@ -288,6 +306,10 @@ class GameEngineAsync:
         self.logger.info(result_narrative)
         self.logger.info(f"Prize pot: ${self.game_state.prize_pot:,.0f}")
 
+        # Award Seer power if available (UK/US style - top performer)
+        if self.config.enable_seer and self.game_state.day >= self.config.seer_available_day:
+            await self._award_seer_power(result.performance_scores)
+
         # Agents reflect on mission
         events = [
             f"Mission {'succeeded' if success_rate >= 0.5 else 'failed'}",
@@ -296,12 +318,112 @@ class GameEngineAsync:
         await self._parallel_reflection_async(events)
 
     async def _run_social_phase_async(self) -> None:
-        """Social phase: Agents reflect privately."""
+        """Social phase: Agents reflect privately. Seer may use power."""
         self.game_state.phase = GamePhase.SOCIAL
         self.logger.info("\n--- Social Phase ---")
 
+        # Check if anyone has Seer power and wants to use it
+        for player in self.game_state.alive_players:
+            if getattr(player, 'has_seer', False):
+                # Seer holder can use their power during social phase
+                await self._use_seer_power_async(player)
+
         events = ["Private reflection time"]
         await self._parallel_reflection_async(events)
+
+    async def _award_seer_power(self, performance_scores: Dict[str, float]) -> None:
+        """Award Seer power to top mission performer.
+
+        Seer power (UK Series 3+, US Season 3+) allows one player to
+        privately confirm another contestant's true role (Traitor or Faithful).
+
+        Args:
+            performance_scores: Dict mapping player_id -> performance (0.0-1.0)
+        """
+        # Only award if Seer is enabled and available
+        if not self.config.enable_seer:
+            return
+        if self.game_state.day < self.config.seer_available_day:
+            return
+        # Only award if no one currently has Seer
+        if getattr(self.game_state, 'seer_holder', None):
+            return
+        if len(performance_scores) < 1:
+            return
+
+        # Top performer gets Seer
+        sorted_performers = sorted(
+            performance_scores.items(),
+            key=lambda x: x[1],
+            reverse=True
+        )
+
+        winner_id = sorted_performers[0][0]
+        winner = self.game_state.get_player(winner_id)
+        if not winner:
+            return
+
+        winner.has_seer = True
+        self.game_state.seer_holder = winner.name
+
+        self.logger.info(f"👁️  {winner.name} won the SEER POWER!")
+        self.logger.info(f"   They can privately confirm one player's true role.")
+
+    async def _use_seer_power_async(self, seer_player: Player) -> None:
+        """Allow Seer holder to use their power.
+
+        The Seer chooses a target and learns their true role.
+
+        Args:
+            seer_player: Player with Seer power
+        """
+        self.logger.info(f"\n👁️  SEER POWER: {seer_player.name} uses their ability")
+
+        # Get target - use agent if available, otherwise pick highest suspicion
+        agent = self.player_agents.get(seer_player.id)
+        target_id = None
+
+        if agent:
+            # Use agent's suspicion to pick target
+            suspicions = agent.memory_manager.suspicion_levels if agent.memory_manager else {}
+            if suspicions:
+                # Pick player with highest suspicion that we're uncertain about (0.3-0.7 range)
+                uncertain = {pid: sus for pid, sus in suspicions.items()
+                            if 0.3 <= sus <= 0.7 and pid != seer_player.id}
+                if uncertain:
+                    target_id = max(uncertain, key=uncertain.get)
+
+        # Fallback: random target
+        if not target_id:
+            valid_targets = [p.id for p in self.game_state.alive_players if p.id != seer_player.id]
+            target_id = random.choice(valid_targets) if valid_targets else None
+
+        if not target_id:
+            self.logger.warning("Seer failed to choose target")
+            return
+
+        target_player = self.game_state.get_player(target_id)
+        if not target_player:
+            self.logger.error(f"Invalid Seer target: {target_id}")
+            return
+
+        # Reveal the truth to the Seer
+        true_role = target_player.role.value.upper()
+        self.logger.info(f"👁️  {seer_player.name} learns: {target_player.name} is a {true_role}")
+
+        # Update agent's suspicion based on truth
+        if agent and agent.memory_manager:
+            new_suspicion = 1.0 if true_role == "TRAITOR" else 0.0
+            agent.memory_manager.update_suspicion(target_id, new_suspicion)
+            self.logger.info(f"   Updated suspicion of {target_player.name} to {new_suspicion}")
+
+        # Consume the Seer power (one-time use)
+        seer_player.has_seer = False
+        self.game_state.seer_holder = None
+
+        # Public announcement (vague - both can fabricate)
+        self.logger.info(f"   {seer_player.name} and {target_player.name} had a private meeting...")
+        self.logger.info(f"   What was revealed? Only they know for sure.")
 
     async def _run_roundtable_phase_async(self) -> None:
         """Round Table phase: Voting and banishment."""
@@ -311,8 +433,17 @@ class GameEngineAsync:
         # Collect votes in parallel
         initial_votes = await self._collect_votes_parallel_async()
 
-        # Tally votes
-        vote_counts = Counter(initial_votes.values())
+        # Tally votes (accounting for Dagger double-vote)
+        vote_counts = Counter()
+        for voter_id, target_id in initial_votes.items():
+            voter = self.game_state.get_player(voter_id)
+            # Dagger gives double vote weight
+            vote_weight = 2 if (voter and getattr(voter, 'has_dagger', False)) else 1
+            vote_counts[target_id] += vote_weight
+
+            if voter and getattr(voter, 'has_dagger', False):
+                self.logger.info(f"🗡️  {voter.name} used the DAGGER for double vote!")
+
         if not vote_counts:
             self.logger.warning("No votes were cast. Skipping banishment.")
             return
@@ -332,16 +463,40 @@ class GameEngineAsync:
         banished_player.alive = False
         self.game_state.banished_players.append(banished_player.name)
 
+        # Consume all Daggers after use
+        for player in self.game_state.players:
+            if getattr(player, 'has_dagger', False):
+                player.has_dagger = False
+
+        # Determine if we should reveal role (2025 rule: no reveal in endgame)
+        alive_count = len(list(self.game_state.alive_players))
+        is_endgame = alive_count <= self.config.final_player_count
+        should_reveal_role = self.config.endgame_reveal_roles or not is_endgame
+
         # GM announces banishment
         final_vote_counts = Counter(final_votes.values())
-        narrative = await self.gm.announce_banishment_async(
-            banished_player.name,
-            banished_player.role.value,
-            dict(final_vote_counts),
-            self.game_state.day,
-            banished_id=banished_player.id,
-        )
+        if should_reveal_role:
+            narrative = await self.gm.announce_banishment_async(
+                banished_player.name,
+                banished_player.role.value,
+                dict(final_vote_counts),
+                self.game_state.day,
+                banished_id=banished_player.id,
+            )
+        else:
+            # 2025 rule: Don't reveal role in endgame
+            narrative = await self.gm.announce_banishment_async(
+                banished_player.name,
+                "UNKNOWN",  # Role hidden
+                dict(final_vote_counts),
+                self.game_state.day,
+                banished_id=banished_player.id,
+            )
+            self.logger.info(f"🔒 2025 RULE: {banished_player.name}'s role is NOT revealed!")
         self.logger.info(narrative)
+
+        # Record votes in history (for countback tie-breaking)
+        self.game_state.vote_history.append(final_votes.copy())
 
         # Log votes
         for voter_id, target_id in final_votes.items():
@@ -368,13 +523,23 @@ class GameEngineAsync:
         self.game_state.phase = GamePhase.TURRET
         self.logger.info("\n--- Turret Phase ---")
 
-        # Get alive traitors
+        # Get alive traitors and faithful
         alive_traitors = [a for a in self.player_agents.values() if a.player.alive and a.player.role == Role.TRAITOR]
+        alive_faithful = [p for p in self.game_state.alive_players if p.role == Role.FAITHFUL]
 
         if not alive_traitors:
             self.logger.info("No traitors alive to murder.")
             self.game_state.last_murder_victim = None
             return
+
+        # Death List mechanic (optional)
+        death_list = None
+        if self.config.enable_death_list and alive_faithful:
+            death_list = await self._create_death_list_async(alive_faithful)
+            if death_list:
+                death_list_names = [self.game_state.get_player(pid).name for pid in death_list if self.game_state.get_player(pid)]
+                self.logger.info(f"📜 DEATH LIST: {', '.join(death_list_names)}")
+                self.logger.info("   Traitors can ONLY murder from this list!")
 
         # First traitor chooses (simplified - no conferencing in MVP)
         traitor_agent = alive_traitors[0]
@@ -392,12 +557,52 @@ class GameEngineAsync:
             self.game_state.last_murder_victim = None
             return
 
+        # Validate victim is on Death List if enabled
+        if death_list and victim_id not in death_list:
+            self.logger.warning(f"Victim {victim.name} not on Death List! Forcing valid selection.")
+            victim_id = random.choice(death_list)
+            victim = self.game_state.get_player(victim_id)
+
+        # Check for Shield protection
+        if getattr(victim, 'has_shield', False):
+            victim.has_shield = False  # Shield consumed
+            self.logger.info(f"🛡️  {victim.name} was PROTECTED by the Shield!")
+            self.logger.info("The murder attempt failed!")
+            self.game_state.last_murder_victim = None
+            return
+
         # Murder victim
         victim.alive = False
         self.game_state.murdered_players.append(victim.name)
         self.game_state.last_murder_victim = victim.name
 
         self.logger.info(f"Traitors murdered: {victim.name}")
+
+    async def _create_death_list_async(self, faithful: List[Player]) -> List[str]:
+        """Create Death List - pre-select 3-4 murder candidates.
+
+        This mechanic restricts Traitor options when they've been "too efficient".
+
+        Args:
+            faithful: List of alive Faithfuls
+
+        Returns:
+            List of player IDs on the Death List
+        """
+        if len(faithful) == 0:
+            return []
+
+        # Typically 3-4 candidates
+        num_candidates = min(random.randint(3, 4), len(faithful))
+
+        # Simple selection: pick most threatening Faithfuls by social influence
+        sorted_faithful = sorted(
+            faithful,
+            key=lambda p: p.stats.get('social_influence', 0.5),
+            reverse=True
+        )
+
+        return [p.id for p in sorted_faithful[:num_candidates]]
 
     async def _collect_votes_parallel_async(
         self, allowed_targets: Optional[Set[str]] = None

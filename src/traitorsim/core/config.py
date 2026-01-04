@@ -118,6 +118,17 @@ class GameConfig:
     claude_model: str = "claude-sonnet-4-5-20250929"
 
     # ===========================================
+    # VOICE INTEGRATION
+    # ===========================================
+    # "disabled" = No voice generation (default for development)
+    # "episode" = Generate audio episode files post-game
+    # "hitl" = Human-in-the-loop real-time voice (requires Deepgram + ElevenLabs)
+    voice_mode: str = "disabled"
+    voice_output_dir: str = "output/voice"
+    # ElevenLabs voice IDs for character TTS (mapped per persona)
+    elevenlabs_voice_map: Optional[dict] = None
+
+    # ===========================================
     # PERSONA GENERATION
     # ===========================================
     personality_generation: str = "archetype"

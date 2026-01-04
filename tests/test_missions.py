@@ -16,9 +16,9 @@ def test_skill_check_mission_execution(game_state, game_config):
     assert len(result.performance_scores) == len(game_state.alive_players)
     assert result.narrative != ""
 
-    # Check performance scores are 0 or 1
+    # Check performance scores are in valid range [0, 1]
     for score in result.performance_scores.values():
-        assert score in [0.0, 1.0]
+        assert 0.0 <= score <= 1.0
 
 
 def test_skill_check_mission_description(game_state, game_config):

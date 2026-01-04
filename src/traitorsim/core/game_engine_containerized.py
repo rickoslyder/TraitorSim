@@ -13,8 +13,10 @@ from ..agents.game_master_interactions import GameMasterInteractions
 from ..core.game_state import GameState, Player, Role, TrustMatrix
 from ..core.config import GameConfig
 from ..core.enums import GamePhase
-from ..missions.skill_check import SkillCheckMission
+from ..missions import MISSION_TYPES, MISSION_NAMES
+import random
 from ..utils.logger import setup_logger
+from ..voice import create_voice_emitter, VoiceMode
 
 
 class GameEngineContainerized:
@@ -36,12 +38,25 @@ class GameEngineContainerized:
         self.logger = setup_logger("game_engine")
         self.agent_base_url = agent_base_url
 
+        # Create voice emitter if enabled
+        self.voice_emitter = create_voice_emitter(
+            mode=VoiceMode(self.config.voice_mode)
+            if self.config.voice_mode != "disabled"
+            else VoiceMode.DISABLED
+        )
+        if self.voice_emitter.is_enabled():
+            self.logger.info(f"🎤 Voice mode: {self.config.voice_mode}")
+
+        # Store voice emitter on game_state for access by other components
+        self.game_state.voice_emitter = self.voice_emitter
+
         # Initialize Game Master (runs on host, not containerized)
         self.gm = GameMasterInteractions(
             self.game_state,
             api_key=self.config.gemini_api_key,
             model_name=self.config.gemini_model,
             world_bible_path=self.config.world_bible_path,
+            voice_emitter=self.voice_emitter,
         )
 
         # Agent URLs (port mapping: 8000-8009 for agents 0-9)
@@ -415,12 +430,15 @@ class GameEngineContainerized:
         self.game_state.phase = GamePhase.MISSION
         self.logger.info("\n--- Mission Phase ---")
 
-        # Create mission
-        mission = SkillCheckMission(self.game_state, self.config)
+        # Select and create random mission type
+        mission_class = random.choice(MISSION_TYPES)
+        mission = mission_class(self.game_state, self.config)
+        mission_name = MISSION_NAMES.get(mission_class, "Challenge")
+        self.logger.info(f"🎯 Today's mission: {mission_name}")
 
         # GM describes mission
         narrative = await self.gm.describe_mission_async(
-            "Skill Check", self.config.mission_difficulty, self.game_state.day
+            mission_name, self.config.mission_difficulty, self.game_state.day
         )
         self.logger.info(narrative)
 
