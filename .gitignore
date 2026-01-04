@@ -65,4 +65,5 @@ reports/
 !data/personas/library/.gitkeep
 !reports/.gitkeep
 archive/
+research/
 *.png
