@@ -46,14 +46,16 @@ Internet → traitorsim.rbnk.uk → Nginx (port 8085)
 │   │   ├── game_engine_containerized.py  # Main engine (HTTP to containers)
 │   │   ├── game_engine_async.py    # Async parallel execution
 │   │   ├── game_state.py           # GameState, Player, TrustMatrix
-│   │   ├── config.py               # GameConfig
+│   │   ├── config.py               # GameConfig (difficulty=0.3)
 │   │   └── archetypes.py           # OCEAN personality traits
 │   ├── agents/                     # AI decision-making
 │   │   ├── game_master_interactions.py   # Gemini Interactions API
 │   │   ├── player_agent_sdk.py     # Claude Agent SDK players
 │   │   └── agent_service.py        # Flask API for containerized agents
 │   ├── mcp/                        # Model Context Protocol tools
-│   └── missions/                   # Game challenges
+│   ├── missions/                   # Game challenges
+│   │   └── skill_check.py          # Spectrum scoring (not binary)
+│   └── voice/                      # Voice integration (ElevenLabs/Deepgram)
 │
 ├── traitorsim-ui/                  # Web Dashboard (React + FastAPI)
 │   ├── frontend/                   # React + TypeScript + Vite
@@ -74,13 +76,23 @@ Internet → traitorsim.rbnk.uk → Nginx (port 8085)
 │   ├── docker-compose.yml          # Development (hot reload)
 │   └── docker-compose.prod.yml     # Production (port 8085)
 │
+├── docs/                           # Technical documentation
+│   ├── DEVOPS_LESSONS.md           # Infrastructure debugging insights
+│   ├── CONTAINERIZATION_DESIGN.md  # Docker architecture
+│   ├── VOICE_INTEGRATION_DESIGN.md # Voice/audio system design
+│   └── architectural_spec.md       # Original design spec
+│
 ├── data/
 │   ├── memories/                   # Agent memory files (runtime)
 │   └── personas/                   # Character templates (100+ personas)
+│       └── library/                # Generated personas with backstories
 │
 ├── reports/                        # Game JSON exports (mounted to UI)
+├── research/                       # Training data analysis (gitignored)
+├── archive/                        # Old approaches & session artifacts (gitignored)
 │
 ├── .env                            # API keys (GEMINI_API_KEY, CLAUDE_CODE_OAUTH_TOKEN)
+├── run.sh                          # Main game runner script
 ├── CLAUDE.md                       # This file
 ├── ARCHITECTURE.md                 # Technical deep-dive
 └── WORLD_BIBLE.md                  # In-universe lore
@@ -350,8 +362,11 @@ sudo netstat -tlnp | grep -E ':(80|8080|8085|5173|8000)'
 ## Running Game Simulations
 
 ```bash
-# Run a containerized game (from project root)
+# Run a containerized game (recommended)
 cd /home/rkb/projects/TraitorSim
+./run.sh
+
+# Or manually with environment:
 source .env
 python -m src.traitorsim
 
@@ -361,6 +376,13 @@ ls -la reports/
 # Sync new reports to UI
 curl -X POST http://localhost:8085/api/games/sync
 ```
+
+### Game Output
+
+Successful games produce:
+- **Console logs**: Real-time game progress with phase transitions
+- **reports/game_YYYYMMDD_HHMMSS.json**: Full game state for UI analysis
+- **reports/game_YYYYMMDD_HHMMSS.log**: Detailed execution log
 
 ## Environment Variables
 
@@ -378,6 +400,24 @@ CLAUDE_CODE_OAUTH_TOKEN=... # For Player Agents (Claude Agent SDK)
 sudo lsof -ti:8085 | xargs -r kill -9
 # Or use a different port in docker-compose.prod.yml
 ```
+
+### Docker-in-Docker Thread Exhaustion
+When running 22+ player games, you may hit `pthread_create failed: resource temporarily unavailable`.
+
+**Root cause**: `kernel.threads-max` (system-wide) is the real limit, not `ulimit -u` (per-user).
+
+```bash
+# Check thread usage
+echo "Threads: $(ps -eo nlwp | tail -n +2 | awk '{sum += $1} END {print sum}') / $(cat /proc/sys/kernel/threads-max)"
+
+# Fix (runtime)
+sudo sysctl -w kernel.threads-max=65536
+sudo sysctl -w kernel.pid_max=65536
+
+# Fix (permanent) - add to /etc/sysctl.conf
+```
+
+See `docs/DEVOPS_LESSONS.md` for full explanation.
 
 ### Backend Unhealthy
 The healthcheck requires `curl` in the container. Check logs:
@@ -401,6 +441,46 @@ The backend allows these origins (see `backend/app/main.py`):
 - `https://traitorsim.rbnk.uk`
 
 Add new origins to the `origins` list if needed.
+
+## Known Bug Patterns (Fixed)
+
+See `docs/DEVOPS_LESSONS.md` for detailed debugging documentation.
+
+### Logic Inversion Bugs
+**Pattern**: Comments say one thing, code does the opposite.
+**Example**: Revote logic at `game_engine_containerized.py:1269` said "tied players are candidates" but rejected votes for tied players.
+**Prevention**: Trace logic with real data, don't trust comments alone.
+
+### Dictionary Key Mismatch
+**Pattern**: Dict keyed by `player_id` but lookup uses `player_name`.
+**Example**: Vote count lookup in `game_master_interactions.py:400` always returned 0.
+**Prevention**: Verify key types match at both ends of data flow.
+
+### Binary Values Where Spectrum Expected
+**Pattern**: Using `1.0 if success else 0.0` for intermediate scores.
+**Example**: `skill_check.py` gave binary performance, making gameplay feel unrealistic.
+**Prevention**: Use continuous values for intermediate scoring; reserve binary for final decisions.
+
+### Miscalibrated Formulas
+**Pattern**: Mathematical formula that looks reasonable but produces extreme values.
+**Example**: `intellect * (1 - difficulty)` with difficulty=0.5 gave only 25% success rates.
+**Prevention**: Always plug in actual numbers before deploying formula changes.
+
+## Verification Checklist
+
+After making game logic changes, verify:
+
+- [ ] Vote counts appear correctly in banishment announcements (not always 0)
+- [ ] Revotes select from tied candidates only (check logs for "tied players")
+- [ ] Performance scores show variety (0.3, 0.45, 0.67, not just 0/1)
+- [ ] Mission success rates are reasonable (40-60%, not 20-30%)
+- [ ] Both Faithfuls and Traitors can win games
+- [ ] Games complete without thread exhaustion errors
+
+Run a full game with `./run.sh` and grep for key patterns:
+```bash
+grep -E "(votes|TIE|performance|Winner)" reports/game_*.log | tail -50
+```
 
 ## Claude Code Skills
 
