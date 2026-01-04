@@ -361,28 +361,114 @@ sudo netstat -tlnp | grep -E ':(80|8080|8085|5173|8000)'
 
 ## Running Game Simulations
 
+### CRITICAL: Resource Architecture
+
+**DO NOT run `python -m src.traitorsim` directly** - this spawns 22+ Claude Agent SDK instances in the same process, causing immediate resource exhaustion (thread limits, memory pressure, API rate limits).
+
+TraitorSim uses a **containerized architecture** where each player agent runs in its own Docker container, communicating with the game engine via HTTP REST APIs.
+
+### Execution Modes (Best → Worst)
+
+| Mode | Command | Use Case | Resource Impact |
+|------|---------|----------|-----------------|
+| **Docker-in-Docker** | `./run.sh` | Production games | Fully isolated, recommended |
+| **Direct Containers** | `docker-compose -f docker-compose.agents.yml up` | Development | 24 containers on host |
+| **Async Engine** | `python -m src.traitorsim` | **AVOID** | Resource exhaustion |
+
+### 1. Docker-in-Docker (Recommended)
+
+The orchestrator container runs Docker itself, spawning 24 agent containers inside. This provides complete isolation from host resources.
+
 ```bash
-# Run a containerized game (recommended)
 cd /home/rkb/projects/TraitorSim
+
+# Full game (builds + runs)
 ./run.sh
 
-# Or manually with environment:
-source .env
-python -m src.traitorsim
-
-# Check game reports
-ls -la reports/
-
-# Sync new reports to UI
-curl -X POST http://localhost:8085/api/games/sync
+# Manual steps:
+docker compose -f docker-compose.yml build
+docker compose -f docker-compose.yml up --abort-on-container-exit
+docker compose -f docker-compose.yml down -v
 ```
+
+**How it works:**
+1. `docker-compose.yml` creates the orchestrator container (privileged mode for DinD)
+2. `orchestrator-entrypoint.sh` starts Docker daemon inside, builds agent images
+3. Agents start in 5-agent batches with 5-second delays
+4. `game_engine_containerized.py` communicates via HTTP to ports 8000-8023
+5. Game runs, logs saved to `reports/`
+
+**Resource requirements:**
+- Memory: 26GB (24 agents × 1GB + 2GB overhead)
+- Threads: `kernel.threads-max=65536` (see Troubleshooting below)
+
+### 2. Direct Containerization (Development)
+
+Run agent containers directly on the host (simpler but less isolated):
+
+```bash
+cd /home/rkb/projects/TraitorSim
+
+# Start 24 agents + game engine
+docker-compose -f docker-compose.agents.yml up --build
+
+# In another terminal, monitor:
+docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+```
+
+### 3. Test Games (Small Scale)
+
+For quick tests with fewer agents:
+
+```python
+# Create a minimal test config
+from src.traitorsim.core.config import GameConfig
+from src.traitorsim.core.game_engine_async import GameEngineAsync
+
+config = GameConfig(
+    total_players=6,      # Much smaller
+    num_traitors=1,
+    max_days=3,
+    personality_generation='random',  # Skip persona library
+)
+
+# Still requires GEMINI_API_KEY for Game Master
+engine = GameEngineAsync(config)
+winner = engine.run_game()
+```
+
+**Note:** Even small games require the Gemini API for the Game Master. For pure unit tests, mock the API calls.
 
 ### Game Output
 
 Successful games produce:
 - **Console logs**: Real-time game progress with phase transitions
 - **reports/game_YYYYMMDD_HHMMSS.json**: Full game state for UI analysis
-- **reports/game_YYYYMMDD_HHMMSS.log**: Detailed execution log
+- **reports/game_YYYYMMDD_HHMMSS.html**: Human-readable HTML report
+- **data/memories/**: Agent memory files (diary, trust matrix)
+
+```bash
+# Check game reports
+ls -la reports/
+
+# Sync new reports to UI
+curl -X POST http://localhost:8085/api/games/sync
+
+# View latest game in UI
+open https://traitorsim.rbnk.uk
+```
+
+### Key Files for Game Execution
+
+| File | Purpose |
+|------|---------|
+| `run.sh` | Main entry point (DinD mode) |
+| `orchestrator-entrypoint.sh` | Orchestrator initialization script |
+| `docker-compose.yml` | Orchestrator container definition |
+| `docker-compose.agents.yml` | Direct containerization (24 agents) |
+| `Dockerfile.dind-orchestrator` | Orchestrator image with Docker-in-Docker |
+| `src/traitorsim/core/game_engine_containerized.py` | HTTP-based game loop |
+| `src/traitorsim/agents/agent_service.py` | Flask API for containerized agents |
 
 ## Environment Variables
 
