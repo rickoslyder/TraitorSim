@@ -36,7 +36,7 @@ class GameSummary(BaseModel):
     name: str
     created_at: str
     total_days: int
-    prize_pot: int
+    prize_pot: float  # Engine stores as float
     winner: str
     rule_variant: str
     config_total_players: Optional[int] = None

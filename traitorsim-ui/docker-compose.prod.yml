@@ -4,7 +4,7 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     volumes:
-      - ../reports:/app/reports  # Writable for game output
+      - ../data/reports:/app/reports  # Game engine saves reports here
       - ../:/app/traitorsim  # Mount TraitorSim project for game runner (writable for data/)
     environment:
       - PYTHONUNBUFFERED=1

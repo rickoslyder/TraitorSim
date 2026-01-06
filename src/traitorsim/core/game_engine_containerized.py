@@ -1610,7 +1610,8 @@ class GameEngineContainerized:
             if os.path.isdir("/app/data"):
                 reports_dir = Path("/app/data/reports")
             else:
-                reports_dir = Path("reports")
+                # Consistent local path: data/reports
+                reports_dir = Path("data/reports")
             reports_dir.mkdir(exist_ok=True)
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             output_path = reports_dir / f"game_{timestamp}.json"
