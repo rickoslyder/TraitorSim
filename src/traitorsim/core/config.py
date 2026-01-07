@@ -118,6 +118,27 @@ class GameConfig:
     claude_model: str = "claude-sonnet-4-5-20250929"
 
     # ===========================================
+    # AGENT MODEL PROVIDER (Claude Agent SDK)
+    # ===========================================
+    # Player agents can use Anthropic Claude or Z.AI GLM-4.7 (Claude-compatible API)
+    # "auto" = Try Anthropic first, fallback to Z.AI on failure (default, most resilient)
+    # "anthropic" = Use Claude models via Anthropic API only
+    # "zai" = Use GLM-4.7 via Z.AI API only (claude-compatible drop-in)
+    agent_model_provider: str = "auto"
+
+    # Model to use for player agents (overrides claude_model for agents)
+    # For Z.AI: "GLM-4.7" (maps to claude-opus-4), "GLM-4.5-Air" (maps to claude-haiku)
+    agent_model: str = "claude-sonnet-4-5-20250929"
+
+    # Enable automatic fallback to Z.AI GLM if Anthropic fails
+    # Only used when agent_model_provider="anthropic"
+    agent_fallback_enabled: bool = False
+
+    # Z.AI API configuration (only needed if using zai provider or fallback)
+    zai_api_key: Optional[str] = None
+    zai_base_url: str = "https://api.z.ai/api/anthropic"
+
+    # ===========================================
     # VOICE INTEGRATION
     # ===========================================
     # "disabled" = No voice generation (default for development)

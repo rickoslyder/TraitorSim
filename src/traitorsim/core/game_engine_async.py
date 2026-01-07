@@ -137,8 +137,8 @@ class GameEngineAsync:
             memory_manager.initialize()
             self.memory_managers[player.id] = memory_manager
 
-            # Create agent
-            agent = PlayerAgentSDK(player, self.game_state, memory_manager)
+            # Create agent with config for model provider settings
+            agent = PlayerAgentSDK(player, self.game_state, memory_manager, config=self.config)
             self.player_agents[player.id] = agent
 
         self.logger.info(f"Initialized {len(self.game_state.players)} players")

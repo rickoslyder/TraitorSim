@@ -24,18 +24,49 @@ Voice Integration:
 """
 
 import asyncio
+import os
+from contextlib import contextmanager
 from typing import Dict, Any, Optional, List, TYPE_CHECKING
 from dataclasses import dataclass
 
 from claude_agent_sdk import query, ClaudeAgentOptions, ResultMessage, AssistantMessage
 
 from ..core.game_state import Player, GameState
+from ..core.config import GameConfig
 from ..memory.memory_manager import MemoryManager
 from ..mcp.sdk_tools import create_game_mcp_server
 
 if TYPE_CHECKING:
     from ..voice.voice_emitter import VoiceEmitter
     from ..training import TrainingDataLoader, StrategyAdvisor, BehaviorModulator
+
+
+# Model provider configuration
+#
+# IMPORTANT: Anthropic uses CLAUDE_CODE_OAUTH_TOKEN for authentication (not ANTHROPIC_API_KEY)
+# Z.AI requires ANTHROPIC_API_KEY to be set with the ZAI_API_KEY value
+MODEL_PROVIDER_CONFIG = {
+    "anthropic": {
+        "base_url": None,  # Use default Anthropic URL
+        "auth_env": "CLAUDE_CODE_OAUTH_TOKEN",  # SDK uses OAuth token
+        "model_map": {
+            # Direct model names - no mapping needed
+        },
+    },
+    "zai": {
+        "base_url": "https://api.z.ai/api/anthropic",
+        "auth_env": "ZAI_API_KEY",  # Z.AI uses its own API key
+        "model_map": {
+            # Z.AI GLM models that map to Claude equivalents
+            "GLM-4.7": "GLM-4.7",  # Maps to Opus-level
+            "GLM-4.5-Air": "GLM-4.5-Air",  # Maps to Haiku-level
+            # Also accept Claude model names (Z.AI handles mapping internally)
+            "claude-opus-4-5-20251101": "GLM-4.7",
+            "claude-sonnet-4-5-20250929": "GLM-4.7",
+            "claude-haiku-3-5-20241022": "GLM-4.5-Air",
+        },
+    },
+}
 
 
 # Lazy load training components
@@ -86,6 +117,15 @@ class PlayerAgentSDK:
     - query() function for stateless queries
     - Async methods for parallel execution
     - Tool-based decision making (no regex extraction)
+
+    Model Provider Support:
+        Supports multiple model providers via configuration:
+        - "anthropic": Claude models via Anthropic API (default)
+        - "zai": GLM-4.7 via Z.AI API (Claude-compatible drop-in)
+        - "auto": Try Anthropic first, fallback to Z.AI on failure
+
+        Set via GameConfig.agent_model_provider or environment variable
+        TRAITORSIM_AGENT_PROVIDER.
     """
 
     def __init__(
@@ -94,6 +134,7 @@ class PlayerAgentSDK:
         game_state: GameState,
         memory_manager: Optional[MemoryManager] = None,
         voice_emitter: Optional["VoiceEmitter"] = None,
+        config: Optional[GameConfig] = None,
     ):
         """Initialize player agent with Claude SDK.
 
@@ -102,11 +143,17 @@ class PlayerAgentSDK:
             game_state: Current game state (shared reference)
             memory_manager: File-based memory system
             voice_emitter: Optional VoiceEmitter for confessional voice synthesis
+            config: Game configuration with model provider settings
         """
         self.player = player
         self.game_state = game_state
         self.memory_manager = memory_manager
         self.voice_emitter = voice_emitter
+        self.config = config or GameConfig()
+
+        # Resolve model provider from config or environment
+        self._model_provider = self._resolve_model_provider()
+        self._current_provider = self._model_provider  # Track active provider for fallback
 
         # Create tool context (shared with MCP tools via closure)
         self.tool_context = {
@@ -119,6 +166,84 @@ class PlayerAgentSDK:
         # Create MCP server config for this player
         # Note: We'll recreate this for each query to get fresh context
         self.mcp_server = None
+
+    def _resolve_model_provider(self) -> str:
+        """Resolve the model provider from config or environment.
+
+        Priority:
+        1. TRAITORSIM_AGENT_PROVIDER environment variable
+        2. GameConfig.agent_model_provider
+        3. Default to "anthropic"
+
+        Returns:
+            Model provider string: "anthropic", "zai", or "auto"
+        """
+        env_provider = os.environ.get("TRAITORSIM_AGENT_PROVIDER", "").lower()
+        if env_provider in ("anthropic", "zai", "auto"):
+            return env_provider
+        return self.config.agent_model_provider
+
+    @contextmanager
+    def _model_provider_context(self, provider: str):
+        """Context manager to configure environment for a specific model provider.
+
+        For Anthropic: Uses CLAUDE_CODE_OAUTH_TOKEN (no changes needed - SDK default)
+        For Z.AI: Sets ANTHROPIC_BASE_URL and ANTHROPIC_API_KEY with Z.AI credentials
+
+        Args:
+            provider: Model provider ("anthropic" or "zai")
+
+        Yields:
+            The model name to use with this provider
+        """
+        provider_config = MODEL_PROVIDER_CONFIG.get(provider, MODEL_PROVIDER_CONFIG["anthropic"])
+
+        # Save original environment (only for Z.AI overrides)
+        original_base_url = os.environ.get("ANTHROPIC_BASE_URL")
+        original_api_key = os.environ.get("ANTHROPIC_API_KEY")
+
+        try:
+            if provider == "zai":
+                # Z.AI requires ANTHROPIC_BASE_URL and ANTHROPIC_API_KEY
+                # (it's a Claude-compatible API endpoint)
+                base_url = self.config.zai_base_url or provider_config["base_url"]
+                os.environ["ANTHROPIC_BASE_URL"] = base_url
+
+                # Get Z.AI API key from config or environment
+                api_key = self.config.zai_api_key or os.environ.get("ZAI_API_KEY")
+                if not api_key:
+                    raise ValueError(
+                        "Z.AI API key not configured. Set ZAI_API_KEY environment variable "
+                        "or config.zai_api_key"
+                    )
+                os.environ["ANTHROPIC_API_KEY"] = api_key
+
+                # Map model name for Z.AI
+                model = self.config.agent_model
+                model = provider_config["model_map"].get(model, "GLM-4.7")
+                yield model
+
+            else:  # anthropic (default)
+                # Anthropic uses CLAUDE_CODE_OAUTH_TOKEN automatically
+                # Just ensure we're not using Z.AI's base URL
+                if "ANTHROPIC_BASE_URL" in os.environ:
+                    del os.environ["ANTHROPIC_BASE_URL"]
+                # Don't touch ANTHROPIC_API_KEY - SDK uses CLAUDE_CODE_OAUTH_TOKEN
+
+                yield self.config.agent_model
+
+        finally:
+            # Restore original environment
+            if original_base_url is not None:
+                os.environ["ANTHROPIC_BASE_URL"] = original_base_url
+            elif "ANTHROPIC_BASE_URL" in os.environ:
+                del os.environ["ANTHROPIC_BASE_URL"]
+
+            if original_api_key is not None:
+                os.environ["ANTHROPIC_API_KEY"] = original_api_key
+            elif provider == "zai" and "ANTHROPIC_API_KEY" in os.environ:
+                # Only clean up if we set it for Z.AI
+                del os.environ["ANTHROPIC_API_KEY"]
 
     def _get_system_prompt(self) -> str:
         """Generate system prompt with role, personality, and persona backstory.
@@ -351,10 +476,13 @@ class PlayerAgentSDK:
 
         return ""
 
-    def _build_options(self) -> ClaudeAgentOptions:
+    def _build_options(self, model: Optional[str] = None) -> ClaudeAgentOptions:
         """Build Claude Agent options with MCP server.
 
         Creates a fresh MCP server with the current tool context.
+
+        Args:
+            model: Model name to use (defaults to config.agent_model)
 
         Returns:
             ClaudeAgentOptions configured for this agent
@@ -372,6 +500,9 @@ class PlayerAgentSDK:
             tools=tools,
         )
 
+        # Use provided model or default from config
+        model_name = model or self.config.agent_model
+
         return ClaudeAgentOptions(
             mcp_servers={"game": mcp_server},
             allowed_tools=[
@@ -383,10 +514,68 @@ class PlayerAgentSDK:
                 "get_player_info",
             ],
             system_prompt=self._get_system_prompt(),
-            model="claude-sonnet-4-5-20250929",
+            model=model_name,
             permission_mode="bypassPermissions",  # Auto-approve tool use (requires non-root)
             max_turns=10,  # Allow tool loops
         )
+
+    async def _query_with_fallback(self, prompt: str) -> Optional[ResultMessage]:
+        """Execute a query with automatic fallback to alternate provider.
+
+        Tries the primary provider first. If it fails and fallback is enabled,
+        retries with the fallback provider.
+
+        Args:
+            prompt: The prompt to send to the model
+
+        Returns:
+            The ResultMessage from successful query, or None if all attempts failed
+        """
+        providers_to_try = []
+
+        if self._model_provider == "auto":
+            # Auto mode: try anthropic first, then zai
+            providers_to_try = ["anthropic", "zai"]
+        elif self._model_provider == "anthropic" and self.config.agent_fallback_enabled:
+            # Anthropic with fallback enabled
+            providers_to_try = ["anthropic", "zai"]
+        elif self._model_provider == "zai" and self.config.agent_fallback_enabled:
+            # Z.AI with fallback enabled (fallback to anthropic)
+            providers_to_try = ["zai", "anthropic"]
+        else:
+            # Single provider, no fallback
+            providers_to_try = [self._model_provider]
+
+        last_error = None
+
+        for provider in providers_to_try:
+            try:
+                with self._model_provider_context(provider) as model:
+                    self._current_provider = provider
+                    options = self._build_options(model=model)
+
+                    async for message in query(prompt=prompt, options=options):
+                        if isinstance(message, ResultMessage):
+                            return message
+
+                    # If we get here without a ResultMessage, query completed
+                    return None
+
+            except Exception as e:
+                last_error = e
+                provider_name = "Z.AI GLM-4.7" if provider == "zai" else "Anthropic Claude"
+                print(f"Warning: {provider_name} failed for {self.player.name}: {e}")
+
+                if provider != providers_to_try[-1]:
+                    next_provider = providers_to_try[providers_to_try.index(provider) + 1]
+                    next_name = "Z.AI GLM-4.7" if next_provider == "zai" else "Anthropic Claude"
+                    print(f"  Falling back to {next_name}...")
+                continue
+
+        # All providers failed
+        if last_error:
+            raise last_error
+        return None
 
     async def cast_vote_async(self) -> Optional[str]:
         """Make Round Table voting decision using MCP tools.
@@ -413,11 +602,8 @@ Think strategically based on your role and personality. You MUST call the cast_v
             # Clear previous results
             self.tool_context.pop("vote_result", None)
 
-            # Query Claude with MCP tools
-            async for message in query(prompt=prompt, options=self._build_options()):
-                if isinstance(message, ResultMessage):
-                    # Result message indicates completion
-                    break
+            # Query with automatic fallback support
+            await self._query_with_fallback(prompt)
 
             # Extract vote from shared context (cast_vote tool stored it)
             vote_result = self.tool_context.get("vote_result")
@@ -474,9 +660,8 @@ You MUST call the choose_murder_victim tool."""
             # Clear previous results
             self.tool_context.pop("murder_choice", None)
 
-            async for message in query(prompt=prompt, options=self._build_options()):
-                if isinstance(message, ResultMessage):
-                    break
+            # Query with automatic fallback support
+            await self._query_with_fallback(prompt)
 
             # Extract murder choice from shared context
             murder_choice = self.tool_context.get("murder_choice")
@@ -542,9 +727,8 @@ Think about:
 Update suspicions as needed using the update_suspicion tool."""
 
         try:
-            async for message in query(prompt=prompt, options=self._build_options()):
-                if isinstance(message, ResultMessage):
-                    break
+            # Query with automatic fallback support
+            await self._query_with_fallback(prompt)
 
             # Reflection complete (updates written to trust matrix via tools)
 

@@ -351,7 +351,8 @@ class GameEngineHITL:
                 memory_manager = MemoryManager(player, self.config)
                 memory_manager.initialize()
 
-                agent = PlayerAgentSDK(player, self.game_state, memory_manager)
+                # Pass config for model provider settings
+                agent = PlayerAgentSDK(player, self.game_state, memory_manager, config=self.config)
                 self.player_agents[player.id] = agent
             except Exception as e:
                 logger.error(f"Failed to create agent for {player.name}: {e}")

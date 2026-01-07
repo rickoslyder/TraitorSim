@@ -108,13 +108,20 @@ def initialize():
         game_state = GameState()
         game_state.players = [player]  # Will be updated on each request
 
+        # Create config with model provider settings from environment
+        config = GameConfig(
+            agent_model_provider=os.environ.get("TRAITORSIM_AGENT_PROVIDER", "auto"),
+            agent_model=os.environ.get("TRAITORSIM_AGENT_MODEL", "claude-sonnet-4-5-20250929"),
+            agent_fallback_enabled=os.environ.get("TRAITORSIM_AGENT_FALLBACK", "").lower() == "true",
+            zai_api_key=os.environ.get("ZAI_API_KEY"),
+        )
+
         # Create memory manager
-        config = GameConfig()
         memory_manager = MemoryManager(player, config)
         memory_manager.initialize()
 
-        # Create agent
-        agent = PlayerAgentSDK(player, game_state, memory_manager)
+        # Create agent with model provider config
+        agent = PlayerAgentSDK(player, game_state, memory_manager, config=config)
 
         logger.info(f"Initialized agent for {player.name} ({player.role.value})")
 
