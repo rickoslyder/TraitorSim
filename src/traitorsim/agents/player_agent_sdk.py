@@ -68,8 +68,9 @@ MODEL_PROVIDER_CONFIG = {
     },
 }
 
-# Default Z.AI API key for auto-mode fallback (Z.AI Max Coding Plan)
-_DEFAULT_ZAI_API_KEY = "ab4292a62189408b9c6396751bed0b95.3svM8mqUGq96Wkff"
+# Default Z.AI API key loaded from environment (for auto-mode fallback)
+# Set ZAI_API_KEY_DEFAULT in .env for seamless fallback without per-run config
+_DEFAULT_ZAI_API_KEY = os.environ.get("ZAI_API_KEY_DEFAULT", "")
 
 
 # Lazy load training components
