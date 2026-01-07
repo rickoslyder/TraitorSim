@@ -68,6 +68,10 @@ MODEL_PROVIDER_CONFIG = {
     },
 }
 
+# Default Z.AI API key loaded from environment (for auto-mode fallback)
+# Set ZAI_API_KEY_DEFAULT in .env for seamless fallback without per-run config
+_DEFAULT_ZAI_API_KEY = os.environ.get("ZAI_API_KEY_DEFAULT", "")
+
 
 # Lazy load training components
 _training_components = None
@@ -209,13 +213,12 @@ class PlayerAgentSDK:
                 base_url = self.config.zai_base_url or provider_config["base_url"]
                 os.environ["ANTHROPIC_BASE_URL"] = base_url
 
-                # Get Z.AI API key from config or environment
-                api_key = self.config.zai_api_key or os.environ.get("ZAI_API_KEY")
-                if not api_key:
-                    raise ValueError(
-                        "Z.AI API key not configured. Set ZAI_API_KEY environment variable "
-                        "or config.zai_api_key"
-                    )
+                # Get Z.AI API key from config, environment, or default (for auto-mode fallback)
+                api_key = (
+                    self.config.zai_api_key
+                    or os.environ.get("ZAI_API_KEY")
+                    or _DEFAULT_ZAI_API_KEY  # Fallback to default for auto mode
+                )
                 os.environ["ANTHROPIC_API_KEY"] = api_key
 
                 # Map model name for Z.AI
