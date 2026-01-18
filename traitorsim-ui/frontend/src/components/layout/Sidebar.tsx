@@ -14,6 +14,10 @@ import { GameRunner } from '../runner';
 
 export function Sidebar() {
   const [runnerOpen, setRunnerOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [sortOption, setSortOption] = useState<'recent' | 'alphabetical' | 'in-progress'>(
+    'recent'
+  );
   const { data: runStatus } = useRunStatus();
   // UI state from Zustand
   const { selectedGameId, selectGame, sidebarOpen, setSidebarOpen } = useGameStore();
@@ -23,6 +27,24 @@ export function Sidebar() {
   const prefetchGame = usePrefetchGame();
 
   const games = data?.games || [];
+  const normalizedSearch = searchTerm.trim().toLowerCase();
+  const filteredGames = games.filter(game =>
+    game.name.toLowerCase().includes(normalizedSearch)
+  );
+  const sortedGames = [...filteredGames].sort((a, b) => {
+    if (sortOption === 'alphabetical') {
+      return a.name.localeCompare(b.name);
+    }
+    const aInProgress = a.winner === '' || a.winner === 'UNKNOWN';
+    const bInProgress = b.winner === '' || b.winner === 'UNKNOWN';
+    if (sortOption === 'in-progress' && aInProgress !== bInProgress) {
+      return aInProgress ? -1 : 1;
+    }
+    const aDate = Date.parse(a.created_at) || 0;
+    const bDate = Date.parse(b.created_at) || 0;
+    return bDate - aDate;
+  });
+  const hasSearch = normalizedSearch.length > 0;
 
   const handleGameSelect = (gameId: string) => {
     selectGame(gameId);
@@ -100,6 +122,33 @@ export function Sidebar() {
         </motion.button>
       </div>
 
+      <div className="p-2 border-b border-gray-700 space-y-2">
+        <label className="block text-xs text-gray-400">
+          <span className="sr-only">Search games</span>
+          <input
+            type="search"
+            value={searchTerm}
+            onChange={event => setSearchTerm(event.target.value)}
+            placeholder="Search games"
+            className="w-full rounded-md bg-gray-750 border border-gray-700 px-2.5 py-1.5 text-xs text-gray-200 placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </label>
+        <label className="block text-xs text-gray-400">
+          <span className="sr-only">Sort games</span>
+          <select
+            value={sortOption}
+            onChange={event =>
+              setSortOption(event.target.value as 'recent' | 'alphabetical' | 'in-progress')
+            }
+            className="w-full rounded-md bg-gray-750 border border-gray-700 px-2.5 py-1.5 text-xs text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="recent">Most recent</option>
+            <option value="alphabetical">Alphabetical</option>
+            <option value="in-progress">In progress first</option>
+          </select>
+        </label>
+      </div>
+
       <div className="flex-1 overflow-y-auto p-2">
         {isLoading ? (
           <LoadingFallback message="Loading games..." />
@@ -114,9 +163,14 @@ export function Sidebar() {
             <p className="text-sm">No games found</p>
             <p className="text-xs mt-1">Run a simulation to generate reports</p>
           </div>
+        ) : sortedGames.length === 0 ? (
+          <div className="text-center py-8 text-gray-500">
+            <p className="text-sm">No matching games</p>
+            <p className="text-xs mt-1">Try a different search term</p>
+          </div>
         ) : (
           <div className="space-y-1">
-            {games.map(game => (
+            {sortedGames.map(game => (
               <motion.button
                 key={game.id}
                 onClick={() => handleGameSelect(game.id)}
@@ -150,7 +204,11 @@ export function Sidebar() {
         {/* Stats */}
         {games.length > 0 && (
           <div className="p-4 border-t border-gray-700 text-xs text-gray-500">
-            {games.length} game{games.length !== 1 ? 's' : ''} loaded
+            {hasSearch
+              ? `${sortedGames.length} of ${games.length} game${
+                  games.length !== 1 ? 's' : ''
+                } shown`
+              : `${games.length} game${games.length !== 1 ? 's' : ''} loaded`}
             {data?.total && data.total > games.length && (
               <span className="ml-1">({data.total} total)</span>
             )}
