@@ -9,7 +9,7 @@
  * - Click event markers to jump to that phase
  */
 
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Phase, GameEvent, normalizePhase, EventType } from '../../types';
 import { useGameStore } from '../../stores/gameStore';
@@ -230,7 +230,15 @@ export function TimelineScrubber({ totalDays, events }: TimelineScrubberProps) {
   }, [currentDay, currentPhase, totalDays]);
 
   // Handle keyboard navigation
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (
+      e.target instanceof HTMLInputElement ||
+      e.target instanceof HTMLTextAreaElement ||
+      e.target instanceof HTMLSelectElement
+    ) {
+      return;
+    }
+
     const phaseIndex = PHASES.findIndex(p => p.id === currentPhase);
 
     switch (e.key) {
@@ -261,11 +269,6 @@ export function TimelineScrubber({ totalDays, events }: TimelineScrubberProps) {
     }
   }, [currentDay, currentPhase, totalDays, setTimelinePosition]);
 
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleKeyDown]);
-
   const handleDayClick = (day: number) => {
     setTimelinePosition(day, currentPhase);
   };
@@ -279,7 +282,11 @@ export function TimelineScrubber({ totalDays, events }: TimelineScrubberProps) {
   };
 
   return (
-    <div className="timeline-container space-y-4">
+    <div
+      className="timeline-container space-y-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+    >
       {/* Phase selector */}
       <div className="flex justify-center gap-2">
         {PHASES.map(phase => (
@@ -348,7 +355,7 @@ export function TimelineScrubber({ totalDays, events }: TimelineScrubberProps) {
       {/* Current position indicator text */}
       <div className="text-center text-sm text-gray-400">
         Day {currentDay} - {PHASES.find(p => p.id === currentPhase)?.label}
-        <span className="text-gray-600 ml-2">(Use arrow keys to navigate)</span>
+        <span className="text-gray-600 ml-2">(Focus the timeline to use arrow keys)</span>
       </div>
 
       {/* Legend for markers */}
