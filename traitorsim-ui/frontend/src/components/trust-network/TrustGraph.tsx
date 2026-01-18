@@ -64,6 +64,7 @@ export function TrustGraph({ players, trustMatrix, width, height }: TrustGraphPr
     setHoveredPlayer,
     showEliminatedPlayers,
     trustThreshold,
+    setTrustThreshold,
     currentDay,
     // Animation state
     previousTrustMatrix,
@@ -325,6 +326,14 @@ export function TrustGraph({ players, trustMatrix, width, height }: TrustGraphPr
     setHoveredPlayer(null);
   }, [setHoveredPlayer]);
 
+  const handleResetZoom = useCallback(() => {
+    graphRef.current?.zoomToFit(reducedMotion ? 0 : 400, 50);
+  }, [reducedMotion]);
+
+  const handleTrustThresholdChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setTrustThreshold(parseFloat(event.target.value));
+  }, [setTrustThreshold]);
+
   if (graphData.nodes.length === 0) {
     return (
       <div ref={containerRef} className="trust-graph-container h-full flex items-center justify-center text-gray-400">
@@ -336,9 +345,74 @@ export function TrustGraph({ players, trustMatrix, width, height }: TrustGraphPr
   return (
     <div
       ref={containerRef}
-      className="trust-graph-container h-full w-full"
+      className="trust-graph-container relative h-full w-full"
       onMouseLeave={handleMouseLeave}
     >
+      <div
+        className="pointer-events-auto absolute left-4 top-4 z-10 w-64 rounded-lg border border-gray-700 bg-gray-900/95 p-4 text-xs text-gray-100 shadow-lg"
+        role="region"
+        aria-label="Trust graph controls"
+      >
+        <div className="space-y-3">
+          <div>
+            <h3 className="text-sm font-semibold text-white">Legend</h3>
+            <ul className="mt-2 space-y-2 text-gray-200">
+              <li className="flex items-center gap-2">
+                <span className="h-4 w-4 rounded-full border-2 border-blue-400" aria-hidden="true" />
+                <span>Node ring: selected/hovered/revealed</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="relative h-4 w-4">
+                  <span className="absolute right-0 top-0 h-2.5 w-2.5 rounded-full bg-red-500" aria-hidden="true" />
+                </span>
+                <span>Role dot: traitor (red) / faithful (green)</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="relative h-4 w-4 text-red-400" aria-hidden="true">
+                  ✕
+                </span>
+                <span>Elimination X: player is out</span>
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="h-1 w-12 rounded-full bg-gradient-to-r from-emerald-400 via-yellow-400 to-red-500" aria-hidden="true" />
+                <span>Link color: low suspicion → high suspicion</span>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <label htmlFor="trust-threshold" className="text-sm font-medium text-white">
+              Trust threshold
+            </label>
+            <div className="mt-2 flex items-center gap-2">
+              <input
+                id="trust-threshold"
+                type="range"
+                min={0}
+                max={1}
+                step={0.05}
+                value={trustThreshold}
+                onChange={handleTrustThresholdChange}
+                className="w-full accent-blue-500"
+                aria-valuemin={0}
+                aria-valuemax={1}
+                aria-valuenow={trustThreshold}
+                aria-label="Trust threshold"
+              />
+              <span className="w-10 text-right tabular-nums text-gray-200" aria-live="polite">
+                {trustThreshold.toFixed(2)}
+              </span>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={handleResetZoom}
+            className="w-full rounded-md border border-blue-400 px-3 py-2 text-sm font-medium text-blue-100 transition hover:bg-blue-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:ring-offset-2 focus-visible:ring-offset-gray-900"
+            aria-label="Reset zoom to fit the graph"
+          >
+            Reset zoom
+          </button>
+        </div>
+      </div>
       {graphWidth > 0 && graphHeight > 0 && (
         <ForceGraph2D
           ref={graphRef as React.MutableRefObject<ForceGraphMethods<any, any> | undefined>}
