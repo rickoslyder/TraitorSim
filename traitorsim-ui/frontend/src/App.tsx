@@ -4,7 +4,8 @@
  * Uses TanStack Query for server state and Zustand for UI state.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import type { KeyboardEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
@@ -53,6 +54,7 @@ function App() {
   // Local UI state
   const [activeTab, setActiveTab] = useState<ViewTab>('graph');
   const [votingView, setVotingView] = useState<VotingView>('heatmap');
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   // Update trust matrix when game data or timeline position changes
   useEffect(() => {
@@ -75,6 +77,20 @@ function App() {
     { id: 'analysis', label: 'Analysis', icon: '📊' },
     { id: 'story', label: 'Story Mode', icon: '📖' },
   ];
+
+  const handleTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
+      return;
+    }
+
+    event.preventDefault();
+    const direction = event.key === 'ArrowRight' ? 1 : -1;
+    const nextIndex = (index + direction + tabs.length) % tabs.length;
+    const nextTab = tabs[nextIndex];
+
+    setActiveTab(nextTab.id);
+    tabRefs.current[nextIndex]?.focus();
+  };
 
   return (
     <ErrorBoundary>
@@ -141,17 +157,24 @@ function App() {
                 </div>
 
                 {/* Tab bar */}
-                <div className="flex border-b border-gray-700">
-                  {tabs.map(tab => (
+                <div className="flex border-b border-gray-700" role="tablist" aria-label="Primary">
+                  {tabs.map((tab, index) => (
                     <button
                       key={tab.id}
+                      id={`tab-${tab.id}`}
+                      ref={element => {
+                        tabRefs.current[index] = element;
+                      }}
                       onClick={() => setActiveTab(tab.id)}
+                      onKeyDown={event => handleTabKeyDown(event, index)}
                       className={`flex items-center gap-2 px-6 py-3 text-sm font-medium transition-colors ${
                         activeTab === tab.id
                           ? 'text-white border-b-2 border-blue-500 bg-gray-800'
                           : 'text-gray-400 hover:text-white hover:bg-gray-800'
-                      }`}
+                      } focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500`}
+                      tabIndex={activeTab === tab.id ? 0 : -1}
                       aria-selected={activeTab === tab.id}
+                      aria-controls={`panel-${tab.id}`}
                       role="tab"
                     >
                       <span>{tab.icon}</span>
@@ -161,11 +184,14 @@ function App() {
                 </div>
 
                 {/* Tab content */}
-                <div className="flex-1 overflow-hidden" role="tabpanel">
+                <div className="flex-1 overflow-hidden">
                   <AnimatePresence mode="wait">
                     {activeTab === 'graph' && (
                       <motion.div
                         key="graph"
+                        id="panel-graph"
+                        aria-labelledby="tab-graph"
+                        role="tabpanel"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -190,6 +216,9 @@ function App() {
                     {activeTab === 'players' && (
                       <motion.div
                         key="players"
+                        id="panel-players"
+                        aria-labelledby="tab-players"
+                        role="tabpanel"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -208,6 +237,9 @@ function App() {
                     {activeTab === 'voting' && (
                       <motion.div
                         key="voting"
+                        id="panel-voting"
+                        aria-labelledby="tab-voting"
+                        role="tabpanel"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -262,6 +294,9 @@ function App() {
                     {activeTab === 'events' && (
                       <motion.div
                         key="events"
+                        id="panel-events"
+                        aria-labelledby="tab-events"
+                        role="tabpanel"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -276,6 +311,9 @@ function App() {
                     {activeTab === 'analysis' && (
                       <motion.div
                         key="analysis"
+                        id="panel-analysis"
+                        aria-labelledby="tab-analysis"
+                        role="tabpanel"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
@@ -316,6 +354,9 @@ function App() {
                     {activeTab === 'story' && (
                       <motion.div
                         key="story"
+                        id="panel-story"
+                        aria-labelledby="tab-story"
+                        role="tabpanel"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
