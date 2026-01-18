@@ -2,7 +2,7 @@
  * EventFeed - Scrolling list of game events
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GameEvent, EventType, getEventInfo, normalizePhase } from '../../types';
 import { useGameStore } from '../../stores/gameStore';
@@ -31,6 +31,7 @@ export function EventFeed({ events, maxDay }: EventFeedProps) {
 
   const [filterIndex, setFilterIndex] = useState(0);
   const [expandedEvent, setExpandedEvent] = useState<string | null>(null);
+  const daySectionRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
   // Filter events with POV awareness
   const filteredEvents = useMemo(() => {
@@ -53,10 +54,10 @@ export function EventFeed({ events, maxDay }: EventFeedProps) {
     });
   }, [events, effectiveMaxDay, filterIndex, filterVisibleEvents]);
 
-  const handleEventClick = (event: GameEvent) => {
+  const handleEventClick = (event: GameEvent, eventKey: string) => {
     // Navigate to event's day/phase (normalize phase for consistency)
     setTimelinePosition(event.day, normalizePhase(event.phase));
-    setExpandedEvent(expandedEvent === event.id ? null : event.id ?? null);
+    setExpandedEvent(expandedEvent === eventKey ? null : eventKey);
   };
 
   // Group events by day
@@ -69,23 +70,46 @@ export function EventFeed({ events, maxDay }: EventFeedProps) {
     return grouped;
   }, [filteredEvents]);
 
+  const hasCurrentDayEvents = Boolean(eventsByDay[currentDay]);
+
+  const handleJumpToCurrentDay = () => {
+    const target = daySectionRefs.current[currentDay];
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <div className="space-y-4">
       {/* Filters */}
-      <div className="flex flex-wrap gap-2">
-        {EVENT_TYPE_FILTERS.map((filter, i) => (
-          <button
-            key={filter.label}
-            onClick={() => setFilterIndex(i)}
-            className={`px-3 py-1 rounded-full text-sm transition-colors ${
-              filterIndex === i
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-            }`}
-          >
-            {filter.label}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap gap-2">
+          {EVENT_TYPE_FILTERS.map((filter, i) => (
+            <button
+              key={filter.label}
+              onClick={() => setFilterIndex(i)}
+              className={`px-3 py-1 rounded-full text-sm transition-colors ${
+                filterIndex === i
+                  ? 'bg-blue-500 text-white'
+                  : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+              }`}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+        <button
+          type="button"
+          onClick={handleJumpToCurrentDay}
+          disabled={!hasCurrentDayEvents}
+          className={`px-3 py-1 rounded-full text-sm transition-colors ${
+            hasCurrentDayEvents
+              ? 'bg-gray-700 text-gray-200 hover:bg-gray-600'
+              : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+          }`}
+        >
+          Jump to current day
+        </button>
       </div>
 
       {/* Event list by day */}
@@ -93,7 +117,12 @@ export function EventFeed({ events, maxDay }: EventFeedProps) {
         {Object.entries(eventsByDay)
           .sort(([a], [b]) => Number(b) - Number(a))
           .map(([day, dayEvents]) => (
-            <div key={day}>
+            <div
+              key={day}
+              ref={node => {
+                daySectionRefs.current[Number(day)] = node;
+              }}
+            >
               <h3 className="text-sm font-medium text-gray-400 mb-2 sticky top-0 bg-gray-900 py-1">
                 Day {day}
               </h3>
@@ -102,21 +131,26 @@ export function EventFeed({ events, maxDay }: EventFeedProps) {
                 <div className="space-y-2">
                   {dayEvents.map((event, index) => {
                     const info = getEventInfo(event.type);
-                    const isExpanded = expandedEvent === event.id;
+                    const eventKey = event.id ?? `${event.type}-${index}`;
+                    const isExpanded = expandedEvent === eventKey;
                     const isCurrent = event.day === currentDay && normalizePhase(event.phase) === currentPhase;
+                    const narrativeId = event.narrative ? `event-narrative-${eventKey}` : undefined;
 
                     return (
-                      <motion.div
-                        key={event.id ?? `${event.type}-${index}`}
+                      <motion.button
+                        key={eventKey}
                         layout
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 20 }}
                         transition={{ delay: index * 0.02 }}
-                        className={`bg-gray-800 rounded-lg p-3 cursor-pointer transition-colors ${
+                        type="button"
+                        className={`w-full text-left bg-gray-800 rounded-lg p-3 cursor-pointer transition-colors ${
                           isCurrent ? 'ring-1 ring-blue-400' : 'hover:bg-gray-750'
                         }`}
-                        onClick={() => handleEventClick(event)}
+                        onClick={() => handleEventClick(event, eventKey)}
+                        aria-expanded={event.narrative ? isExpanded : undefined}
+                        aria-controls={narrativeId}
                       >
                         <div className="flex items-start gap-3">
                           {/* Event icon */}
@@ -151,6 +185,7 @@ export function EventFeed({ events, maxDay }: EventFeedProps) {
                                   initial={{ height: 0, opacity: 0 }}
                                   animate={{ height: 'auto', opacity: 1 }}
                                   exit={{ height: 0, opacity: 0 }}
+                                  id={narrativeId}
                                   className="text-sm text-gray-300 mt-2 italic"
                                 >
                                   "{event.narrative}"
@@ -169,7 +204,7 @@ export function EventFeed({ events, maxDay }: EventFeedProps) {
                             </motion.div>
                           )}
                         </div>
-                      </motion.div>
+                      </motion.button>
                     );
                   })}
                 </div>
