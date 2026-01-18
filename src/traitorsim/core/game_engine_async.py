@@ -1316,7 +1316,11 @@ class GameEngineAsync:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             output_path = reports_dir / f"game_{timestamp}.json"
         else:
-            output_path = Path(output_path)
+            reports_dir = Path("data/reports").resolve()
+            safe_output_path = reports_dir.joinpath(output_path).resolve()
+            if not str(safe_output_path).startswith(str(reports_dir)):
+                raise ValueError("Invalid output path: Path traversal detected.")
+            output_path = safe_output_path
             output_path.parent.mkdir(parents=True, exist_ok=True)
 
         game_data = self.game_state.to_export_dict()
