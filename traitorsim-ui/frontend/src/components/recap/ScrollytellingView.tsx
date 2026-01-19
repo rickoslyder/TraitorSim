@@ -11,9 +11,11 @@
 
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { motion, useScroll, useTransform } from 'framer-motion';
-import { Player, GameEvent, getArchetypeColor } from '../../types';
+import type { Player } from '../../types/player';
+import type { GameEvent } from '../../types/events';
+import { getArchetypeColor } from '../../types/player';
 import { DayRecap } from './DayRecap';
-import { usePOVVisibility } from '../../hooks';
+import { usePOVVisibility } from '../../hooks/usePOVVisibility';
 
 interface ScrollytellingViewProps {
   players: Record<string, Player>;
@@ -42,7 +44,7 @@ function ProgressSidebar({
           <button
             key={day}
             onClick={() => onDayClick(day)}
-            className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-all ${
+            className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium transition-colors transition-transform ${
               day === currentDay
                 ? 'bg-blue-600 text-white scale-110 shadow-lg'
                 : day < currentDay
@@ -130,7 +132,7 @@ function GameConclusion({
       >
         <p className="text-gray-400 mb-2">Prize Pot</p>
         <p className="text-4xl font-bold text-yellow-400">
-          £{prizePot.toLocaleString()}
+          £{new Intl.NumberFormat().format(prizePot)}
         </p>
       </motion.div>
 
@@ -327,7 +329,7 @@ export function ScrollytellingView({
             Ardross Castle, Scottish Highlands
           </p>
           <p className="text-lg text-gray-500">
-            {Object.keys(players).length} players • {totalDays} days • £{prizePot.toLocaleString()} prize
+            {Object.keys(players).length} players • {totalDays} days • £{new Intl.NumberFormat().format(prizePot)} prize
           </p>
 
           <div className="mt-8 flex justify-center gap-6 text-sm text-gray-500">
@@ -345,7 +347,7 @@ export function ScrollytellingView({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1 }}
-            className="mt-12 text-gray-600"
+            className="mt-12 text-gray-600 transition-opacity"
           >
             Scroll to begin the journey ↓
           </motion.div>

@@ -8,16 +8,20 @@
  * - Suspicion indicators
  */
 
-import { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Player, GameEvent, getArchetypeColor, getAverageSuspicion, TrustMatrix } from '../../types';
+import type { Player } from '../../types/player';
+import type { GameEvent } from '../../types/events';
+import type { TrustMatrix } from '../../types/trust';
+import { getArchetypeColor } from '../../types/player';
+import { getAverageSuspicion } from '../../types/trust';
 import {
   calculateBehavioralStats,
   classifyPlayerType,
   getPlayerTypeColor,
   BehavioralStats,
 } from '../../utils/behavioralStats';
-import { usePOVVisibility } from '../../hooks';
+import { usePOVVisibility } from '../../hooks/usePOVVisibility';
 
 interface PlayerCardProps {
   player: Player;
@@ -320,13 +324,14 @@ export function PlayerCard({
   );
 
   return (
-    <motion.div
+    <motion.button
       className={`player-card cursor-pointer ${
         !player.alive ? 'eliminated' : ''
       } ${isSelected ? 'selected' : ''} ${
         isRevealedTraitor ? 'ring-1 ring-red-500/50' : ''
       }`}
       onClick={onClick}
+      aria-label={`View details for ${player.name}, ${player.archetype_name || 'Unknown archetype'}, ${player.alive ? 'alive' : 'eliminated'}`}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
       layout
@@ -391,18 +396,18 @@ export function PlayerCard({
         <div className="flex gap-1 mt-2">
           {(player.has_shield || behavioralStats?.hadShield) && (
             <span className="text-xs bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded" title="Has/Had Shield">
-              🛡️
+              <span aria-hidden="true">🛡️</span>
             </span>
           )}
           {(player.has_dagger || behavioralStats?.hadDagger) && (
             <span className="text-xs bg-red-500/20 text-red-400 px-1.5 py-0.5 rounded" title="Has/Had Dagger">
-              🗡️
+              <span aria-hidden="true">🗡️</span>
             </span>
           )}
         </div>
       )}
-    </motion.div>
+    </motion.button>
   );
 }
 
-export default PlayerCard;
+export default React.memo(PlayerCard);

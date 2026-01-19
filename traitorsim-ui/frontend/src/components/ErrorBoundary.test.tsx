@@ -117,13 +117,13 @@ describe('LoadingFallback', () => {
   it('should render default loading message', () => {
     render(<LoadingFallback />);
 
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    expect(screen.getByText('Loading…')).toBeInTheDocument();
   });
 
   it('should render custom message', () => {
-    render(<LoadingFallback message="Fetching data..." />);
+    render(<LoadingFallback message="Fetching data…" />);
 
-    expect(screen.getByText('Fetching data...')).toBeInTheDocument();
+    expect(screen.getByText('Fetching data…')).toBeInTheDocument();
   });
 
   it('should show spinner', () => {

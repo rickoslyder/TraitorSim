@@ -133,7 +133,7 @@ interface LoadingFallbackProps {
   message?: string;
 }
 
-export function LoadingFallback({ message = 'Loading...' }: LoadingFallbackProps) {
+export function LoadingFallback({ message = 'Loading…' }: LoadingFallbackProps) {
   return (
     <div className="flex flex-col items-center justify-center p-6">
       <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-500 border-t-blue-500 mb-3" />

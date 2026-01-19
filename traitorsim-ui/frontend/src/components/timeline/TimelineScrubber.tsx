@@ -11,11 +11,13 @@
 
 import { useCallback, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Phase, GameEvent, normalizePhase, EventType } from '../../types';
+import type { Phase } from '../../types/game';
+import type { GameEvent, EventType } from '../../types/events';
+import { normalizePhase } from '../../types/game';
 import { useGameStore } from '../../stores/gameStore';
 
 // ============================================================================
-// Constants
+// Constants (hoisted outside component for performance)
 // ============================================================================
 
 const PHASES: { id: Phase; label: string; icon: string; color: string }[] = [
@@ -106,6 +108,7 @@ function EventMarker({
         e.stopPropagation();
         onClick();
       }}
+      aria-label={`Go to ${config.label} event on Day ${marker.day} ${marker.phase}`}
       title={`${config.label}: Day ${marker.day} ${marker.phase}`}
       whileHover={{ scale: 1.3 }}
       whileTap={{ scale: 0.9 }}
@@ -138,6 +141,7 @@ function DayMarker({
             ? 'bg-blue-500 text-white ring-2 ring-blue-400 ring-offset-2 ring-offset-gray-800'
             : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
         }`}
+        aria-label={`Go to Day ${day}`}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
       >
@@ -291,6 +295,7 @@ export function TimelineScrubber({ totalDays, events }: TimelineScrubberProps) {
                 ? `${phase.color} text-white`
                 : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
             }`}
+            aria-label={`Select ${phase.label} phase`}
           >
             <span>{phase.icon}</span>
             <span className="text-sm hidden sm:inline">{phase.label}</span>

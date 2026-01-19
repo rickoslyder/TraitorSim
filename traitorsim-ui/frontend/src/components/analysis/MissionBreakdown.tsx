@@ -12,11 +12,12 @@
  * - Mission participation patterns
  */
 
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Player, GameEvent } from '../../types';
+import type { Player } from '../../types/player';
+import type { GameEvent } from '../../types/events';
 import { useGameStore } from '../../stores/gameStore';
-import { usePOVVisibility } from '../../hooks';
+import { usePOVVisibility } from '../../hooks/usePOVVisibility';
 
 interface MissionBreakdownProps {
   players: Record<string, Player>;
@@ -210,6 +211,10 @@ function MissionCard({
           : 'bg-red-900/20 border-red-700 hover:bg-red-900/30'
       }`}
       onClick={onClick}
+      onKeyDown={(e) => onClick && e.key === 'Enter' && onClick()}
+      tabIndex={0}
+      role="button"
+      aria-label={`Mission ${mission.missionName} - ${mission.success ? 'Success' : 'Failed'}`}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
     >
@@ -225,7 +230,7 @@ function MissionCard({
 
       {mission.earnings > 0 && (
         <div className="text-sm text-green-400 mb-2">
-          +£{mission.earnings.toLocaleString()}
+          +£{new Intl.NumberFormat().format(mission.earnings)}
         </div>
       )}
 
@@ -299,6 +304,10 @@ function PlayerPerformanceRow({
         isHighlighted ? 'bg-blue-900/30' : 'hover:bg-gray-800'
       }`}
       onClick={onClick}
+      onKeyDown={(e) => e.key === 'Enter' && onClick()}
+      tabIndex={0}
+      role="button"
+      style={{ contentVisibility: 'auto', containIntrinsicSize: '0 48px' }}
     >
       <td className="py-2 px-3">
         <div className="flex items-center gap-2">
@@ -344,7 +353,7 @@ function PlayerPerformanceRow({
         )}
       </td>
       <td className="py-2 px-3 text-center text-green-400">
-        £{stat.totalEarnings.toLocaleString()}
+        £{new Intl.NumberFormat().format(stat.totalEarnings)}
       </td>
       <td className="py-2 px-3 text-center">
         {stat.shieldsWon > 0 && <span className="mr-1">🛡️×{stat.shieldsWon}</span>}
@@ -434,6 +443,7 @@ export function MissionBreakdown({ players, events }: MissionBreakdownProps) {
                   ? 'bg-blue-600 text-white'
                   : 'text-gray-400 hover:text-white'
               }`}
+              aria-label={`View missions ${option.label.toLowerCase()}`}
             >
               {option.label}
             </button>
@@ -458,7 +468,7 @@ export function MissionBreakdown({ players, events }: MissionBreakdownProps) {
         <div className="bg-gray-800 rounded-lg p-3">
           <div className="text-xs text-gray-400">Total Earnings</div>
           <div className="text-2xl font-bold text-green-400">
-            £{summary.totalEarnings.toLocaleString()}
+            £{new Intl.NumberFormat().format(summary.totalEarnings)}
           </div>
         </div>
         <div className="bg-gray-800 rounded-lg p-3">
@@ -548,4 +558,4 @@ export function MissionBreakdown({ players, events }: MissionBreakdownProps) {
   );
 }
 
-export default MissionBreakdown;
+export default React.memo(MissionBreakdown);

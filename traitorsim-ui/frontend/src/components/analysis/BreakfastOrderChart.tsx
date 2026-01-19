@@ -12,11 +12,12 @@
  * - Click to highlight player across all views
  */
 
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Player, GameEvent } from '../../types';
+import type { Player } from '../../types/player';
+import type { GameEvent } from '../../types/events';
 import { useGameStore } from '../../stores/gameStore';
-import { usePOVVisibility } from '../../hooks';
+import { usePOVVisibility } from '../../hooks/usePOVVisibility';
 
 interface BreakfastOrderChartProps {
   players: Record<string, Player>;
@@ -231,7 +232,11 @@ function PlayerBreakfastRow({
         isHighlighted ? 'bg-blue-900/30' : 'hover:bg-gray-800'
       }`}
       onClick={onClick}
+      onKeyDown={(e) => e.key === 'Enter' && onClick()}
+      tabIndex={0}
+      role="button"
       whileHover={{ backgroundColor: 'rgba(59, 130, 246, 0.1)' }}
+      style={{ contentVisibility: 'auto', containIntrinsicSize: '0 48px' }}
     >
       {/* Player name */}
       <td className="py-2 px-3">
@@ -378,6 +383,7 @@ export function BreakfastOrderChart({ players, events }: BreakfastOrderChartProp
                     key={s.playerId}
                     onClick={() => selectPlayer(s.playerId)}
                     className="text-sm text-white hover:text-red-300 transition-colors"
+                    aria-label={`Select ${s.playerName}`}
                   >
                     {s.playerName.split(' ')[0]}
                   </button>
@@ -405,6 +411,7 @@ export function BreakfastOrderChart({ players, events }: BreakfastOrderChartProp
                   ? 'bg-blue-600 text-white'
                   : 'text-gray-400 hover:text-white'
               }`}
+              aria-label={`Sort by ${option.label}`}
             >
               {option.label}
             </button>
@@ -473,4 +480,4 @@ export function BreakfastOrderChart({ players, events }: BreakfastOrderChartProp
   );
 }
 
-export default BreakfastOrderChart;
+export default React.memo(BreakfastOrderChart);

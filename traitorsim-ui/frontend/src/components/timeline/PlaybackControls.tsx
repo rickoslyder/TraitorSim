@@ -14,7 +14,7 @@
 import { useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGameStore, PHASES } from '../../stores/gameStore';
-import { usePlaybackTimer, useReducedMotion } from '../../hooks';
+import { usePlaybackTimer, useReducedMotion } from '../../hooks/useContainerSize';
 
 // ============================================================================
 // Types
@@ -26,6 +26,7 @@ interface PlaybackControlsProps {
 
 type PlaybackSpeed = 0.5 | 1 | 2 | 4;
 
+// Hoisted outside component for performance
 const SPEED_OPTIONS: { value: PlaybackSpeed; label: string }[] = [
   { value: 0.5, label: '0.5×' },
   { value: 1, label: '1×' },

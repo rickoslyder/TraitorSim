@@ -13,7 +13,7 @@
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore, ViewingMode } from '../../stores/gameStore';
-import { Player } from '../../types';
+import type { Player } from '../../types/player';
 
 interface POVSelectorProps {
   players?: Record<string, Player>;
@@ -85,6 +85,7 @@ export function POVSelector({ players = {}, compact = false }: POVSelectorProps)
           value={viewingMode}
           onChange={(e) => setViewingMode(e.target.value as ViewingMode)}
           className="px-3 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          aria-label="Select viewing perspective"
         >
           {Object.entries(MODE_CONFIG).map(([mode, config]) => (
             <option key={mode} value={mode}>
@@ -104,7 +105,7 @@ export function POVSelector({ players = {}, compact = false }: POVSelectorProps)
           <button
             key={mode}
             onClick={() => setViewingMode(mode as ViewingMode)}
-            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md transition-all ${
+            className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-md transition-colors ${
               viewingMode === mode
                 ? `${config.bgColor} text-white shadow-lg`
                 : 'text-gray-400 hover:text-white hover:bg-gray-700'
@@ -136,13 +137,15 @@ export function POVSelector({ players = {}, compact = false }: POVSelectorProps)
           exit={{ opacity: 0, height: 0 }}
           className="pt-2 border-t border-gray-700"
         >
-          <label className="text-xs text-gray-400 block mb-2">
+          <label htmlFor="pov-player-select" className="text-xs text-gray-400 block mb-2">
             View from perspective of:
           </label>
           <select
+            id="pov-player-select"
             value={povPlayerId || ''}
             onChange={(e) => setPovPlayer(e.target.value || null)}
             className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            aria-label="Select Faithful player perspective"
           >
             <option value="">Random Faithful</option>
             {faithfulPlayers.map((player) => (

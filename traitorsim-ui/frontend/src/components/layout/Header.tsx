@@ -78,7 +78,7 @@ export function Header({ onRefreshClick, isRefreshing = false }: HeaderProps) {
             </div>
             <div className="text-gray-400">
               Prize Pot: <span className="text-green-400 font-medium">
-                £{currentGame.prize_pot.toLocaleString()}
+                £{new Intl.NumberFormat().format(currentGame.prize_pot)}
               </span>
             </div>
             <div className="text-gray-400">
@@ -148,7 +148,7 @@ export function Header({ onRefreshClick, isRefreshing = false }: HeaderProps) {
             aria-label="Refresh game list"
           >
             <span className={isRefreshing ? 'animate-spin' : ''}>🔄</span>
-            <span className="hidden sm:inline">{isRefreshing ? 'Syncing...' : 'Refresh'}</span>
+            <span className="hidden sm:inline">{isRefreshing ? 'Syncing…' : 'Refresh'}</span>
           </button>
         </div>
       </div>

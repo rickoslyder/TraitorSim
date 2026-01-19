@@ -4,18 +4,23 @@
  * Uses TanStack Query for server state and Zustand for UI state.
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Header } from './components/layout/Header';
 import { Sidebar } from './components/layout/Sidebar';
 import { POVSelector } from './components/layout/POVSelector';
-import { TrustGraph } from './components/trust-network/TrustGraph';
 import { PlayerGrid } from './components/players/PlayerGrid';
-import { TimelineScrubber, PlaybackControls } from './components/timeline';
-import { VotingHeatmap, VoteFlow } from './components/voting';
 import { EventFeed } from './components/events/EventFeed';
-import { BreakfastOrderChart, MissionBreakdown } from './components/analysis';
-import { ScrollytellingView } from './components/recap';
+
+// Lazy-loaded visualization components
+const TrustGraph = lazy(() => import('./components/trust-network/TrustGraph').then(m => ({ default: m.TrustGraph })));
+const TimelineScrubber = lazy(() => import('./components/timeline/TimelineScrubber').then(m => ({ default: m.TimelineScrubber })));
+const PlaybackControls = lazy(() => import('./components/timeline/PlaybackControls').then(m => ({ default: m.PlaybackControls })));
+const VotingHeatmap = lazy(() => import('./components/voting/VotingHeatmap').then(m => ({ default: m.VotingHeatmap })));
+const VoteFlow = lazy(() => import('./components/voting/VoteFlow').then(m => ({ default: m.VoteFlow })));
+const BreakfastOrderChart = lazy(() => import('./components/analysis/BreakfastOrderChart').then(m => ({ default: m.BreakfastOrderChart })));
+const MissionBreakdown = lazy(() => import('./components/analysis/MissionBreakdown').then(m => ({ default: m.MissionBreakdown })));
+const ScrollytellingView = lazy(() => import('./components/recap/ScrollytellingView').then(m => ({ default: m.ScrollytellingView })));
 import {
   ErrorBoundary,
   QueryErrorFallback,
@@ -24,10 +29,19 @@ import {
 } from './components/ErrorBoundary';
 import { useGameStore } from './stores/gameStore';
 import { useGame, useRefreshGames } from './api/hooks';
-import type { TrustSnapshot } from './types';
+import type { TrustSnapshot } from './types/trust';
 
 type ViewTab = 'graph' | 'players' | 'voting' | 'events' | 'analysis' | 'story';
 type VotingView = 'heatmap' | 'flow';
+
+const TABS: { id: ViewTab; label: string; icon: string }[] = [
+  { id: 'graph', label: 'Trust Network', icon: '🕸️' },
+  { id: 'players', label: 'Players', icon: '👥' },
+  { id: 'voting', label: 'Voting', icon: '🗳️' },
+  { id: 'events', label: 'Events', icon: '📜' },
+  { id: 'analysis', label: 'Analysis', icon: '📊' },
+  { id: 'story', label: 'Story Mode', icon: '📖' },
+];
 
 function App() {
   // UI state from Zustand
@@ -66,15 +80,6 @@ function App() {
   const handleRefresh = () => {
     refreshMutation.mutate();
   };
-
-  const tabs: { id: ViewTab; label: string; icon: string }[] = [
-    { id: 'graph', label: 'Trust Network', icon: '🕸️' },
-    { id: 'players', label: 'Players', icon: '👥' },
-    { id: 'voting', label: 'Voting', icon: '🗳️' },
-    { id: 'events', label: 'Events', icon: '📜' },
-    { id: 'analysis', label: 'Analysis', icon: '📊' },
-    { id: 'story', label: 'Story Mode', icon: '📖' },
-  ];
 
   return (
     <ErrorBoundary>
@@ -121,11 +126,13 @@ function App() {
                 <div className="p-4 border-b border-gray-700 space-y-4">
                   <div className="flex flex-col lg:flex-row gap-4">
                     <div className="flex-1 space-y-4">
-                      <TimelineScrubber
-                        totalDays={currentGame.total_days}
-                        events={currentGame.events}
-                      />
-                      <PlaybackControls totalDays={currentGame.total_days} />
+                      <Suspense fallback={<div className="flex items-center justify-center h-24 text-gray-400">Loading timeline...</div>}>
+                        <TimelineScrubber
+                          totalDays={currentGame.total_days}
+                          events={currentGame.events}
+                        />
+                        <PlaybackControls totalDays={currentGame.total_days} />
+                      </Suspense>
                     </div>
                     {/* POV Selector - collapsible panel */}
                     <div className="lg:w-80 lg:border-l lg:border-gray-700 lg:pl-4">
@@ -142,7 +149,7 @@ function App() {
 
                 {/* Tab bar */}
                 <div className="flex border-b border-gray-700">
-                  {tabs.map(tab => (
+                  {TABS.map(tab => (
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
@@ -179,10 +186,12 @@ function App() {
                             />
                           }
                         >
-                          <TrustGraph
-                            players={currentGame.players}
-                            trustMatrix={currentTrustMatrix}
-                          />
+                          <Suspense fallback={<div className="flex items-center justify-center h-64 text-gray-400">Loading…</div>}>
+                            <TrustGraph
+                              players={currentGame.players}
+                              trustMatrix={currentTrustMatrix}
+                            />
+                          </Suspense>
                         </ErrorBoundary>
                       </motion.div>
                     )}
@@ -243,17 +252,19 @@ function App() {
                         {/* Voting content */}
                         <div className="flex-1 p-4 overflow-auto">
                           <ErrorBoundary>
-                            {votingView === 'heatmap' ? (
-                              <VotingHeatmap
-                                players={currentGame.players}
-                                events={currentGame.events}
-                              />
-                            ) : (
-                              <VoteFlow
-                                players={currentGame.players}
-                                events={currentGame.events}
-                              />
-                            )}
+                            <Suspense fallback={<div className="flex items-center justify-center h-64 text-gray-400">Loading…</div>}>
+                              {votingView === 'heatmap' ? (
+                                <VotingHeatmap
+                                  players={currentGame.players}
+                                  events={currentGame.events}
+                                />
+                              ) : (
+                                <VoteFlow
+                                  players={currentGame.players}
+                                  events={currentGame.events}
+                                />
+                              )}
+                            </Suspense>
                           </ErrorBoundary>
                         </div>
                       </motion.div>
@@ -295,18 +306,22 @@ function App() {
 
                             {/* Breakfast Order Analysis */}
                             <section className="bg-gray-800 rounded-xl p-6">
-                              <BreakfastOrderChart
-                                players={currentGame.players}
-                                events={currentGame.events}
-                              />
+                              <Suspense fallback={<div className="flex items-center justify-center h-64 text-gray-400">Loading…</div>}>
+                                <BreakfastOrderChart
+                                  players={currentGame.players}
+                                  events={currentGame.events}
+                                />
+                              </Suspense>
                             </section>
 
                             {/* Mission Performance Analysis */}
                             <section className="bg-gray-800 rounded-xl p-6">
-                              <MissionBreakdown
-                                players={currentGame.players}
-                                events={currentGame.events}
-                              />
+                              <Suspense fallback={<div className="flex items-center justify-center h-64 text-gray-400">Loading…</div>}>
+                                <MissionBreakdown
+                                  players={currentGame.players}
+                                  events={currentGame.events}
+                                />
+                              </Suspense>
                             </section>
                           </div>
                         </ErrorBoundary>
@@ -322,13 +337,15 @@ function App() {
                         className="h-full overflow-y-auto"
                       >
                         <ErrorBoundary>
-                          <ScrollytellingView
-                            players={currentGame.players}
-                            events={currentGame.events}
-                            totalDays={currentGame.total_days}
-                            prizePot={currentGame.prize_pot}
-                            winner={currentGame.winner === 'FAITHFUL' || currentGame.winner === 'TRAITORS' ? currentGame.winner : undefined}
-                          />
+                          <Suspense fallback={<div className="flex items-center justify-center h-64 text-gray-400">Loading…</div>}>
+                            <ScrollytellingView
+                              players={currentGame.players}
+                              events={currentGame.events}
+                              totalDays={currentGame.total_days}
+                              prizePot={currentGame.prize_pot}
+                              winner={currentGame.winner === 'FAITHFUL' || currentGame.winner === 'TRAITORS' ? currentGame.winner : undefined}
+                            />
+                          </Suspense>
                         </ErrorBoundary>
                       </motion.div>
                     )}

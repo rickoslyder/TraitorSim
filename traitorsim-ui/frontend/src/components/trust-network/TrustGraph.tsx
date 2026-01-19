@@ -11,9 +11,13 @@
 
 import React, { useRef, useEffect, useCallback, useMemo, useState } from 'react';
 import ForceGraph2D, { ForceGraphMethods } from 'react-force-graph-2d';
-import { Player, TrustMatrix, matrixToEdges, getSuspicionColor, getArchetypeColor, interpolateTrust } from '../../types';
+import type { Player } from '../../types/player';
+import type { TrustMatrix } from '../../types/trust';
+import { matrixToEdges, getSuspicionColor, interpolateTrust } from '../../types/trust';
+import { getArchetypeColor } from '../../types/player';
 import { useGameStore } from '../../stores/gameStore';
-import { useContainerSize, useReducedMotion, useTrustAnimation, usePOVVisibility } from '../../hooks';
+import { useContainerSize, useReducedMotion, useTrustAnimation } from '../../hooks/useContainerSize';
+import { usePOVVisibility } from '../../hooks/usePOVVisibility';
 
 interface TrustGraphProps {
   players: Record<string, Player>;
@@ -325,10 +329,43 @@ export function TrustGraph({ players, trustMatrix, width, height }: TrustGraphPr
     setHoveredPlayer(null);
   }, [setHoveredPlayer]);
 
-  if (graphData.nodes.length === 0) {
+  // Loading skeleton while data is being prepared
+  const isLoading = Object.keys(players).length > 0 && graphData.nodes.length === 0 && showEliminatedPlayers;
+
+  if (graphData.nodes.length === 0 && !isLoading) {
     return (
       <div ref={containerRef} className="trust-graph-container h-full flex items-center justify-center text-gray-400">
         No players to display
+      </div>
+    );
+  }
+
+  if (isLoading || (graphWidth === 0 && graphHeight === 0)) {
+    return (
+      <div ref={containerRef} className="trust-graph-container h-full flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          {/* Skeleton loading animation */}
+          <div className="relative w-48 h-48">
+            {/* Animated circles representing nodes */}
+            {[0, 1, 2, 3, 4, 5].map((i) => (
+              <div
+                key={i}
+                className="absolute w-8 h-8 rounded-full bg-gray-700 animate-pulse"
+                style={{
+                  left: `${50 + 35 * Math.cos((i * Math.PI * 2) / 6)}%`,
+                  top: `${50 + 35 * Math.sin((i * Math.PI * 2) / 6)}%`,
+                  transform: 'translate(-50%, -50%)',
+                  animationDelay: `${i * 100}ms`,
+                }}
+              />
+            ))}
+            {/* Center node */}
+            <div
+              className="absolute w-10 h-10 rounded-full bg-gray-600 animate-pulse left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2"
+            />
+          </div>
+          <span className="text-gray-400 text-sm">Loading trust network...</span>
+        </div>
       </div>
     );
   }
@@ -363,4 +400,4 @@ export function TrustGraph({ players, trustMatrix, width, height }: TrustGraphPr
   );
 }
 
-export default TrustGraph;
+export default React.memo(TrustGraph);

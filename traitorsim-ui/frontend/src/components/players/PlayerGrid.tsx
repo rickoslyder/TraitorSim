@@ -4,7 +4,9 @@
 
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Player, TrustMatrix, GameEvent } from '../../types';
+import type { Player } from '../../types/player';
+import type { TrustMatrix } from '../../types/trust';
+import type { GameEvent } from '../../types/events';
 import { PlayerCard } from './PlayerCard';
 import { PlayerDetailModal } from './PlayerDetailModal';
 import { useGameStore } from '../../stores/gameStore';
@@ -168,6 +170,10 @@ export function PlayerGrid({ players, trustMatrix, events = [] }: PlayerGridProp
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ duration: 0.2 }}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => e.key === 'Enter' && handlePlayerClick(player)}
+                aria-label={`View details for ${player.name}`}
               >
                 <PlayerCard
                   player={player}

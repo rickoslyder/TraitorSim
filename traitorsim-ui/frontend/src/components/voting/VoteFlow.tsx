@@ -8,7 +8,9 @@
 import { useMemo, useState } from 'react';
 import { ResponsiveSankey } from '@nivo/sankey';
 import { motion } from 'framer-motion';
-import { Player, GameEvent, getArchetypeColor } from '../../types';
+import type { Player } from '../../types/player';
+import type { GameEvent } from '../../types/events';
+import { getArchetypeColor } from '../../types/player';
 import { useGameStore } from '../../stores/gameStore';
 
 interface VoteFlowProps {

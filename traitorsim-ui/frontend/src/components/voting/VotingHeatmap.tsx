@@ -4,7 +4,8 @@
 
 import { useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Player, GameEvent } from '../../types';
+import type { Player } from '../../types/player';
+import type { GameEvent } from '../../types/events';
 import { useGameStore } from '../../stores/gameStore';
 
 interface VotingHeatmapProps {
@@ -68,7 +69,7 @@ export function VotingHeatmap({ players, events, maxDay }: VotingHeatmapProps) {
   }
 
   return (
-    <div className="overflow-auto">
+    <div className="overflow-auto" style={{ willChange: 'transform' }}>
       <table className="border-collapse text-xs">
         <thead>
           <tr>
@@ -78,33 +79,43 @@ export function VotingHeatmap({ players, events, maxDay }: VotingHeatmapProps) {
             {playerList.map(player => (
               <th
                 key={player.id}
-                className={`p-2 text-center cursor-pointer transition-colors ${
-                  selectedPlayerId === player.id
-                    ? 'bg-blue-900'
-                    : 'hover:bg-gray-700'
-                } ${!player.alive ? 'text-gray-500' : 'text-gray-300'}`}
-                onClick={() => selectPlayer(player.id)}
-                title={player.name}
+                className={`p-2 text-center ${!player.alive ? 'text-gray-500' : 'text-gray-300'}`}
               >
-                <div className="w-16 truncate transform -rotate-45 origin-left translate-x-4">
-                  {player.name.split(' ')[0]}
-                </div>
+                <button
+                  onClick={() => selectPlayer(player.id)}
+                  className={`w-full transition-colors ${
+                    selectedPlayerId === player.id
+                      ? 'bg-blue-900'
+                      : 'hover:bg-gray-700'
+                  }`}
+                  aria-label={`Select ${player.name} as target filter`}
+                  title={player.name}
+                >
+                  <div className="w-16 truncate transform -rotate-45 origin-left translate-x-4">
+                    {player.name.split(' ')[0]}
+                  </div>
+                </button>
               </th>
             ))}
           </tr>
         </thead>
         <tbody>
           {playerList.map(voter => (
-            <tr key={voter.id}>
+            <tr key={voter.id} style={{ contentVisibility: 'auto', containIntrinsicSize: '0 32px' }}>
               <td
-                className={`sticky left-0 z-10 bg-gray-900 p-2 cursor-pointer transition-colors ${
-                  selectedPlayerId === voter.id
-                    ? 'bg-blue-900'
-                    : 'hover:bg-gray-700'
-                } ${!voter.alive ? 'text-gray-500' : 'text-gray-300'}`}
-                onClick={() => selectPlayer(voter.id)}
+                className={`sticky left-0 z-10 bg-gray-900 p-2 ${!voter.alive ? 'text-gray-500' : 'text-gray-300'}`}
               >
-                {voter.name}
+                <button
+                  onClick={() => selectPlayer(voter.id)}
+                  className={`w-full text-left transition-colors ${
+                    selectedPlayerId === voter.id
+                      ? 'bg-blue-900'
+                      : 'hover:bg-gray-700'
+                  }`}
+                  aria-label={`Select ${voter.name} as voter filter`}
+                >
+                  {voter.name}
+                </button>
               </td>
               {playerList.map(target => {
                 const count = voteMatrix[voter.id]?.[target.id] || 0;

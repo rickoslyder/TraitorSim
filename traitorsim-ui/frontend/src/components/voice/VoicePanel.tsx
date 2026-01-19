@@ -12,11 +12,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   useAudioCapture,
-  useAudioPlayback,
-  useVoiceWebSocket,
   float32ToInt16,
   int16ToArrayBuffer,
-} from '../../hooks';
+} from '../../hooks/useAudioCapture';
+import { useAudioPlayback } from '../../hooks/useAudioPlayback';
+import { useVoiceWebSocket } from '../../hooks/useVoiceWebSocket';
 import SpeakerIndicator from './SpeakerIndicator';
 import TranscriptDisplay from './TranscriptDisplay';
 import type { TranscriptMessage } from '../../hooks/useVoiceWebSocket';
@@ -213,7 +213,7 @@ export function VoicePanel({
   // Status text
   const statusText = {
     disconnected: 'Disconnected',
-    connecting: 'Connecting...',
+    connecting: 'Connecting…',
     connected: 'Connected',
     error: wsState.error || 'Connection error',
   }[wsState.status];
@@ -309,7 +309,7 @@ export function VoicePanel({
             disabled={!isConnected}
             whileHover={{ scale: isConnected ? 1.1 : 1 }}
             whileTap={{ scale: isConnected ? 0.9 : 1 }}
-            className={`relative w-16 h-16 rounded-full flex items-center justify-center transition-all ${
+            className={`relative w-16 h-16 rounded-full flex items-center justify-center transition-colors transition-transform ${
               !isConnected
                 ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
                 : isMuted

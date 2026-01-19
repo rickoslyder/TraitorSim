@@ -4,9 +4,11 @@
 
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GameEvent, EventType, getEventInfo, normalizePhase } from '../../types';
+import type { GameEvent, EventType } from '../../types/events';
+import { getEventInfo } from '../../types/events';
+import { normalizePhase } from '../../types/game';
 import { useGameStore } from '../../stores/gameStore';
-import { usePOVVisibility } from '../../hooks';
+import { usePOVVisibility } from '../../hooks/usePOVVisibility';
 
 interface EventFeedProps {
   events: GameEvent[];
@@ -82,6 +84,7 @@ export function EventFeed({ events, maxDay }: EventFeedProps) {
                 ? 'bg-blue-500 text-white'
                 : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
             }`}
+            aria-label={`Filter by ${filter.label}`}
           >
             {filter.label}
           </button>
@@ -89,7 +92,7 @@ export function EventFeed({ events, maxDay }: EventFeedProps) {
       </div>
 
       {/* Event list by day */}
-      <div className="space-y-6 max-h-[600px] overflow-y-auto pr-2">
+      <div className="space-y-6 max-h-[600px] overflow-y-auto pr-2" style={{ willChange: 'transform' }}>
         {Object.entries(eventsByDay)
           .sort(([a], [b]) => Number(b) - Number(a))
           .map(([day, dayEvents]) => (
@@ -106,17 +109,19 @@ export function EventFeed({ events, maxDay }: EventFeedProps) {
                     const isCurrent = event.day === currentDay && normalizePhase(event.phase) === currentPhase;
 
                     return (
-                      <motion.div
+                      <motion.button
                         key={event.id ?? `${event.type}-${index}`}
                         layout
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: 20 }}
                         transition={{ delay: index * 0.02 }}
-                        className={`bg-gray-800 rounded-lg p-3 cursor-pointer transition-colors ${
+                        className={`w-full text-left bg-gray-800 rounded-lg p-3 cursor-pointer transition-colors ${
                           isCurrent ? 'ring-1 ring-blue-400' : 'hover:bg-gray-750'
                         }`}
                         onClick={() => handleEventClick(event)}
+                        aria-label={`${info.label} event on Day ${event.day} during ${event.phase} phase${event.actor ? ` involving ${event.actor}` : ''}${event.target ? ` and ${event.target}` : ''}`}
+                        style={{ contentVisibility: 'auto', containIntrinsicSize: '0 60px' }}
                       >
                         <div className="flex items-start gap-3">
                           {/* Event icon */}
@@ -169,7 +174,7 @@ export function EventFeed({ events, maxDay }: EventFeedProps) {
                             </motion.div>
                           )}
                         </div>
-                      </motion.div>
+                      </motion.button>
                     );
                   })}
                 </div>

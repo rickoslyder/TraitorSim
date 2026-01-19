@@ -10,6 +10,45 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color-scheme: dark light;
+}
+
+/* Emoji font fallback for cross-platform rendering */
+.emoji,
+[role="img"],
+span:has(> img[alt]) {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", "Android Emoji", "EmojiOne Color", sans-serif;
+}
+
+/* Global emoji rendering */
+body {
+  font-family: Inter, system-ui, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
+
+/* Focus states for accessibility */
+*:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Focus ring for buttons and interactive elements */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible,
+[role="tab"]:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Remove default outline but keep focus-visible */
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible) {
+  outline: none;
 }
 
 /* Custom scrollbar - dark theme */
@@ -114,7 +153,7 @@
 
 /* Player card styles */
 .player-card {
-  @apply bg-gray-800 rounded-lg p-4 transition-all duration-200;
+  @apply bg-gray-800 rounded-lg p-4 transition-colors transition-transform duration-200;
 }
 
 .player-card:hover {
@@ -168,3 +207,30 @@
 .event-shield { @apply bg-yellow-500; }
 .event-seer { @apply bg-cyan-500; }
 .event-mission { @apply bg-green-500; }
+
+/* Reduced motion support for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Touch optimization for mobile devices */
+button, [role="button"], a, input, select, textarea {
+  touch-action: manipulation;
+}
+
+/* Overscroll behavior for scrollable containers */
+.overflow-y-auto, .overflow-auto, [class*="overflow-y-"] {
+  overscroll-behavior: contain;
+}
+
+/* Safe area inset support for mobile devices */
+.safe-area-padding {
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+  padding-top: max(0.75rem, env(safe-area-inset-top));
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}

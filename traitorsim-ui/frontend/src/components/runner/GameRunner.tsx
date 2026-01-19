@@ -184,6 +184,7 @@ export function GameRunner({ isOpen, onClose }: GameRunnerProps) {
           exit={{ opacity: 0 }}
           className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
           onClick={onClose}
+          onKeyDown={(e) => e.key === 'Escape' && onClose()}
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
@@ -207,7 +208,7 @@ export function GameRunner({ isOpen, onClose }: GameRunnerProps) {
               <button
                 onClick={onClose}
                 className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
-                aria-label="Close"
+                aria-label="Close modal"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -268,7 +269,7 @@ export function GameRunner({ isOpen, onClose }: GameRunnerProps) {
                     {/* Prize pot */}
                     {runStatus.prize_pot > 0 && (
                       <div className="text-sm text-yellow-400">
-                        💰 £{runStatus.prize_pot.toLocaleString()}
+                        💰 £{new Intl.NumberFormat().format(runStatus.prize_pot)}
                       </div>
                     )}
                   </>
@@ -391,7 +392,7 @@ export function GameRunner({ isOpen, onClose }: GameRunnerProps) {
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         />
                       </svg>
-                      Starting...
+                      Starting…
                     </>
                   ) : (
                     <>
@@ -424,7 +425,7 @@ export function GameRunner({ isOpen, onClose }: GameRunnerProps) {
                           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                         />
                       </svg>
-                      Stopping...
+                      Stopping…
                     </>
                   ) : (
                     <>
@@ -438,6 +439,7 @@ export function GameRunner({ isOpen, onClose }: GameRunnerProps) {
               <button
                 onClick={handleClearLogs}
                 className="px-4 py-2.5 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors"
+                aria-label="Clear log output"
               >
                 Clear Logs
               </button>

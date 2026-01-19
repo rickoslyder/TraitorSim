@@ -11,9 +11,14 @@
 
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Player, TrustMatrix, GameEvent, getArchetypeColor, getSuspicionColor, normalizePhase } from '../../types';
+import type { Player } from '../../types/player';
+import type { TrustMatrix } from '../../types/trust';
+import type { GameEvent } from '../../types/events';
+import { getArchetypeColor } from '../../types/player';
+import { getSuspicionColor } from '../../types/trust';
+import { normalizePhase } from '../../types/game';
 import { useGameStore } from '../../stores/gameStore';
-import { useReducedMotion } from '../../hooks';
+import { useReducedMotion } from '../../hooks/useContainerSize';
 
 interface PlayerDetailModalProps {
   player: Player;

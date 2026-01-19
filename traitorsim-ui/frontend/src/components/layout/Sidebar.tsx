@@ -82,6 +82,7 @@ export function Sidebar() {
           }`}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
+          aria-label="Open game runner"
         >
           {runStatus?.running ? (
             <>
@@ -128,6 +129,7 @@ export function Sidebar() {
                 }`}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.99 }}
+                aria-label={`Select game: ${game.name}`}
               >
                 <div className="font-medium text-sm truncate">{game.name}</div>
                 <div className="flex items-center gap-2 mt-1 text-xs opacity-75">

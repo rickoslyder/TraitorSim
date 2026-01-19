@@ -10,8 +10,11 @@
 
 import { useMemo, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Player, GameEvent, getArchetypeColor, normalizePhase } from '../../types';
-import { usePOVVisibility } from '../../hooks';
+import type { Player } from '../../types/player';
+import type { GameEvent } from '../../types/events';
+import { getArchetypeColor } from '../../types/player';
+import { normalizePhase } from '../../types/game';
+import { usePOVVisibility } from '../../hooks/usePOVVisibility';
 import { useGameStore } from '../../stores/gameStore';
 
 interface DayRecapProps {

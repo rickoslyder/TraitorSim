@@ -20,10 +20,6 @@ export function useContainerSize(ref: RefObject<HTMLElement>): Size {
 
     const element = ref.current;
 
-    // Initial size
-    const rect = element.getBoundingClientRect();
-    setSize({ width: rect.width, height: rect.height });
-
     // Create observer
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
@@ -45,10 +41,10 @@ export function useContainerSize(ref: RefObject<HTMLElement>): Size {
  * useWindowSize - Track window dimensions
  */
 export function useWindowSize(): Size {
-  const [size, setSize] = useState<Size>({
-    width: window.innerWidth,
-    height: window.innerHeight,
-  });
+  const [size, setSize] = useState<Size>(() => ({
+    width: typeof window !== 'undefined' ? window.innerWidth : 0,
+    height: typeof window !== 'undefined' ? window.innerHeight : 0,
+  }));
 
   useEffect(() => {
     const handleResize = () => {
