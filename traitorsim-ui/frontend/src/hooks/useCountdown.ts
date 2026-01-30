@@ -1,48 +1,93 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 
 export interface UseCountdownOptions {
-  initialSeconds: number;
-  onComplete?: () => void;
+  warningThreshold?: number;
+  criticalThreshold?: number;
+  onExpire?: () => void;
 }
 
 export interface UseCountdownReturn {
   seconds: number;
-  isRunning: boolean;
+  formatted: string;
+  percentage: number;
+  urgency: 'normal' | 'warning' | 'critical';
+  isActive: boolean;
+  isExpired: boolean;
   start: () => void;
   pause: () => void;
   reset: () => void;
 }
 
-export function useCountdown({
-  initialSeconds,
-  onComplete,
-}: UseCountdownOptions): UseCountdownReturn {
-  const [seconds, setSeconds] = useState(initialSeconds);
-  const [isRunning, setIsRunning] = useState(false);
+export function useCountdown(
+  deadline: string | null,
+  totalSeconds: number,
+  options: UseCountdownOptions = {}
+): UseCountdownReturn {
+  const { warningThreshold = 30, criticalThreshold = 10, onExpire } = options;
+
+  const calculateSeconds = useCallback(() => {
+    if (!deadline) return totalSeconds;
+    const remaining = Math.floor((new Date(deadline).getTime() - Date.now()) / 1000);
+    return Math.max(0, remaining);
+  }, [deadline, totalSeconds]);
+
+  const [seconds, setSeconds] = useState(calculateSeconds);
+  const [isActive, setIsActive] = useState(!!deadline);
 
   useEffect(() => {
-    if (!isRunning || seconds <= 0) return;
+    if (!deadline) {
+      setIsActive(false);
+      return;
+    }
+    setIsActive(true);
+    setSeconds(calculateSeconds());
 
     const interval = setInterval(() => {
-      setSeconds((prev) => {
-        if (prev <= 1) {
-          setIsRunning(false);
-          onComplete?.();
-          return 0;
-        }
-        return prev - 1;
-      });
+      const remaining = calculateSeconds();
+      setSeconds(remaining);
+      if (remaining <= 0) {
+        setIsActive(false);
+        onExpire?.();
+      }
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [isRunning, seconds, onComplete]);
+  }, [deadline, calculateSeconds, onExpire]);
 
-  const start = useCallback(() => setIsRunning(true), []);
-  const pause = useCallback(() => setIsRunning(false), []);
+  const formatted = useMemo(() => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  }, [seconds]);
+
+  const percentage = useMemo(() => {
+    return Math.min(100, (seconds / totalSeconds) * 100);
+  }, [seconds, totalSeconds]);
+
+  const urgency: 'normal' | 'warning' | 'critical' = useMemo(() => {
+    if (seconds <= criticalThreshold) return 'critical';
+    if (seconds <= warningThreshold) return 'warning';
+    return 'normal';
+  }, [seconds, warningThreshold, criticalThreshold]);
+
+  const isExpired = seconds <= 0;
+
+  const start = useCallback(() => setIsActive(true), []);
+  const pause = useCallback(() => setIsActive(false), []);
   const reset = useCallback(() => {
-    setIsRunning(false);
-    setSeconds(initialSeconds);
-  }, [initialSeconds]);
+    setIsActive(false);
+    setSeconds(totalSeconds);
+  }, [totalSeconds]);
 
-  return { seconds, isRunning, start, pause, reset };
+  return {
+    seconds,
+    formatted,
+    percentage,
+    urgency,
+    isActive,
+    isExpired,
+    start,
+    pause,
+    reset,
+  };
 }

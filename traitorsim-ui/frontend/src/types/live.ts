@@ -22,8 +22,9 @@ export interface LiveGameState {
   my_player_id: string;
   my_role?: 'FAITHFUL' | 'TRAITOR';
   my_alive?: boolean;
-  fellow_traitors?: string[];
+  fellow_traitors?: Array<{ id: string; name: string; alive: boolean }>;
   prizePot: number;
+  prize_pot?: number; // For backward compatibility
   status: 'waiting' | 'in_progress' | 'completed';
   // For backward compatibility
   alive_count?: number;
@@ -58,6 +59,7 @@ export interface PlayerAction {
   target_player_id?: string;
   accept?: boolean;
   option_id?: string;
+  choice?: string;
 }
 
 export interface AvailableActions {
@@ -91,7 +93,7 @@ export interface ChatMessage {
   sender_name?: string;
   message: string;
   timestamp: number;
-  channel?: 'public' | 'traitors' | 'system';
+  channel?: 'public' | 'traitors' | 'traitor' | 'system';
 }
 
 export interface GameStateMessage {
