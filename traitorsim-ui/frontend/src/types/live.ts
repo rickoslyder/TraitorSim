@@ -1,4 +1,4 @@
-// Live game types
+// Live game types - matching the original UI components
 
 export interface LivePlayer {
   id: string;
@@ -6,6 +6,12 @@ export interface LivePlayer {
   role?: 'FAITHFUL' | 'TRAITOR';
   isAlive: boolean;
   hasShield: boolean;
+  hasDagger?: boolean;
+  is_human?: boolean;
+  // For backward compatibility with components using 'alive'
+  alive?: boolean;
+  has_shield?: boolean;
+  has_dagger?: boolean;
 }
 
 export interface LiveGameState {
@@ -13,24 +19,30 @@ export interface LiveGameState {
   day: number;
   phase: string;
   players: LivePlayer[];
+  my_player_id: string;
+  my_role?: 'FAITHFUL' | 'TRAITOR';
+  my_alive?: boolean;
+  fellow_traitors?: string[];
   prizePot: number;
   status: 'waiting' | 'in_progress' | 'completed';
+  // For backward compatibility
+  alive_count?: number;
 }
 
-export type DecisionType = 'VOTE' | 'MURDER' | 'RECRUIT' | 'MISSION' | 'SEER';
+export type DecisionType = 'vote' | 'murder' | 'recruit_target' | 'recruit_accept' | 'mission' | 'seer';
 
 export interface PendingDecision {
   id: string;
-  type: DecisionType;
+  decision_type: DecisionType;
   playerId: string;
   timeout: number;
-  context: DecisionContext;
-}
-
-export interface DecisionContext {
-  candidates?: string[];
-  missionOptions?: MissionOption[];
-  [key: string]: unknown;
+  timeout_seconds?: number;
+  deadline?: string;
+  context: {
+    available_targets?: LivePlayer[];
+    mission_options?: MissionOption[];
+    [key: string]: unknown;
+  };
 }
 
 export interface MissionOption {
@@ -39,11 +51,12 @@ export interface MissionOption {
   difficulty: number;
 }
 
-export type PlayerAction = 
-  | { type: 'VOTE'; targetId: string }
-  | { type: 'MURDER'; targetId: string }
-  | { type: 'RECRUIT'; accept: boolean }
-  | { type: 'MISSION'; optionId: string };
+export interface PlayerAction {
+  decision_type: string;
+  target_player_id?: string;
+  accept?: boolean;
+  option_id?: string;
+}
 
 export interface AvailableActions {
   canVote: boolean;
@@ -73,8 +86,10 @@ export type ServerMessageType =
 
 export interface ChatMessage {
   playerId: string;
+  sender_name?: string;
   message: string;
   timestamp: number;
+  channel?: 'public' | 'traitors' | 'system';
 }
 
 export interface GameStateMessage {

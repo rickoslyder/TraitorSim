@@ -1,83 +1,53 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-
-export interface GameState {
-  game_id: string;
-  day: number;
-  phase: string | null;
-  prize_pot: number;
-  players: Array<{
-    id: string;
-    name: string;
-    alive: boolean;
-    role?: string;
-  }>;
-  my_player: {
-    id: string;
-    name: string;
-    role: string | null;
-    alive: boolean;
-    has_shield: boolean;
-  };
-}
-
-export interface DecisionRequest {
-  decision_id: string;
-  decision_type: string;
-  context: Record<string, unknown>;
-  timeout_seconds: number;
-  deadline: string;
-}
-
-export interface GameEvent {
-  type: string;
-  event?: string;
-  data?: Record<string, unknown>;
-}
+import type { LiveGameState, PendingDecision, GameEvent, ChatMessage, PlayerAction } from '../types/live';
 
 export interface UseLiveGameWebSocketReturn {
-  connected: boolean;
-  gameState: GameState | null;
-  pendingDecision: DecisionRequest | null;
+  isConnected: boolean;
+  gameState: LiveGameState | null;
+  pendingDecision: PendingDecision | null;
   events: GameEvent[];
-  submitDecision: (decisionId: string, result: unknown) => void;
-  error: string | null;
+  chatMessages: ChatMessage[];
+  connectionError: string | null;
+  submitAction: (action: PlayerAction) => void;
+  sendChat: (message: string, channel?: string) => void;
+  reconnect: () => void;
 }
 
-export function useLiveGameWebSocket(
-  gameId: string | null,
-  token: string | null
-): UseLiveGameWebSocketReturn {
+export function useLiveGameWebSocket(gameId: string): UseLiveGameWebSocketReturn {
   const wsRef = useRef<WebSocket | null>(null);
-  const [connected, setConnected] = useState(false);
-  const [gameState, setGameState] = useState<GameState | null>(null);
-  const [pendingDecision, setPendingDecision] = useState<DecisionRequest | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [gameState, setGameState] = useState<LiveGameState | null>(null);
+  const [pendingDecision, setPendingDecision] = useState<PendingDecision | null>(null);
   const [events, setEvents] = useState<GameEvent[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!gameId || !token) {
+  const connect = useCallback(() => {
+    if (!gameId) return;
+
+    // Get token from URL or session storage
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token') || sessionStorage.getItem(`game_${gameId}_token`);
+
+    if (!token) {
+      setConnectionError('No session token found');
       return;
     }
 
-    // Build WebSocket URL
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host;
-    const wsUrl = `${protocol}//${host}/ws/game/${gameId}?token=${token}`;
+    const wsUrl = `${protocol}//${window.location.host}/ws/game/${gameId}?token=${token}`;
 
-    console.log('[WebSocket] Connecting to:', wsUrl);
     const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
     ws.onopen = () => {
-      console.log('[WebSocket] Connected');
-      setConnected(true);
-      setError(null);
+      setIsConnected(true);
+      setConnectionError(null);
     };
 
     ws.onmessage = (event) => {
       try {
         const message = JSON.parse(event.data);
-        console.log('[WebSocket] Received:', message);
 
         switch (message.type) {
           case 'game_state':
@@ -86,116 +56,93 @@ export function useLiveGameWebSocket(
 
           case 'decision_request':
             setPendingDecision({
-              decision_id: message.decision_id,
+              id: message.decision_id,
               decision_type: message.decision_type,
-              context: message.context,
+              playerId: '', // Will be filled from context
+              timeout: message.timeout_seconds,
               timeout_seconds: message.timeout_seconds,
               deadline: message.deadline,
+              context: message.context,
             });
             break;
 
           case 'decision_made':
-            // Clear pending decision if it matches
-            setPendingDecision((current) => {
-              if (current?.decision_id === message.decision_id) {
-                return null;
-              }
-              return current;
-            });
-            break;
-
-          case 'action_ack':
-            // Decision was acknowledged, clear it
-            setPendingDecision((current) => {
-              if (current?.decision_id === message.decision_id) {
-                return null;
-              }
-              return current;
-            });
+            setPendingDecision(null);
             break;
 
           case 'game_event':
-            setEvents((prev) => [...prev, message]);
-            // Also update game state if event contains state changes
-            if (message.event === 'phase_started' || message.event === 'phase_ended') {
-              // Request fresh state
-              ws.send(JSON.stringify({ type: 'get_state' }));
+            if (message.event) {
+              setEvents((prev) => [...prev, message.data]);
             }
             break;
 
-          case 'waiting':
-            console.log('[WebSocket] Waiting:', message.message);
-            break;
-
-          case 'pong':
-            // Heartbeat response
+          case 'chat':
+            if (message.message) {
+              setChatMessages((prev) => [...prev, message.message]);
+            }
             break;
 
           case 'error':
-            console.error('[WebSocket] Error:', message.error);
-            setError(message.error);
+            setConnectionError(message.error);
             break;
-
-          default:
-            console.log('[WebSocket] Unknown message type:', message.type);
         }
       } catch (err) {
-        console.error('[WebSocket] Failed to parse message:', err);
+        console.error('Failed to parse message:', err);
       }
     };
 
-    ws.onclose = (event) => {
-      console.log('[WebSocket] Disconnected:', event.code, event.reason);
-      setConnected(false);
-      if (event.code !== 1000 && event.code !== 1001) {
-        setError(`Connection closed: ${event.reason || 'Unknown error'}`);
-      }
+    ws.onclose = () => {
+      setIsConnected(false);
     };
 
-    ws.onerror = (err) => {
-      console.error('[WebSocket] Error:', err);
-      setError('WebSocket error occurred');
+    ws.onerror = () => {
+      setConnectionError('WebSocket error');
     };
+  }, [gameId]);
 
-    // Heartbeat to keep connection alive
-    const heartbeat = setInterval(() => {
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({ type: 'ping' }));
-      }
-    }, 30000);
-
+  useEffect(() => {
+    connect();
     return () => {
-      clearInterval(heartbeat);
-      if (ws.readyState === WebSocket.OPEN) {
-        ws.close(1000, 'Component unmounted');
-      }
+      wsRef.current?.close();
     };
-  }, [gameId, token]);
+  }, [connect]);
 
-  const submitDecision = useCallback((decisionId: string, result: unknown) => {
-    const ws = wsRef.current;
-    if (!ws || ws.readyState !== WebSocket.OPEN) {
-      console.error('[WebSocket] Cannot submit: not connected');
-      return;
-    }
+  const submitAction = useCallback((action: PlayerAction) => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
 
-    ws.send(
+    wsRef.current.send(
       JSON.stringify({
         type: 'action',
-        data: {
-          decision_id: decisionId,
-          result,
-        },
+        data: action,
       })
     );
   }, []);
 
+  const sendChat = useCallback((message: string, channel = 'public') => {
+    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) return;
+
+    wsRef.current.send(
+      JSON.stringify({
+        type: 'chat',
+        data: { message, channel },
+      })
+    );
+  }, []);
+
+  const reconnect = useCallback(() => {
+    wsRef.current?.close();
+    connect();
+  }, [connect]);
+
   return {
-    connected,
+    isConnected,
     gameState,
     pendingDecision,
     events,
-    submitDecision,
-    error,
+    chatMessages,
+    connectionError,
+    submitAction,
+    sendChat,
+    reconnect,
   };
 }

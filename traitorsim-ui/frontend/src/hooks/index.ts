@@ -52,12 +52,7 @@ export type {
 
 // Playable game hooks
 export { useLiveGameWebSocket } from './useLiveGameWebSocket';
-export type {
-  UseLiveGameWebSocketReturn,
-  GameState,
-  DecisionRequest,
-  GameEvent,
-} from './useLiveGameWebSocket';
+export type { UseLiveGameWebSocketReturn } from './useLiveGameWebSocket';
 
 // Legacy hooks (kept for compatibility)
 export { useCountdown } from './useCountdown';

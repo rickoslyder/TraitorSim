@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { LobbyCreator } from './LobbyCreator';
 import { LobbyJoiner } from './LobbyJoiner';
 import { LobbyView } from './LobbyView';
-import { LiveGame } from './LiveGame';
+import { LiveGameView } from '../game/LiveGameView';
 import './LobbyPage.css';
 
 type ViewState = 'menu' | 'create' | 'join' | 'lobby' | 'game';
@@ -75,11 +75,9 @@ export function LobbyPage() {
         />
       )}
 
-      {view === 'game' && gameId && token && playerId && (
-        <LiveGame
+      {view === 'game' && gameId && (
+        <LiveGameView
           gameId={gameId}
-          token={token}
-          playerId={playerId}
         />
       )}
     </div>
