@@ -58,3 +58,7 @@ export type {
   DecisionRequest,
   GameEvent,
 } from './useLiveGameWebSocket';
+
+// Legacy hooks (kept for compatibility)
+export { useCountdown } from './useCountdown';
+export type { UseCountdownReturn, UseCountdownOptions } from './useCountdown';
