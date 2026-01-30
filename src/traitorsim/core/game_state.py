@@ -33,6 +33,7 @@ class Player:
     has_dagger: bool = False
     has_seer: bool = False  # Seer power allows checking one player's true role
     was_recruited: bool = False  # True if converted from Faithful to Traitor
+    is_human: bool = False  # True if controlled by a human player
 
     # Big Five personality traits (0.0 to 1.0)
     personality: Dict[str, float] = field(default_factory=dict)

@@ -1,10 +1,6 @@
-/**
- * Lobby components for game creation and waiting room.
- */
-
+export { LobbyPage } from './LobbyPage';
+export { LobbyCreator } from './LobbyCreator';
+export { LobbyJoiner } from './LobbyJoiner';
 export { LobbyView } from './LobbyView';
-export { CreateGameModal } from './CreateGameModal';
-export { PlayerSlot } from './PlayerSlot';
-export { GameConfigPanel } from './GameConfigPanel';
-export { InviteLink } from './InviteLink';
-export { ReadyButton } from './ReadyButton';
+export { LiveGame } from './LiveGame';
+export { DecisionModal } from './DecisionModal';

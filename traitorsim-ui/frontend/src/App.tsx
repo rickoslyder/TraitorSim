@@ -30,7 +30,9 @@ import {
 import { useGameStore } from './stores/gameStore';
 import { useGame, useRefreshGames } from './api/hooks';
 import type { TrustSnapshot } from './types/trust';
+import { LobbyPage } from './components/lobby';
 
+type AppMode = 'analysis' | 'play';
 type ViewTab = 'graph' | 'players' | 'voting' | 'events' | 'analysis' | 'story';
 type VotingView = 'heatmap' | 'flow';
 
@@ -44,6 +46,9 @@ const TABS: { id: ViewTab; label: string; icon: string }[] = [
 ];
 
 function App() {
+  // App mode: analysis (existing) or play (new lobby/gameplay)
+  const [appMode, setAppMode] = useState<AppMode>('analysis');
+
   // UI state from Zustand
   const {
     selectedGameId,
@@ -81,9 +86,36 @@ function App() {
     refreshMutation.mutate();
   };
 
+  // Play mode - show lobby/gameplay UI
+  if (appMode === 'play') {
+    return (
+      <ErrorBoundary>
+        <div className="min-h-screen bg-[#0f0f23]">
+          <div className="fixed top-4 right-4 z-50">
+            <button
+              onClick={() => setAppMode('analysis')}
+              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg text-sm"
+            >
+              ← Back to Analysis
+            </button>
+          </div>
+          <LobbyPage />
+        </div>
+      </ErrorBoundary>
+    );
+  }
+
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-gray-900 flex flex-col">
+        <div className="fixed top-4 right-4 z-50">
+          <button
+            onClick={() => setAppMode('play')}
+            className="px-4 py-2 bg-[#e94560] hover:bg-[#ff6b6b] text-white rounded-lg text-sm font-medium"
+          >
+            🎮 Play Game
+          </button>
+        </div>
         <Header onRefreshClick={handleRefresh} isRefreshing={refreshMutation.isPending} />
 
         <div className="flex-1 flex overflow-hidden">

@@ -8,6 +8,7 @@ services:
       - ../:/app/traitorsim  # Mount TraitorSim project for game runner (writable for data/)
     environment:
       - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app/traitorsim:/app
       - REPORTS_DIR=/app/reports
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - CLAUDE_CODE_OAUTH_TOKEN=${CLAUDE_CODE_OAUTH_TOKEN:-}

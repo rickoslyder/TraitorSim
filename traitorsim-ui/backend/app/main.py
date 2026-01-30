@@ -11,7 +11,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import games, analysis, runner
+from .routers import games, analysis, runner, lobby, websocket as ws_router
 from .db.database import init_db, sync_from_filesystem
 from .cache import cache
 
@@ -24,8 +24,8 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="TraitorSim UI API",
-    description="Backend API for the TraitorSim game analysis dashboard",
-    version="0.2.0"
+    description="Backend API for the TraitorSim game analysis dashboard and live gameplay",
+    version="0.3.0"
 )
 
 # CORS middleware for React frontend
@@ -45,6 +45,8 @@ app.add_middleware(
 app.include_router(games.router, prefix="/api/games", tags=["games"])
 app.include_router(analysis.router, prefix="/api/games", tags=["analysis"])
 app.include_router(runner.router, prefix="/api/games", tags=["runner"])
+app.include_router(lobby.router, prefix="/api/lobby", tags=["lobby"])
+app.include_router(ws_router.router, prefix="/ws", tags=["websocket"])
 
 
 @app.on_event("startup")
