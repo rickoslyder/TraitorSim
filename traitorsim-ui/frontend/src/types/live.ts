@@ -30,7 +30,7 @@ export interface LiveGameState {
   alive_count?: number;
 }
 
-export type DecisionType = 'vote' | 'murder' | 'recruit_target' | 'recruit_accept' | 'mission' | 'seer';
+export type DecisionType = 'vote' | 'murder' | 'recruit_target' | 'recruit_accept' | 'recruit_response' | 'mission' | 'seer' | 'share_steal' | 'vote_to_end';
 
 export interface DecisionContext {
   available_targets?: LivePlayer[];
@@ -92,7 +92,7 @@ export interface ChatMessage {
   playerId: string;
   sender_name?: string;
   message: string;
-  timestamp: number;
+  timestamp: number | string;
   channel?: 'public' | 'traitors' | 'traitor' | 'system';
 }
 
