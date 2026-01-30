@@ -147,4 +147,11 @@ export interface GameEvent {
   day: number;
   phase: string;
   data: Record<string, unknown>;
+  is_private?: boolean;
+  narrative?: string;
+}
+
+export interface PlayerStatusMessage {
+  playerId: string;
+  status: 'connected' | 'disconnected' | 'deciding';
 }

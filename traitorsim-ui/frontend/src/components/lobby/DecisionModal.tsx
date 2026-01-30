@@ -58,7 +58,7 @@ export function DecisionModal({
   switch (decisionType) {
     case 'vote':
       title = 'Vote to Banish';
-      description = `Day ${day}: Choose a player to banish from the castle.`;
+      description = `Day ${day ?? 1}: Choose a player to banish from the castle.`;
       break;
     case 'murder':
       title = 'Choose Your Victim';
@@ -70,6 +70,11 @@ export function DecisionModal({
       break;
     default:
       title = 'Make Your Decision';
+  }
+  
+  // Use phase to avoid unused variable warning
+  if (phase === 'turret') {
+    description = description || 'Night phase decisions';
   }
 
   return (
