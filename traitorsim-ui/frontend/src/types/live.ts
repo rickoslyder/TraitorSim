@@ -9,7 +9,7 @@ export interface LivePlayer {
   hasDagger?: boolean;
   is_human?: boolean;
   // For backward compatibility with components using 'alive'
-  alive?: boolean;
+  alive: boolean;
   has_shield?: boolean;
   has_dagger?: boolean;
 }
@@ -35,6 +35,7 @@ export type DecisionType = 'vote' | 'murder' | 'recruit_target' | 'recruit_accep
 export interface DecisionContext {
   available_targets?: LivePlayer[];
   mission_options?: MissionOption[];
+  recruiter?: { name: string };
   [key: string]: unknown;
 }
 
