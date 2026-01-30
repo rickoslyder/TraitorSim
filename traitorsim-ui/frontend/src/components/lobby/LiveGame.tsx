@@ -99,21 +99,21 @@ export function LiveGame({ gameId, token, playerId }: LiveGameProps) {
             <div key={i} className={`event ${event.event || ''}`}>
               {event.type === 'game_event' && event.event === 'banishment' && (
                 <span>
-                  ☠️ {event.data?.player_name} was banished (Role: {event.data?.role})
+                  ☠️ {String(event.data?.player_name || 'Unknown')} was banished (Role: {String(event.data?.role || 'Unknown')})
                 </span>
               )}
               {event.type === 'game_event' && event.event === 'murder' && (
                 <span>
-                  🗡️ {event.data?.victim_name} was murdered
+                  🗡️ {String(event.data?.victim_name || 'Unknown')} was murdered
                 </span>
               )}
               {event.type === 'game_event' && event.event === 'phase_started' && (
                 <span>
-                  📅 Day {gameState.day} - {event.data?.phase} phase started
+                  📅 Day {gameState.day} - {String(event.data?.phase || 'Unknown')} phase started
                 </span>
               )}
               {event.type === 'game_event' && event.event === 'player_deciding' && (
-                <span>⏳ {event.data?.player_id} is deciding...</span>
+                <span>⏳ {String(event.data?.player_id || 'Someone')} is deciding...</span>
               )}
             </div>
           ))}
