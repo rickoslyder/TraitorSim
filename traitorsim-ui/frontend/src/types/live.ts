@@ -31,6 +31,12 @@ export interface LiveGameState {
 
 export type DecisionType = 'vote' | 'murder' | 'recruit_target' | 'recruit_accept' | 'mission' | 'seer';
 
+export interface DecisionContext {
+  available_targets?: LivePlayer[];
+  mission_options?: MissionOption[];
+  [key: string]: unknown;
+}
+
 export interface PendingDecision {
   id: string;
   decision_type: DecisionType;
@@ -38,11 +44,7 @@ export interface PendingDecision {
   timeout: number;
   timeout_seconds?: number;
   deadline?: string;
-  context: {
-    available_targets?: LivePlayer[];
-    mission_options?: MissionOption[];
-    [key: string]: unknown;
-  };
+  context: DecisionContext;
 }
 
 export interface MissionOption {
