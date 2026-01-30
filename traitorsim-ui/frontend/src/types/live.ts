@@ -43,8 +43,8 @@ export interface PendingDecision {
   decision_type: DecisionType;
   playerId: string;
   timeout: number;
-  timeout_seconds?: number;
-  deadline?: string;
+  timeout_seconds: number;
+  deadline: string;
   context: DecisionContext;
 }
 

@@ -169,7 +169,7 @@ function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
   );
 }
 
-function formatTime(timestamp: string): string {
+function formatTime(timestamp: string | number): string {
   try {
     const date = new Date(timestamp);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
