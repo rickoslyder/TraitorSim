@@ -1,6 +1,6 @@
 # TraitorSim → Episode Pipeline: Technical Spec & PRD
 
-> **Status:** Draft v0.1 (for review)
+> **Status:** Draft v0.2 (for review)
 > **Owner:** rickoslyder
 > **Last updated:** 2026-06-17
 > **Related docs:** `VOICE_INTEGRATION_DESIGN.md`, `VOICE_MODULE.md`, `architectural_spec.md`, `WORLD_BIBLE.md`
@@ -92,7 +92,9 @@ This PRD specifies all three, with explicit external-service limitations and bud
         ┌───────────────┐           │     ↓ (gate)     ↓ (gate)     ↓ (gate)       │
         │  Persona libs │ ─────────►│  S0 Cast bible / voices / Soul IDs (cached)  │
         │ data/personas │           │     ↓                                        │
-        └───────────────┘           │  S4 AssetResolver → S5 Render/Assemble       │
+        └───────────────┘           │  S3.5 Storyboard (keyframes + PDF) ◄ visual gate │
+                                    │     ↓                                        │
+                                    │  S4 AssetResolver → S5 Render/Assemble       │
                                     │     ↓                                        │
                                     │  reports/episodes/<game_id>/episode_NN.mp4   │
                                     └───────────────┬──────────────────────────────┘
@@ -114,7 +116,7 @@ Higgsfield (Soul ID + image→video + lip-sync, Tiers ≥1).
 ## 4. Stakeholders & primary use cases
 
 - **Producer (you):** runs the CLI, reviews each gate, approves spend, gets `episode_NN.mp4`.
-- **Reviewer:** reads the script/shot-list at a gate, edits text, re-runs downstream.
+- **Reviewer:** reads the script at the Stage-1 gate and the `storyboard.pdf` at the Stage-3.5 visual gate, edits, re-runs downstream.
 - **(Phase 4) UI user:** triggers/monitors renders from the dashboard.
 
 **UC-1 Pilot dry-run:** produce a Tier-0 episode from a 6-player test game for <$25 to validate story quality.
@@ -154,12 +156,22 @@ Each stage reads the previous stage's artifact, writes its own, and (if it spend
 - **In:** approved `EpisodeScript` + `audio_manifest` (for real durations).
 - **Do:** convert each scene to an ordered **shot list** using the fixed "Traitors visual grammar" template. Each shot: `{shot_type, on_screen[], setting, camera_preset, audio_segment_ref, duration, render_tier}`.
 - **Out:** `shot_plan.json`.
-- **Gate:** review shot list & per-shot tier assignment (this determines video spend).
+- **Gate:** *(superseded by the Stage 3.5 visual gate below — text review is optional here)*.
+
+### Stage 3.5 — Storyboard *(cheap images; the visual gate)*
+- **In:** `shot_plan.json` + cast bible portraits.
+- **Do:** render **one keyframe per shot** (cheap image model — Soul-ID-conditioned at Tiers ≥1, plain image gen at Tier 0). Assemble a **contact-sheet `storyboard.pdf`** and a silent/scratch-voiced **animatic preview**. Validate visual continuity (consistent room/lighting per scene, correct Soul-ID faces, eliminated players absent).
+- **Out:** `media/keyframe_*.png` + `storyboard.pdf` + `storyboard_manifest.json` (per-shot keyframe ref + image-credit ledger).
+- **Why this stage earns its place:**
+  - **Tier 0:** these keyframes *are* the final animatic visuals (still + Ken-Burns) — not throwaway.
+  - **Tiers ≥1:** each keyframe is the **`image→video` seed** for Stage 5 (cached, reused) — zero duplicated work.
+  - **Standalone:** `storyboard.pdf` is a useful cheap deliverable in its own right and the natural artifact the Phase-4 UI renders for approval.
+- **Gate + circuit-breaker:** **the primary visual review gate.** Catch bad framing / wrong character / broken continuity / flat scenes here, on ~0.25–5-credit images, *before* committing 15–70-credit video. Image spend is projected and capped before calling.
 
 ### Stage 4 — Asset resolution *(routing; the cost-control brain)*
-- **In:** `shot_plan.json` + tier policy + budget.
+- **In:** `shot_plan.json` + approved `storyboard_manifest.json` + tier policy + budget.
 - **Do:** for each shot decide the cheapest acceptable source:
-  - Character/talking shot → **Higgsfield** (Tiers ≥1) **or** still+Ken-Burns (Tier 0).
+  - Character/talking shot → **Higgsfield** image→video seeded by the Stage-3.5 keyframe (Tiers ≥1) **or** that same keyframe + Ken-Burns (Tier 0).
   - Establishing/B-roll → **Artlist catalog** lookup (preferred) → else AI.
   - Music/SFX → **Artlist** (publishable) → else ElevenLabs scratch.
 - **Out:** `asset_plan.json` with a per-shot provider + projected cost, and a **total projected cost**.
@@ -167,7 +179,7 @@ Each stage reads the previous stage's artifact, writes its own, and (if it spend
 
 ### Stage 5 — Render & assemble *(metered + ffmpeg)*
 - **In:** approved `asset_plan.json`.
-- **Do:** resumable job queue. For Higgsfield: submit async job, store `request_id`, await webhook or poll `GET /v2/requests/status/{request_id}`. Download Artlist assets. Then **ffmpeg**: stitch clips/stills + master audio + music + SFX + LUT → `episode_NN.mp4`.
+- **Do:** resumable job queue. For Higgsfield: submit async image→video job **seeded by the approved Stage-3.5 keyframe**, store `request_id`, await webhook or poll `GET /v2/requests/status/{request_id}`. Download Artlist assets. Then **ffmpeg**: stitch clips/keyframes + master audio + music + SFX + LUT → `episode_NN.mp4`.
 - **Out:** `reports/episodes/<game_id>/episode_NN.mp4` + `render_ledger.json` (actual spend).
 - **Gate:** final QA review.
 
@@ -185,6 +197,9 @@ reports/episodes/<game_id>/
     audio/segment_*.wav
     audio_manifest.json      # Stage 2
     shot_plan.json           # Stage 3
+    storyboard_manifest.json # Stage 3.5
+    storyboard.pdf           # Stage 3.5 (standalone deliverable)
+    media/keyframe_*.png     # Stage 3.5 (Tier-0 visuals AND Tier-≥1 video seeds)
     asset_plan.json          # Stage 4
     media/shot_*.mp4|png
     render_ledger.json       # Stage 5
@@ -213,6 +228,7 @@ src/traitorsim/episodes/
   stage1_script.py       # LLM dialogue synth + Faithful-mask filter
   stage2_audio.py
   stage3_shotplan.py     # "Traitors visual grammar" templates
+  stage35_storyboard.py  # per-shot keyframes + contact-sheet PDF + animatic preview
   stage4_assets.py       # AssetResolver routing
   stage5_render.py       # job queue + ffmpeg assembly
   providers/
@@ -231,9 +247,10 @@ src/traitorsim/episodes/
 
 **CLI surface (Phase 1):**
 ```bash
-python -m traitorsim.episodes plan   --report reports/game_X.json --tier 0      # stages 0,1,3 (no spend)
-python -m traitorsim.episodes audio  --game X --ep 1 --max-credits 30000        # stage 2 (gated)
-python -m traitorsim.episodes assets --game X --ep 1                            # stage 4 (projection)
+python -m traitorsim.episodes plan       --report reports/game_X.json --tier 0  # stages 0,1,3 (no spend)
+python -m traitorsim.episodes audio      --game X --ep 1 --max-credits 30000    # stage 2 (gated)
+python -m traitorsim.episodes storyboard --game X --ep 1 --max-credits 2000     # stage 3.5 (gated; PDF + keyframes)
+python -m traitorsim.episodes assets     --game X --ep 1                         # stage 4 (projection)
 python -m traitorsim.episodes render --game X --ep 1 --confirm                  # stage 5 (gated)
 python -m traitorsim.episodes status --game X                                   # pipeline_state
 python -m traitorsim.episodes cost   --game X                                   # cost_ledger
@@ -245,9 +262,10 @@ The orchestrator functions are the API the Phase-4 UI will call directly.
 ## 8. Human-in-the-loop gating & budget circuit-breakers
 
 - **Gate model:** each stage writes its artifact and sets `pipeline_state.json[ep][stage] = "awaiting_review"`. Downstream stages refuse to run until the upstream is `approved`. Approval is `--confirm` on the CLI (later: a UI button).
+- **Primary visual gate = Stage 3.5 (storyboard).** The most consequential approval is the storyboard: it's the last cheap checkpoint before video spend. Reviewers approve `storyboard.pdf` (visual) rather than the text shot list — bad framing/casting/continuity is caught on ~cent-scale images instead of after dollar-scale video renders.
 - **Two-phase spend:** every paid stage first computes a **projection** (`estimate_cost`) and prints it; it executes only on explicit confirm AND if under the cap.
 - **Circuit-breakers (configurable, hard fails):**
-  - `per_segment_max_credits`, `per_episode_max_credits`, `per_season_max_usd`.
+  - `per_segment_max_credits`, `per_episode_max_credits`, `per_season_max_usd`, plus an `images.per_episode_max_credits` cap for the storyboard stage.
   - Provider-level monthly cap mirrors (don't exceed the plan we bought).
   - On breach: stop, write partial ledger, exit non-zero, print exactly what would have been spent.
 - **Idempotency:** re-running a confirmed stage is a no-op if cache hits; `--force` to override.
@@ -304,10 +322,11 @@ The orchestrator functions are the API the Phase-4 UI will call directly.
 
 ### 10.1 Cost drivers
 1. **Audio minutes** (ElevenLabs) — scales with total dialogue length.
-2. **Video shots** (Higgsfield, Tiers ≥1) — scales with shot count × model tier × reroll waste.
-3. **Soul ID training** (Higgsfield, Tiers ≥1) — one-off per cast member.
-4. **Licensed assets** (Artlist) — flat subscription during production.
-5. **LLM tokens** (Claude) — small.
+2. **Storyboard keyframes** (image gen, Stage 3.5) — one cheap image per shot; ~0.25–5 cr each. At Tier 0 these *are* the visuals; at Tiers ≥1 they double as video seeds, so they're never pure overhead.
+3. **Video shots** (Higgsfield, Tiers ≥1) — scales with shot count × model tier × reroll waste.
+4. **Soul ID training** (Higgsfield, Tiers ≥1) — one-off per cast member.
+5. **Licensed assets** (Artlist) — flat subscription during production.
+6. **LLM tokens** (Claude) — small.
 
 ### 10.2 Worked estimates
 
@@ -318,8 +337,9 @@ Assumptions: ~1,000 ElevenLabs credits/min of speech; basic Higgsfield clip ~20c
 |------|--------|------------------------|
 | Audio (~4 min ≈ 4k cr) | Starter $6 covers it | same |
 | LLM scripts/shots | ~$1–3 | ~$1–3 |
+| Storyboard keyframes (~50 shots ×~3cr ≈ 150cr) | ~$5 (within Higgsfield Starter / Artlist AI) | reused as video seeds (no extra) |
 | Soul IDs (6 cast) | — | included in Higgsfield plan |
-| Video (~50 shots ×20cr ×1.25 ≈ 1,250cr) | — (stills only) | Plus $39 / Ultra $99 |
+| Video (~50 shots ×20cr ×1.25 ≈ 1,250cr) | — (keyframes + Ken-Burns) | Plus $39 / Ultra $99 |
 | Artlist (1 month, optional) | $14 (AI Starter) | $14 |
 | **Pilot total** | **≈ $20** ✅ (<$25 target) | **≈ $60–120** |
 
@@ -330,18 +350,20 @@ Assume ~25 min finished audio/episode ⇒ ~300 min/season ⇒ ~300k ElevenLabs c
 |------|-----------------|--------|---------------------|
 | Audio (~300k cr) | **Pro $99** (1 month) | Pro $99 | Pro $99 |
 | LLM | ~$10–30 | ~$10–30 | ~$20–50 |
+| Storyboard keyframes (~12 ep × ~150 shots ×~3cr ≈ 5,400cr) | ~$60–180 (these are the Tier-0 visuals) | reused as video seeds (no extra) | reused as video seeds (no extra) |
 | Soul IDs (22 cast) | — | within Higgsfield plan | within plan |
 | Video shots | — | ~12 ep × ~120 talking shots ≈ 1,440 shots ×20cr ×1.25 ≈ **36,000 cr** | ~12 ep × ~180 shots ≈ 2,160 ×55cr ×1.25 ≈ **148,500 cr** |
 | Higgsfield $ (≈ Ultra $99/3,000cr ≈ $0.033/cr) | — | ~36k cr ⇒ **~$1,200** (credit packs / multi-month Ultra) | ~148k cr ⇒ **~$4,900** |
 | Artlist (production months) | Max ~$90–150/mo × ~2 mo ≈ $180–300 | same | same |
-| **Season total (rough)** | **≈ $300–450** | **≈ $1,500–2,000** | **≈ $5,000–6,500** |
+| **Season total (rough)** | **≈ $360–630** | **≈ $1,500–2,000** | **≈ $5,000–6,500** |
 
 > The video tiers are where cost explodes. This is exactly why Tier 0 is the build target and Tiers ≥1 sit behind a gate. **Verify Higgsfield credit-pack pricing before committing — per-credit cost on packs may differ materially from the subscription ratio used above.**
 
 ### 10.3 Recommended budget caps (defaults in `budget.py`)
 - `per_episode_max_credits.elevenlabs = 40_000` (~40 min audio safety).
+- `per_episode_max_credits.images = 1_500` (storyboard keyframes + rerolls).
 - `per_episode_max_credits.higgsfield = 3_000` (≈ one Ultra month/episode ceiling).
-- `per_season_max_usd`: **Pilot $30 · Tier-0 season $500 · Tier-1 $2,000 · Tier-3 $7,000** — pipeline hard-stops at the configured value.
+- `per_season_max_usd`: **Pilot $30 · Tier-0 season $700 · Tier-1 $2,000 · Tier-3 $7,000** — pipeline hard-stops at the configured value.
 - Default run mode = **dry-run**; spending requires `--confirm` and a configured cap.
 
 ---
@@ -360,7 +382,7 @@ Assume ~25 min finished audio/episode ⇒ ~300 min/season ⇒ ~300k ElevenLabs c
 ## 12. Phasing & milestones
 
 - **Phase 0 — Foundations:** `episodes/` package skeleton, `loader.py` (+ report schema versioning), `models.py`, provider ABCs, `null` provider, `budget.py`, `cost_ledger`. *Exit: full pipeline runs offline at $0 producing placeholder output.*
-- **Phase 1 — Tier 0 vertical slice (Pilot):** Stages 0(voices/stills)→1→2→3→5 for the 6-player test game; real ElevenLabs audio; ffmpeg animatic. *Exit: UC-1 pilot episode < $25.*
+- **Phase 1 — Tier 0 vertical slice (Pilot):** Stages 0(voices/stills)→1→2→3→**3.5(storyboard)**→5 for the 6-player test game; real ElevenLabs audio; keyframes + `storyboard.pdf`; ffmpeg animatic. *Exit: UC-1 pilot episode < $25, with an approved storyboard PDF.*
 - **Phase 2 — Tier 0 full season:** batch all episodes; Artlist licensed music/SFX integration; gating/circuit-breakers hardened. *Exit: UC-2 within Tier-0 cap.*
 - **Phase 3 — Tiers 1–2 (video):** Higgsfield adapter (Soul ID + image→video + lip-sync), AssetResolver routing, reroll handling. *Exit: UC-3 selective upgrade works.*
 - **Phase 4 — UI "Episode Studio":** wrap orchestrator APIs in `traitorsim-ui` (trigger, gate-approve, cost dashboard, preview).
@@ -374,6 +396,7 @@ Assume ~25 min finished audio/episode ⇒ ~300 min/season ⇒ ~300k ElevenLabs c
 |------|--------|------------|
 | Vendor pricing/limits drift | Budget blowout | Re-verify at build; `estimate_cost` before every spend; hard caps |
 | Higgsfield clip inconsistency | Reroll cost, jarring cuts | Soul ID; budget reroll waste; Tier-0 fallback to stills |
+| Bad framing/casting found only after video render | Wasted video credits | **Stage-3.5 storyboard gate** — approve cheap keyframes before any video spend |
 | Dialogue leaks role/secret | Breaks the game's integrity | Faithful-mask prompt filter + automated leak check at Stage 1 gate |
 | Async render failures | Stuck pipeline | Resumable job queue, `request_id` persistence, retries |
 | Artlist has no headless API | Manual toil | Treat as assisted; resolver emits fetch-list; revisit if API appears |
