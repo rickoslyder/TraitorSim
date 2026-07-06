@@ -66,3 +66,14 @@ def vote():
     response = call_llm(prompt)
     return jsonify(response)
 ```
+
+## stdlib-only variant
+
+`agent_stdlib.py` — zero-dependency version using only Python stdlib (`http.server`).
+Runs anywhere Python 3.7+ is available:
+
+```bash
+python3 agent_stdlib.py --port 9090
+```
+
+Same protocol v1.0 endpoints as `agent.py` (which requires Flask).
