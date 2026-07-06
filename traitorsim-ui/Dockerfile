@@ -22,6 +22,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nginx \
     supervisor \
     curl \
+    ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
@@ -37,7 +38,7 @@ COPY backend/app ./app
 COPY --from=frontend-builder /app/frontend/dist /var/www/html
 
 # Create data directory
-RUN mkdir -p /app/data
+RUN useradd -m gamerunner && mkdir -p /app/data
 
 # Nginx config - serve frontend + proxy API
 RUN cat > /etc/nginx/sites-available/default << 'EOF'

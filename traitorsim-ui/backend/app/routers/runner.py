@@ -242,7 +242,7 @@ async def _run_game_async(request: RunGameRequest):
 
         # Run as non-root user (gamerunner) to satisfy Claude Agent SDK security requirements
         # The SDK's bypassPermissions mode cannot run as root
-        game_cmd = f"cd {project_root} && {env_str} python3 -m src.traitorsim"
+        game_cmd = f"cd {project_root} && export {env_str} && python3 -m src.traitorsim"
         cmd = ["su", "-c", game_cmd, "gamerunner"]
 
         # Set environment for the parent process
