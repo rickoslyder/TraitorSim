@@ -17,6 +17,8 @@ from ..agents.game_master_interactions import GameMasterInteractions
 from ..core.game_state import GameState, Player, Role
 from ..core.config import GameConfig
 from ..core.enums import GamePhase
+from ..events import EventBus, EventType
+from ..events.projection import build_projection_from_state
 from ..memory.memory_manager import MemoryManager
 from ..missions import MISSION_TYPES, MISSION_NAMES
 from ..utils.logger import setup_logger
@@ -31,14 +33,21 @@ class GameEngineAsync:
     - GameMasterInteractions (Gemini) for dramatic narratives
     """
 
-    def __init__(self, config: Optional[GameConfig] = None):
+    def __init__(
+        self,
+        config: Optional[GameConfig] = None,
+        event_bus: Optional[EventBus] = None,
+    ):
         """Initialize async game engine.
 
         Args:
             config: Game configuration (uses defaults if None)
+            event_bus: Optional event sink for the projection API; when None
+                and config.enable_event_log is set, one is created at game start
         """
         self.config = config or GameConfig()
         self.game_state = GameState()
+        self.event_bus = event_bus
         self.logger = setup_logger("game_engine")
 
         # Create voice emitter if enabled
@@ -67,6 +76,24 @@ class GameEngineAsync:
 
         # Memory managers
         self.memory_managers: Dict[str, MemoryManager] = {}
+
+    def _emit_event(self, event_type: EventType, payload: Optional[Dict] = None) -> None:
+        """Emit a typed event and refresh the world snapshot. Never raises:
+        event logging must not be able to change game outcomes."""
+        if not self.event_bus:
+            return
+        try:
+            self.event_bus.emit(
+                event_type,
+                day=self.game_state.day,
+                phase=self.game_state.phase,
+                payload=payload or {},
+            )
+            self.event_bus.write_snapshot(
+                build_projection_from_state(self.game_state, self.event_bus.session_id)
+            )
+        except Exception as e:
+            self.logger.warning(f"Event log emission failed ({event_type}): {e}")
 
     def _initialize_players(self) -> None:
         """Initialize players and assign roles using persona library."""
@@ -204,10 +231,27 @@ class GameEngineAsync:
         # to reveal a murder happens on Day 2).
         self.game_state.day = 1
 
+        if self.event_bus is None and getattr(self.config, "enable_event_log", True):
+            self.event_bus = EventBus()
+            self.logger.info(f"Event log session: {self.event_bus.session_id}")
+        self._emit_event(
+            EventType.SESSION_STARTED,
+            {
+                "players": [
+                    {"id": p.id, "name": p.name} for p in self.game_state.players
+                ],
+                "total_players": self.config.total_players,
+                "num_traitors": self.config.num_traitors,
+                "rule_set": self.config.rule_set,
+            },
+        )
+
         while self.game_state.day <= self.config.max_days:
             self.logger.info(f"\n{'='*60}")
             self.logger.info(f"DAY {self.game_state.day}")
             self.logger.info(f"{'='*60}\n")
+
+            self._emit_event(EventType.DAY_STARTED, {"day": self.game_state.day})
 
             # In the real format, Day 1 starts with introductions/mission and no
             # overnight murder to reveal. Breakfast begins on Day 2.
@@ -250,11 +294,22 @@ class GameEngineAsync:
         self.logger.info(finale)
         self.logger.info(f"{'='*60}\n")
 
+        self.game_state.phase = GamePhase.ENDED
+        self._emit_event(
+            EventType.GAME_ENDED,
+            {
+                "winner": winner.value,
+                "survivors": survivors,
+                "prize_pot": self.game_state.prize_pot,
+            },
+        )
+
         return winner.value.upper()
 
     async def _run_breakfast_phase_async(self) -> None:
         """Breakfast phase: Announce murder victim."""
         self.game_state.phase = GamePhase.BREAKFAST
+        self._emit_event(EventType.PHASE_CHANGED, {"phase": GamePhase.BREAKFAST.value})
         self.logger.info("--- Breakfast Phase ---")
 
         if self.game_state.last_murder_victim:
@@ -275,6 +330,7 @@ class GameEngineAsync:
     async def _run_mission_phase_async(self) -> None:
         """Mission phase: Execute mission challenge."""
         self.game_state.phase = GamePhase.MISSION
+        self._emit_event(EventType.PHASE_CHANGED, {"phase": GamePhase.MISSION.value})
         self.logger.info("\n--- Mission Phase ---")
 
         # Select random mission type for variety
@@ -320,6 +376,7 @@ class GameEngineAsync:
     async def _run_social_phase_async(self) -> None:
         """Social phase: Agents reflect privately. Seer may use power."""
         self.game_state.phase = GamePhase.SOCIAL
+        self._emit_event(EventType.PHASE_CHANGED, {"phase": GamePhase.SOCIAL.value})
         self.logger.info("\n--- Social Phase ---")
 
         # Check if anyone has Seer power and wants to use it
@@ -428,6 +485,7 @@ class GameEngineAsync:
     async def _run_roundtable_phase_async(self) -> None:
         """Round Table phase: Voting and banishment."""
         self.game_state.phase = GamePhase.ROUNDTABLE
+        self._emit_event(EventType.PHASE_CHANGED, {"phase": GamePhase.ROUNDTABLE.value})
         self.logger.info("\n--- Round Table Phase ---")
 
         # Collect votes in parallel
@@ -498,6 +556,25 @@ class GameEngineAsync:
         # Record votes in history (for countback tie-breaking)
         self.game_state.vote_history.append(final_votes.copy())
 
+        self._emit_event(
+            EventType.VOTE_COMPLETED,
+            {
+                "votes": final_votes,
+                "vote_counts": dict(final_vote_counts),
+                "revote_triggered": tie_info.get("revote_triggered", False),
+                "random_resolution": tie_info.get("random_resolution", False),
+            },
+        )
+        self._emit_event(
+            EventType.PLAYER_BANISHED,
+            {
+                "player_id": banished_player.id,
+                "player_name": banished_player.name,
+                "role": banished_player.role.value,
+                "role_revealed": should_reveal_role,
+            },
+        )
+
         # Log votes
         for voter_id, target_id in final_votes.items():
             voter = self.game_state.get_player(voter_id)
@@ -521,6 +598,7 @@ class GameEngineAsync:
     async def _run_turret_phase_async(self) -> None:
         """Turret phase: Traitors murder a Faithful."""
         self.game_state.phase = GamePhase.TURRET
+        self._emit_event(EventType.PHASE_CHANGED, {"phase": GamePhase.TURRET.value})
         self.logger.info("\n--- Turret Phase ---")
 
         # Get alive traitors and faithful
@@ -575,6 +653,11 @@ class GameEngineAsync:
         victim.alive = False
         self.game_state.murdered_players.append(victim.name)
         self.game_state.last_murder_victim = victim.name
+
+        self._emit_event(
+            EventType.PLAYER_MURDERED,
+            {"player_id": victim.id, "player_name": victim.name},
+        )
 
         self.logger.info(f"Traitors murdered: {victim.name}")
 

@@ -5,11 +5,13 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ../data/reports:/app/reports  # Game engine saves reports here
+      - ../data/sessions:/app/traitorsim/data/sessions
       - ../:/app/traitorsim  # Mount TraitorSim project for game runner (writable for data/)
     environment:
       - PYTHONUNBUFFERED=1
       - PYTHONPATH=/app/traitorsim:/app
       - REPORTS_DIR=/app/reports
+      - SESSIONS_DIR=/app/traitorsim/data/sessions
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - CLAUDE_CODE_OAUTH_TOKEN=${CLAUDE_CODE_OAUTH_TOKEN:-}
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000

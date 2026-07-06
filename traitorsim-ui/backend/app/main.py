@@ -11,7 +11,7 @@ from pathlib import Path
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import games, analysis, runner, lobby, websocket as ws_router
+from .routers import games, analysis, runner, lobby, projection, websocket as ws_router
 from .db.database import init_db, sync_from_filesystem
 from .cache import cache
 
@@ -46,6 +46,7 @@ app.include_router(games.router, prefix="/api/games", tags=["games"])
 app.include_router(analysis.router, prefix="/api/games", tags=["analysis"])
 app.include_router(runner.router, prefix="/api/games", tags=["runner"])
 app.include_router(lobby.router, prefix="/api/lobby", tags=["lobby"])
+app.include_router(projection.router, prefix="/api/sessions", tags=["projection"])
 app.include_router(ws_router.router, prefix="/ws", tags=["websocket"])
 
 

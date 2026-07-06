@@ -161,6 +161,9 @@ class GameConfig:
     # ===========================================
     verbose: bool = True
     save_transcripts: bool = True
+    # Emit typed GameEvents to data/sessions/{session_id}/events.jsonl and
+    # keep a world_snapshot.json in sync (consumed by the projection API)
+    enable_event_log: bool = True
 
     # ===========================================
     # API SETTINGS
