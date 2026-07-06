@@ -208,9 +208,13 @@ Generate only the narration requested. Do not add meta-commentary or explanation
             # Update interaction ID for next turn
             self.current_interaction_id = interaction.id
 
-            # Extract response text
-            if interaction.outputs:
-                return interaction.outputs[-1].text.strip()
+            # Extract response text (google-genai v2+ uses output_text)
+            if hasattr(interaction, 'outputs'):
+                # Legacy SDK (google-generativeai < 1.0)
+                if interaction.outputs:
+                    return interaction.outputs[-1].text.strip()
+            elif interaction.output_text is not None:
+                return interaction.output_text.strip()
             return ""
 
         except Exception as e:

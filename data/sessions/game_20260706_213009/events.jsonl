@@ -1,0 +1,4 @@
+{"session_id":"game_20260706_213009","timestamp":"2026-07-06T21:30:09.927057+00:00","type":"session_started","day":1,"phase":"initialization","payload":{"players":[{"id":"player_00","name":"Aisha Okonkwo"},{"id":"player_01","name":"Finlay Drummond"},{"id":"player_02","name":"Rowan Findlay"},{"id":"player_03","name":"Siobhan Mallory"}],"total_players":4,"num_traitors":1,"rule_set":"uk"}}
+{"session_id":"game_20260706_213009","timestamp":"2026-07-06T21:30:09.927548+00:00","type":"day_started","day":1,"phase":"initialization","payload":{"day":1}}
+{"session_id":"game_20260706_213009","timestamp":"2026-07-06T21:30:09.927803+00:00","type":"phase_changed","day":1,"phase":"mission","payload":{"phase":"mission"}}
+{"session_id":"game_20260706_213009","timestamp":"2026-07-06T21:31:17.576313+00:00","type":"phase_changed","day":1,"phase":"social","payload":{"phase":"social"}}

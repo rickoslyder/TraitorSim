@@ -11,7 +11,6 @@ import asyncio
 import json
 import logging
 import os
-import subprocess
 import signal
 from datetime import datetime
 from pathlib import Path
@@ -44,7 +43,7 @@ class GameRun:
 
 # Global state for current game run
 _current_run: Optional[GameRun] = None
-_process: Optional[subprocess.Popen] = None
+_process: Optional[asyncio.subprocess.Process] = None
 _connected_websockets: list[WebSocket] = []
 
 
@@ -249,32 +248,26 @@ async def _run_game_async(request: RunGameRequest):
         env = os.environ.copy()
         env["PYTHONUNBUFFERED"] = "1"
 
-        # Start process as gamerunner user
-        _process = subprocess.Popen(
-            cmd,
+        # Start process as gamerunner user (async, non-blocking)
+        _process = await asyncio.create_subprocess_exec(
+            *cmd,
             cwd=str(project_root),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            bufsize=1,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.STDOUT,
             env=env,
-            preexec_fn=os.setsid  # Create new process group
+            preexec_fn=os.setsid,  # Create new process group
         )
 
         _current_run.status = "running"
         await _broadcast_status()
 
-        # Stream output
+        # Stream output asynchronously (non-blocking)
         while True:
-            if _process.poll() is not None:
-                break
+            line_bytes = await _process.stdout.readline()
+            if not line_bytes:
+                break  # EOF
 
-            line = _process.stdout.readline()
-            if not line:
-                await asyncio.sleep(0.1)
-                continue
-
-            line = line.strip()
+            line = line_bytes.decode("utf-8", errors="replace").strip()
             if not line:
                 continue
 
@@ -286,6 +279,7 @@ async def _run_game_async(request: RunGameRequest):
             await _broadcast_log(line)
 
         # Game completed
+        await _process.wait()
         exit_code = _process.returncode
         _current_run.status = "completed" if exit_code == 0 else "failed"
         _current_run.ended_at = datetime.now().isoformat()
@@ -298,6 +292,11 @@ async def _run_game_async(request: RunGameRequest):
 
     except Exception as e:
         logger.error(f"Game run error: {e}")
+        if _process and _process.returncode is None:
+            try:
+                _process.kill()
+            except Exception:
+                pass
         if _current_run:
             _current_run.status = "failed"
             _current_run.error = str(e)
