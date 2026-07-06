@@ -1,4 +1,0 @@
-{"session_id":"game_20260706_212928","timestamp":"2026-07-06T21:29:28.153459+00:00","type":"session_started","day":1,"phase":"initialization","payload":{"players":[{"id":"player_00","name":"Destiny Kowalczyk-Brennan"},{"id":"player_01","name":"Duncan Fairbairn"},{"id":"player_02","name":"Sam Priestley"},{"id":"player_03","name":"Jade Brennan"},{"id":"player_04","name":"Rowan Findlay"},{"id":"player_05","name":"Ryan Gallagher"}],"total_players":6,"num_traitors":1,"rule_set":"uk"}}
-{"session_id":"game_20260706_212928","timestamp":"2026-07-06T21:29:28.153874+00:00","type":"day_started","day":1,"phase":"initialization","payload":{"day":1}}
-{"session_id":"game_20260706_212928","timestamp":"2026-07-06T21:29:28.154123+00:00","type":"phase_changed","day":1,"phase":"mission","payload":{"phase":"mission"}}
-{"session_id":"game_20260706_212928","timestamp":"2026-07-06T21:30:54.747450+00:00","type":"phase_changed","day":1,"phase":"social","payload":{"phase":"social"}}
