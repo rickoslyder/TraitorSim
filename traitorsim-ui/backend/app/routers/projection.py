@@ -26,11 +26,17 @@ SESSION_ID_PATTERN = re.compile(r"^[A-Za-z0-9_\-]+$")
 
 # Candidate project roots, mirroring runner.py: Docker mount, local dev,
 # and the repo root relative to this file (traitorsim-ui/backend/app/routers/).
-_PROJECT_ROOT_CANDIDATES = [
-    Path("/app/traitorsim"),
-    Path("/home/rkb/projects/TraitorSim"),
-    Path(__file__).resolve().parents[4],
-]
+def _project_root_candidates():
+    """Roots that may contain src/traitorsim/events (lazy — safe in /app image)."""
+    roots = [
+        Path("/app/traitorsim"),
+        Path("/home/rkb/projects/TraitorSim"),
+    ]
+    try:
+        roots.append(Path(__file__).resolve().parents[4])
+    except IndexError:
+        pass
+    return roots
 
 
 def _import_projection_builder():
@@ -42,7 +48,7 @@ def _import_projection_builder():
     except ImportError:
         pass
 
-    for root in _PROJECT_ROOT_CANDIDATES:
+    for root in _project_root_candidates():
         if (root / "src" / "traitorsim" / "events").is_dir():
             if str(root) not in sys.path:
                 sys.path.insert(0, str(root))
@@ -65,7 +71,7 @@ def _resolve_data_dirs() -> tuple:
         sessions_dir = Path(sessions_env)
     else:
         sessions_dir = None
-        for root in _PROJECT_ROOT_CANDIDATES:
+        for root in _project_root_candidates():
             candidate = root / "data" / "sessions"
             if candidate.is_dir():
                 sessions_dir = candidate
