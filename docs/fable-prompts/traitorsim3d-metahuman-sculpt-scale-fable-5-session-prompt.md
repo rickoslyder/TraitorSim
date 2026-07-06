@@ -1,70 +1,74 @@
-# TraitorSim3D — MetaHuman sculpt + seats 2–11 scale (Fable 5, standalone)
+# TraitorSim3D — MetaHuman sculpt + seats 2–11 (Fable 5, standalone)
 
-**Use with:** Claude Code on **rkb-mac**, CWD `~/Documents/Unreal Projects/TraitorSim3D`, **`claude-fable-5`**, effort **`high`**.
+**Machine:** `rkb-mac` · **CWD:** `~/Documents/Unreal Projects/TraitorSim3D`  
+**CLI:** `claude-fable-5` · **effort:** `high`  
+**Harness:** Paste blocks from `~/.hermes/references/claude-fable-5-cheatsheet.md` at session start.
 
-**Prerequisite:** Fab wardrobe pass done (or skipped if no usable outfits). Seats 0–1 MetaHumans exist via `mh_build.py`.
+**Prerequisite:** Live PIE optional. **Fab wardrobe** done or skipped — use `Content/TraitorSim/FAB-WARDROBE-MAP.md` if it exists. Seats 0–1 MH via `mh_build.py`.
 
 ---
 
 ## COPY FROM HERE ↓
 
-# Sculpt key faces + scale cast to 12 MetaHumans (phased)
+# Sculpt hero faces + scale cast (phased)
 
 ## Why
 
-Default archetypes and Manny mannequins break immersion. Target: **recognizable host + 1–2 leads** sculpted; remaining seats either MetaHuman clones with wardrobe variance or **hybrid** (MH heroes + mannequins) if cloud rig budget/time tight.
+Default archetypes + Manny on seats 2+ break immersion. **Hero sculpt** host + lead faithful; scale MH count with wardrobe from Fab pass; keep banish/camera graph stable.
 
-**Success:** Documented sculpt params for host (male ~40s) + seat 1 (female ~30s); banish-compatible behavior on MH skeleton (new anim or AB pose); plan for seats 2–11 with **at least 2 more** MH swaps if feasible.
+**Success:** Documented sculpt targets for seats 0–1; **visible** banish motion on MH (not silent skip); plan + **≥2** additional MH seats (2–3) if cloud rig budget allows; updated `BUILD-STATUS.md` + `implementation-notes.md`.
 
 ---
 
 ## Phase A — Sculpt API (seats 0–1)
 
-1. Read MetaHuman Creator plugin Python tests in engine tree (same sources used in `mh_build.py`).
-2. Apply sculpt deltas toward brief:
-   - Seat 0: authoritative male, 40s, Northern/Welsh-adjacent acceptable generic UK.
-   - Seat 1: female 30s, analytical, sharp features — not glam runway.
-3. Re-run cloud rig + texture synthesis headless (launcher session auth).
-4. Re-assemble into existing `SeatActors[0]` / `[1]` without rewiring banish graph.
+1. Use MetaHuman Creator plugin Python patterns (same family as `Content/Python/mh_build.py`).  
+2. Brief:  
+   - **Seat 0:** Male ~40s, authoritative UK host (Northern/Welsh-lean OK, not caricature).  
+   - **Seat 1:** Female ~30s, sharp, analytical — not glam runway.  
+3. Headless cloud rig + texture synthesis (launcher session auth).  
+4. Re-assemble into existing `SeatActors[0]` / `[1]` — **do not** rewire banish Blueprint graph.
 
 ---
 
-## Phase B — Banish animation on MetaHuman skeleton
+## Phase B — Banish on MetaHuman skeleton
 
-- Manny `MM_Death_Front_01` **silently skips** on MH — find or retarget:
-  - MetaHuman-compatible death / slump / sit-to-floor from Marketplace/Manny pack retarget, **or**
-  - 1.5s **Animation Blueprint** layered blend (upper body slump, mesh stays seated).
-- Keep existing timing: collapse → poll hides ~3s later.
+- `MM_Death_Front_01` **silently skips** on MH — fix with one of:  
+  - Retargeted slump/death compatible with MH skeleton, **or**  
+  - ~1.5s **AB** layered slump while seated.  
+- Keep timing: collapse → poll hides ~3s later.
 
 ---
 
-## Phase C — Scale (seats 2–11)
+## Phase C — Scale seats 2–11
 
-| Tier | Approach |
-|------|----------|
-| **Minimum** | 4 MH (0,1,2,3) + mannequins 4–11 with Fab outfits if possible |
-| **Target** | 12 MH with shared body types + wardrobe from `FAB-WARDROBE-MAP.md` |
-| **Perf guard** | LOD + limit simultaneous groom complexity; document FPS in PIE |
+| Tier | Target |
+|------|--------|
+| **Minimum** | MH 0–3 + mannequins 4–11 with Fab outfits from map |
+| **Stretch** | MH 0–5 with `Content/Grooms/` + wardrobe variance |
+| **Perf** | LOD; limit heavy grooms; note PIE FPS |
 
-Automate via extended `mh_build.py` CLI: `--seats 0,1,2,3` with archetype rotation.
+Extend `mh_build.py` CLI: e.g. `--seats 0,1,2,3` with archetype rotation; reuse outfits from `FAB-WARDROBE-MAP.md`.
+
+**Already on disk:** `Content/Grooms/` for hair; `MH_Host` / `MH_Faithful1` trees — extend, don’t duplicate from scratch.
 
 ---
 
 ## Verification
 
-- [ ] Viewport: seats 0–1 match sculpt brief (screenshot).
-- [ ] PIE: banish on MH seat shows visible motion (not T-pose pop).
-- [ ] PIE: mannequin seats still banish with death anim.
-- [ ] `BUILD-STATUS.md` + `implementation-notes.md` updated.
+- [ ] Viewport screenshot seats 0–1 post-sculpt  
+- [ ] PIE: MH banish shows motion  
+- [ ] PIE: mannequin seats still use death anim  
+- [ ] Seat coverage table in `BUILD-STATUS.md`
 
 ---
 
 ## Out of scope
 
-- Lip sync, voice-driven face, full body mocap.
+Lip sync, voice face, full mocap, backend/API.
 
 ## End task
 
-Seat coverage table, cloud rig minutes used, anim asset paths, recommendation for remaining seats.
+Seat table, cloud rig time, anim asset paths, recommendation for seats 4–11.
 
 ## COPY TO HERE ↑

@@ -1,10 +1,12 @@
 # TraitorSim3D — Live prod projection (Fable 5, standalone)
 
-**Use with:** Claude Code on **rkb-mac**, CWD `~/Documents/Unreal Projects/TraitorSim3D`, **`claude-fable-5`**, effort **`high`**.
+**Machine:** `rkb-mac` · **CWD:** `~/Documents/Unreal Projects/TraitorSim3D`  
+**CLI:** `claude-fable-5` · **effort:** `high`  
+**Harness:** Paste blocks from `~/.hermes/references/claude-fable-5-cheatsheet.md` (anti-overplanning, scope/YAGNI, brevity, autonomous) at session start.
 
-**Prerequisite:** Dressing/audio/MetaHuman pass complete (`BUILD-STATUS.md`). `BP_CeremonyDirector` polls mock or static session today.
+**Prerequisite:** Dressing/audio/MH pass in `BUILD-STATUS.md`. `BP_CeremonyDirector` polls mock or static session.
 
-**Hermes coordination:** Richard may paste a **live `SessionId`** from Telegram (game started via `POST /api/games/run` on prod). Use that exact id — runner `game_id` now matches engine via `TRAITORSIM_SESSION_ID`.
+**Hermes:** Richard may paste a **live `SessionId`** from Telegram (`POST https://traitorsim.rbnk.uk/api/games/run`). Runner `game_id` matches engine (`TRAITORSIM_SESSION_ID` on Dockerhost).
 
 ---
 
@@ -14,9 +16,9 @@
 
 ## Why
 
-PIE verified against **mock** and **ended** snapshots. Next: prove the ceremony director tracks **real** `alive` / `phase` flips while the Python sim runs on Dockerhost.
+PIE verified against **mock** and **ended** snapshots. Prove the ceremony director tracks **real** `alive` / `phase` while Python sim runs on Dockerhost.
 
-**Success:** Editor focused (macOS — no background throttle), PIE with prod `BaseUrl` + live `SessionId`, visible banish/camera/audio on at least one `alive→false` during `round_table`. Document steps in `BUILD-STATUS.md` § Live PIE.
+**Success:** Editor **focused** on macOS (no background poll throttle), PIE with prod `BaseUrl` + live `SessionId`, visible banish/camera/audio on ≥1 `alive→false` during `round_table`. Document in `BUILD-STATUS.md` § Live PIE.
 
 ---
 
@@ -30,37 +32,52 @@ PIE verified against **mock** and **ended** snapshots. Next: prove the ceremony 
 | `players[]` | `seat_index`, `alive`, `display_name` |
 | `day` | debug / UI |
 
-**404:** Session not started yet — keep polling. **Wrong id:** Ask Richard for id from `GET /api/games/run/status` or Hermes message.
+| HTTP | Meaning |
+|------|---------|
+| **200** + `schema_version":"v1"` | Use payload |
+| **404** | Session not started / wrong id — keep polling or ask Richard |
+| **502** | Traefik/backend — retry |
 
-**Static demo (no live game):** `game_20260706_215618` (ended, 10 players, 8 banished) — use to regression-test banish replay without starting sim.
+**Static regression (no live game):** `game_20260706_215618` (ended, 10p, 8 banished).  
+**Alternate:** `game_20260706_210532` (6p ended).
 
 ---
 
 ## Tasks (order)
 
-1. **Preflight** — `curl` the session URL from Mac terminal; confirm JSON `schema_version":"v1"`.
-2. **Director vars** — On placed `BP_CeremonyDirector`: `BaseUrl=https://traitorsim.rbnk.uk`, `SessionId=<live or static>`, poll interval 3s (or existing).
-3. **macOS** — Before PIE: activate editor (`osascript` or focus window). Confirm poll timer fires (debug print or log).
-4. **Live run** — Richard starts game from UI/API; paste `game_id` into `SessionId`. PIE until `round_table` and at least one banish beat.
-5. **Regression** — Phase debounce, seat hide, MetaHuman seats 0–1, host banish wide shot, sting/ambient.
-6. **Deliverables** — Update `BUILD-STATUS.md`, one `highresshot` or viewport capture during live banish if possible.
+1. **Preflight (Mac terminal)**  
+   `curl -sS "https://traitorsim.rbnk.uk/api/sessions/game_20260706_215618/projection/world" | head -c 400`  
+   Confirm JSON + `schema_version`.
+
+2. **Director** — On placed `BP_CeremonyDirector`:  
+   - `BaseUrl` = `https://traitorsim.rbnk.uk`  
+   - `SessionId` = Richard’s live id **or** static id above  
+   - Poll interval ~3s (existing if fine)
+
+3. **macOS PIE** — Focus Unreal Editor before PIE (`osascript` or click window). Confirm poll timer fires (log/print).
+
+4. **Live run** — Richard starts game (UI or API); paste `game_id` into `SessionId`. PIE through `round_table` + ≥1 banish.
+
+5. **Regression** — Phase debounce, seat hide, MH seats 0–1, host banish wide shot, sting/ambient.
+
+6. **Deliverables** — `BUILD-STATUS.md` update; `Saved/live_pie_banish.png` or `highresshot` if possible.
 
 ---
 
 ## Out of scope
 
-- Rewriting backend sim, new API fields, packaging, full 12× MetaHuman.
+Backend sim changes, new API fields, packaging, full 12× MetaHuman, Fab wardrobe (next session).
 
 ---
 
-## Harness reminders
+## Tooling
 
-- `create_node` for graph edits — not `get_node_type_pins` transients.
+- Blueprint: `create_node` / `connect_nodes` — not transient pin nodes from `get_node_type_pins`.
 - One asset per `run_python_script` when using ProgrammaticToolset.
 - MCP serial; no modal dialogs during PIE.
 
 ## End task
 
-Report: session id used, phases observed, banish count, blockers. List follow-up: Fab wardrobe pass, sculpt pass, seats 2–11.
+Report: `SessionId`, phases seen, banish count, blockers. Next: Fab wardrobe session, sculpt session.
 
 ## COPY TO HERE ↑

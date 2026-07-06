@@ -6,15 +6,17 @@ echo "# Fab / MetaHuman inventory — $(date -Iseconds)"
 echo "Project: $PROJECT"
 echo
 
-roots=(
-  "$HOME/Library/Application Support/Epic/UnrealEngine/Common/Fab"
-  "$HOME/Library/Application Support/Epic/FabCache"
-  "$HOME/Library/Application Support/Epic/EpicGamesLauncher/Data/Downloads"
+FAB_ROOTS=(
+  "$HOME/Library/Application Support/Epic/FabPlugins"
+  "$HOME/Library/Application Support/Epic/EpicGamesLauncher/Data/Manifests"
+  "$HOME/Library/Application Support/Epic/EpicGamesLauncher/Saved/Config/MacEditor"
+  "${TMPDIR:-/tmp}"
   "$PROJECT/Content"
-  "$PROJECT/Plugins"
 )
+# NOTE: Epic does NOT use ~/Library/.../Common/Fab on Mac. UE assets live in project Content/ after Add to Project.
+# MetaHuman library download count: grep -c listing/metahuman GameUserSettings.ini (see traitorsim3d-fab-mac-verified.md)
 
-for r in "${roots[@]}"; do
+for r in "${FAB_ROOTS[@]}"; do
   [[ -d "$r" ]] || continue
   echo "## $r"
   find "$r" -maxdepth 8 \( \
