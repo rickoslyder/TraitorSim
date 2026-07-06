@@ -232,7 +232,8 @@ class GameEngineAsync:
         self.game_state.day = 1
 
         if self.event_bus is None and getattr(self.config, "enable_event_log", True):
-            self.event_bus = EventBus()
+            session_override = os.environ.get("TRAITORSIM_SESSION_ID")
+            self.event_bus = EventBus(session_id=session_override or None)
             self.logger.info(f"Event log session: {self.event_bus.session_id}")
         self._emit_event(
             EventType.SESSION_STARTED,

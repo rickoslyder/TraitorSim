@@ -235,6 +235,7 @@ async def _run_game_async(request: RunGameRequest):
             'PATH="/usr/local/bin:/usr/bin:/bin"',
             'HOME="/home/gamerunner"',
             f'PYTHONPATH="{project_root}"',
+            f'TRAITORSIM_SESSION_ID="{_current_run.id}"',
             'PYTHONUNBUFFERED=1',
         ])
         env_str = " ".join(env_vars)
@@ -313,6 +314,11 @@ def _parse_log_line(line: str):
 
     if not _current_run:
         return
+
+    import re
+    m_sess = re.search(r"Event log session: (game_[0-9_]+)", line)
+    if m_sess:
+        _current_run.id = m_sess.group(1)
 
     # Day marker
     if "DAY " in line:
