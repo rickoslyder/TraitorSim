@@ -13,6 +13,8 @@ from ..agents.game_master_interactions import GameMasterInteractions
 from ..core.game_state import GameState, Player, Role, TrustMatrix
 from ..core.config import GameConfig
 from ..core.enums import GamePhase
+from ..events import EventBus, EventType
+from ..events.projection import build_projection_from_state
 from ..missions import MISSION_TYPES, MISSION_NAMES
 import random
 from ..utils.logger import setup_logger
@@ -26,15 +28,22 @@ class GameEngineContainerized:
     The engine communicates via REST API calls for parallel execution.
     """
 
-    def __init__(self, config: Optional[GameConfig] = None, agent_base_url: str = "http://localhost"):
+    def __init__(
+        self,
+        config: Optional[GameConfig] = None,
+        agent_base_url: str = "http://localhost",
+        event_bus: Optional[EventBus] = None,
+    ):
         """Initialize containerized game engine.
 
         Args:
             config: Game configuration (uses defaults if None)
             agent_base_url: Base URL for agent containers (default: localhost)
+            event_bus: Optional projection event sink (see game_engine_async)
         """
         self.config = config or GameConfig()
         self.game_state = GameState()
+        self.event_bus = event_bus
         self.logger = setup_logger("game_engine")
         self.agent_base_url = agent_base_url
 
@@ -65,6 +74,24 @@ class GameEngineContainerized:
         # Agent reasoning capture for voice scripts
         # Structure: {day: {player_id: {"vote": {...}, "murder": {...}, ...}}}
         self.agent_reasoning_by_day: Dict[int, Dict[str, Dict[str, Any]]] = {}
+
+    def _emit_event(self, event_type: EventType, payload: Optional[Dict] = None) -> None:
+        """Emit typed event + world snapshot. Never raises."""
+        if not self.event_bus:
+            return
+        try:
+            self.event_bus.emit(
+                event_type,
+                day=self.game_state.day,
+                phase=self.game_state.phase,
+                payload=payload or {},
+            )
+            self.event_bus.write_snapshot(
+                build_projection_from_state(self.game_state, self.event_bus.session_id)
+            )
+        except Exception as e:
+            self.logger.warning(f"Event log emission failed ({event_type}): {e}")
+
 
     def _initialize_players(self) -> None:
         """Initialize players and assign roles using persona library."""
@@ -264,10 +291,25 @@ class GameEngineContainerized:
         # to reveal a murder happens on Day 2).
         self.game_state.day = 1
 
+        if self.event_bus is None and getattr(self.config, "enable_event_log", True):
+            self.event_bus = EventBus()
+            self.logger.info(f"Event log session: {self.event_bus.session_id}")
+        self._emit_event(
+            EventType.SESSION_STARTED,
+            {
+                "players": [{"id": p.id, "name": p.name} for p in self.game_state.players],
+                "total_players": self.config.total_players,
+                "num_traitors": self.config.num_traitors,
+                "rule_set": self.config.rule_set,
+            },
+        )
+
         while self.game_state.day <= self.config.max_days:
             self.logger.info(f"\n{'='*60}")
             self.logger.info(f"DAY {self.game_state.day}")
             self.logger.info(f"{'='*60}\n")
+
+            self._emit_event(EventType.DAY_STARTED, {"day": self.game_state.day})
 
             # In the real format, Day 1 starts with introductions/mission and no
             # overnight murder to reveal. Breakfast begins on Day 2.
@@ -324,6 +366,16 @@ class GameEngineContainerized:
         self.logger.info(f"🏆 WINNERS: {winner.value.upper()}")
         self.logger.info(f"{'='*60}\n")
 
+        self.game_state.phase = GamePhase.ENDED
+        self._emit_event(
+            EventType.GAME_ENDED,
+            {
+                "winner": winner.value,
+                "survivors": survivors,
+                "prize_pot": self.game_state.prize_pot,
+            },
+        )
+
         # Save complete game report for UI visualization
         try:
             report_path = self.save_game_report()
@@ -336,6 +388,7 @@ class GameEngineContainerized:
     async def _run_breakfast_phase_async(self) -> None:
         """Breakfast phase: Announce murder victim and track entry order."""
         self.game_state.phase = GamePhase.BREAKFAST
+        self._emit_event(EventType.PHASE_CHANGED, {"phase": GamePhase.BREAKFAST.value})
         self.logger.info("--- Breakfast Phase ---")
 
         # Generate breakfast entry order (dramatic if enabled)
@@ -428,6 +481,7 @@ class GameEngineContainerized:
     async def _run_mission_phase_async(self) -> None:
         """Mission phase: Execute mission challenge."""
         self.game_state.phase = GamePhase.MISSION
+        self._emit_event(EventType.PHASE_CHANGED, {"phase": GamePhase.MISSION.value})
         self.logger.info("\n--- Mission Phase ---")
 
         # Select and create random mission type
@@ -719,6 +773,7 @@ class GameEngineContainerized:
     async def _run_social_phase_async(self) -> None:
         """Social phase: Agents reflect privately. Seer may use power."""
         self.game_state.phase = GamePhase.SOCIAL
+        self._emit_event(EventType.PHASE_CHANGED, {"phase": GamePhase.SOCIAL.value})
         self.logger.info("\n--- Social Phase ---")
 
         # Check if anyone has Seer power and wants to use it
@@ -733,6 +788,7 @@ class GameEngineContainerized:
     async def _run_roundtable_phase_async(self) -> None:
         """Round Table phase: Voting and banishment."""
         self.game_state.phase = GamePhase.ROUNDTABLE
+        self._emit_event(EventType.PHASE_CHANGED, {"phase": GamePhase.ROUNDTABLE.value})
         self.logger.info("\n--- Round Table Phase ---")
 
         # Collect votes in parallel via HTTP
@@ -816,6 +872,23 @@ class GameEngineContainerized:
                 "eliminated_role": banished_player.role.value,
             },
             narrative=f"{banished_player.name} was banished with {vote_counts[banished_id]} votes.",
+        )
+
+        self._emit_event(
+            EventType.VOTE_COMPLETED,
+            {
+                "votes": votes.copy(),
+                "vote_counts": dict(vote_counts),
+            },
+        )
+        self._emit_event(
+            EventType.PLAYER_BANISHED,
+            {
+                "player_id": banished_player.id,
+                "player_name": banished_player.name,
+                "role": banished_player.role.value,
+                "role_revealed": should_reveal_role,
+            },
         )
 
         # Agents reflect - only reveal role if allowed
@@ -1011,6 +1084,7 @@ class GameEngineContainerized:
         and can only choose from that list. This mechanic restricts their options.
         """
         self.game_state.phase = GamePhase.TURRET
+        self._emit_event(EventType.PHASE_CHANGED, {"phase": GamePhase.TURRET.value})
         self.logger.info("\n--- Turret Phase ---")
 
         # Get alive traitors
@@ -1095,6 +1169,11 @@ class GameEngineContainerized:
                 "murder_shortlist": shortlist,
             },
             narrative=f"{victim.name} was murdered by the Traitors.",
+        )
+
+        self._emit_event(
+            EventType.PLAYER_MURDERED,
+            {"player_id": victim.id, "player_name": victim.name},
         )
 
     async def _create_death_list_async(self, traitors: List[Player], faithful: List[Player]) -> List[str]:

@@ -324,3 +324,35 @@ def test_projection_endpoint_404_for_unknown_session(api_client):
 def test_projection_endpoint_rejects_path_traversal_ids(api_client):
     response = api_client.get("/api/sessions/a..b/projection/world")
     assert response.status_code == 404
+
+
+def test_containerized_engine_emit_event_noop_without_bus():
+    from src.traitorsim.core.game_engine_containerized import GameEngineContainerized
+    from src.traitorsim.events import EventType
+
+    engine = GameEngineContainerized()
+    engine._emit_event(EventType.PHASE_CHANGED, {"phase": "round_table"})
+
+
+def test_containerized_engine_emit_writes_snapshot_with_bus(tmp_path):
+    from src.traitorsim.core.game_engine_containerized import GameEngineContainerized
+    from src.traitorsim.core.game_state import GameState, Player, Role
+    from src.traitorsim.core.enums import GamePhase
+    from src.traitorsim.events import EventBus, EventType
+
+    bus = EventBus(session_id="game_test_containerized", base_dir=tmp_path)
+    engine = GameEngineContainerized(event_bus=bus)
+    engine.game_state = GameState()
+    engine.game_state.day = 2
+    engine.game_state.phase = GamePhase.ROUNDTABLE
+    engine.game_state.players = [
+        Player(id="player_00", name="A", role=Role.FAITHFUL),
+        Player(id="player_01", name="B", role=Role.TRAITOR),
+    ]
+    engine._emit_event(EventType.PHASE_CHANGED, {"phase": "round_table"})
+    snap = tmp_path / "game_test_containerized" / "world_snapshot.json"
+    assert snap.is_file()
+    import json
+    data = json.loads(snap.read_text())
+    assert data["session_id"] == "game_test_containerized"
+    assert data["phase"] == "round_table"

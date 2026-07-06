@@ -36,14 +36,9 @@ services:
     networks:
       - default
       - traefik_proxy
+    # Prod: /srv/dockerdata/traitorsim. Dev :8085 only — no Traefik (duplicate Host broke routing).
     labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.traitorsim-ui.rule=Host(`traitorsim.rbnk.uk`)"
-      - "traefik.http.routers.traitorsim-ui.entrypoints=websecure"
-      - "traefik.http.routers.traitorsim-ui.tls=true"
-      - "traefik.http.routers.traitorsim-ui.tls.certresolver=cf"
-      - "traefik.http.services.traitorsim-ui.loadbalancer.server.port=80"
-      - "traefik.docker.network=traefik_proxy"
+      - "traefik.enable=false"
 
 networks:
   default:
