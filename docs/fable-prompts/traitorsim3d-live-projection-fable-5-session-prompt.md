@@ -1,83 +1,41 @@
-# TraitorSim3D — Live prod projection (Fable 5, standalone)
+# TraitorSim3D — Live prod projection (Fable 5)
 
-**Machine:** `rkb-mac` · **CWD:** `~/Documents/Unreal Projects/TraitorSim3D`  
-**CLI:** `claude-fable-5` · **effort:** `high`  
-**Harness:** Paste blocks from `~/.hermes/references/claude-fable-5-cheatsheet.md` (anti-overplanning, scope/YAGNI, brevity, autonomous) at session start.
-
-**Prerequisite:** Dressing/audio/MH pass in `BUILD-STATUS.md`. `BP_CeremonyDirector` polls mock or static session.
-
-**Hermes:** Richard may paste a **live `SessionId`** from Telegram (`POST https://traitorsim.rbnk.uk/api/games/run`). Runner `game_id` matches engine (`TRAITORSIM_SESSION_ID` on Dockerhost).
+**CWD:** `~/Documents/Unreal Projects/TraitorSim3D` · `claude-fable-5` · effort `high`  
+**Style:** Goal-oriented — you choose the steps. Do not wait for a recipe.
 
 ---
 
 ## COPY FROM HERE ↓
 
-# Live wire — prod API during a running game
+# End goal
 
-## Why
+`BP_CeremonyDirector` drives ceremony from **production** TraitorSim, not mock JSON: poll `https://traitorsim.rbnk.uk/api/sessions/{SessionId}/projection/world` and keep existing banish/camera/audio behavior working in **PIE**.
 
-PIE verified against **mock** and **ended** snapshots. Prove the ceremony director tracks **real** `alive` / `phase` while Python sim runs on Dockerhost.
+**Done when:** You have evidence (log, screenshot, or `BUILD-STATUS.md` § Live PIE) that at least one **real** `alive→false` during `round_table` triggered the same beats we already proved on mock/static sessions — or you document precisely what blocked live timing and what *did* work on a static ended session.
 
-**Success:** Editor **focused** on macOS (no background poll throttle), PIE with prod `BaseUrl` + live `SessionId`, visible banish/camera/audio on ≥1 `alive→false` during `round_table`. Document in `BUILD-STATUS.md` § Live PIE.
-
----
-
-## API (do not invent fields)
-
-**GET** `https://traitorsim.rbnk.uk/api/sessions/{SessionId}/projection/world`
-
-| Field | UE use |
-|-------|--------|
-| `phase` | `breakfast` \| `mission` \| `social` \| `round_table` \| `turret` \| `ended` |
-| `players[]` | `seat_index`, `alive`, `display_name` |
-| `day` | debug / UI |
-
-| HTTP | Meaning |
-|------|---------|
-| **200** + `schema_version":"v1"` | Use payload |
-| **404** | Session not started / wrong id — keep polling or ask Richard |
-| **502** | Traefik/backend — retry |
-
-**Static regression (no live game):** `game_20260706_215618` (ended, 10p, 8 banished).  
-**Alternate:** `game_20260706_210532` (6p ended).
+**Why it matters:** Mock/static proved the graph; prod proves the show can follow a running Dockerhost sim (and Richard can paste a live `SessionId` from Hermes when he wants true live flips).
 
 ---
 
-## Tasks (order)
+## Ground truth (read, don’t reinvent)
 
-1. **Preflight (Mac terminal)**  
-   `curl -sS "https://traitorsim.rbnk.uk/api/sessions/game_20260706_215618/projection/world" | head -c 400`  
-   Confirm JSON + `schema_version`.
-
-2. **Director** — On placed `BP_CeremonyDirector`:  
-   - `BaseUrl` = `https://traitorsim.rbnk.uk`  
-   - `SessionId` = Richard’s live id **or** static id above  
-   - Poll interval ~3s (existing if fine)
-
-3. **macOS PIE** — Focus Unreal Editor before PIE (`osascript` or click window). Confirm poll timer fires (log/print).
-
-4. **Live run** — Richard starts game (UI or API); paste `game_id` into `SessionId`. PIE through `round_table` + ≥1 banish.
-
-5. **Regression** — Phase debounce, seat hide, MH seats 0–1, host banish wide shot, sting/ambient.
-
-6. **Deliverables** — `BUILD-STATUS.md` update; `Saved/live_pie_banish.png` or `highresshot` if possible.
+- `BUILD-STATUS.md`, `implementation-notes.md` — what already works (phase debounce, seat hide, MH 0–1, host wide shot, sting).
+- API contract only: `phase`, `players[].seat_index|alive|display_name`, `day`; `schema_version` v1. No new backend fields.
+- **Static sessions** if live timing is awkward: `game_20260706_215618` (10p ended), `game_20260706_210532` (6p ended). Example live id from Hermes: `game_20260706_233625`.
+- **macOS:** Editor must stay focused during PIE or poll timers throttle — you fix that however fits.
+- **Runner alignment:** `game_id` on server matches session files (`TRAITORSIM_SESSION_ID`); use the id Richard gives you.
 
 ---
 
-## Out of scope
+## Boundaries
 
-Backend sim changes, new API fields, packaging, full 12× MetaHuman, Fab wardrobe (next session).
+- No sim/API/backend changes, no packaging, no Fab wardrobe, no sculpt pass, no new ceremony features.
+- UE/MCP: serial tool use; no modal dialogs in PIE; Blueprint edits via durable nodes (`create_node`), not transient pin scaffolding.
 
 ---
 
-## Tooling
+## Close-out
 
-- Blueprint: `create_node` / `connect_nodes` — not transient pin nodes from `get_node_type_pins`.
-- One asset per `run_python_script` when using ProgrammaticToolset.
-- MCP serial; no modal dialogs during PIE.
-
-## End task
-
-Report: `SessionId`, phases seen, banish count, blockers. Next: Fab wardrobe session, sculpt session.
+TLDR: session id(s) tried, what phases/banishes you saw, regression gaps, one screenshot path if any. Say what Richard should do for the *next* live attempt (e.g. “message Hermes for fresh `game_id` then PIE immediately”).
 
 ## COPY TO HERE ↑
