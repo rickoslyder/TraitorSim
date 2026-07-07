@@ -118,21 +118,22 @@ export function Sidebar() {
         ) : (
           <div className="space-y-1">
             {games.map(game => (
-              <motion.button
+              <button
                 key={game.id}
+                type="button"
+                data-testid={`game-session-${game.id}`}
                 onClick={() => handleGameSelect(game.id)}
                 onMouseEnter={() => handleGameHover(game.id)}
-                className={`w-full text-left p-3 rounded-lg transition-colors ${
+                className={`w-full text-left p-3 rounded-lg transition-colors pointer-events-auto ${
                   selectedGameId === game.id
                     ? 'bg-blue-600 text-white'
                     : 'bg-gray-750 text-gray-300 hover:bg-gray-700'
                 }`}
-                whileHover={{ scale: 1.01 }}
-                whileTap={{ scale: 0.99 }}
                 aria-label={`Select game: ${game.name}`}
+                aria-pressed={selectedGameId === game.id}
               >
-                <div className="font-medium text-sm truncate">{game.name}</div>
-                <div className="flex items-center gap-2 mt-1 text-xs opacity-75">
+                <div className="font-medium text-sm truncate pointer-events-none">{game.name}</div>
+                <div className="flex items-center gap-2 mt-1 text-xs opacity-75 pointer-events-none">
                   <span>{game.total_days} days</span>
                   <span>•</span>
                   <span className={
@@ -143,7 +144,7 @@ export function Sidebar() {
                     {game.winner === '' || game.winner === 'UNKNOWN' ? 'In Progress' : game.winner}
                   </span>
                 </div>
-              </motion.button>
+              </button>
             ))}
           </div>
         )}
