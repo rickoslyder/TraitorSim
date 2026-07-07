@@ -32,7 +32,7 @@ Sources: Epic [Exporting Assets from Fab in Launcher](https://dev.epicgames.com/
 |--------|--------|
 | MetaHuman Fab listings **downloaded** (library) | **37** unique UUIDs, all `InstallType=Download`, bulk **2026-07-06 22:42–22:47** |
 | Other Fab downloads in same history | **3×** `listing/fbx` |
-| **Imported into TraitorSim3D** (disk) | **`Content/Grooms/`** (~733 MB hair/groom pack), **`Content/TraitorSim/MetaHumans/`** (`MH_Host`, `MH_Faithful1` + `Built/`) — **not** 37 separate outfit folders yet |
+| **Imported into TraitorSim3D** (disk) | **`Content/Grooms/`** (~733 MB), **`MH_Host`** (presenter asset), **`MH_Faithful1`** (seat 1 contestant) under `Content/TraitorSim/MetaHumans/` — **not** 37 outfit folders yet |
 | Fab UE plugin | `FabPlugin_5.8` installed (DownloadHistory) |
 
 **Conclusion:** The “30+” MetaHuman Fab items are **in your Fab library (launcher history)**, not fully **added to TraitorSim3D**. Wardrobe pass = **Fab → Add to project** (TraitorSim3D), then assign to seats via MetaHuman pipeline.

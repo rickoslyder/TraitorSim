@@ -24,14 +24,14 @@ You are operating autonomously. The user cannot answer questions mid-task. For r
 
 ## End goal
 
-Richard can run **PIE** and see TraitorSim’s **production** sim drive the castle ceremony (phase + banish beats), with **MetaHuman seats 0–1** looking like a deliberate modern-UK dinner cast—not greybox mannequins—**without** breaking what mock/static sessions already proved.
+Richard can run **PIE** and see TraitorSim’s **production** sim drive the castle ceremony (phase + banish beats), with **contestant MetaHuman seat 1** and **presenter host** (`HostActor`, off-table) reading as a deliberate modern-UK dinner show—not greybox mannequins—**without** breaking what mock/static sessions already proved.
 
 **Priority order (stop when quota/time is tight; do not expand scope upward until the prior tier is done):**
 
 | Tier | Outcome |
 |------|---------|
 | **P0 (must)** | `BP_CeremonyDirector` polls `https://traitorsim.rbnk.uk/api/sessions/{SessionId}/projection/world`; PIE shows correct phase progression and at least one banish beat (hide/seat/camera/sting) using a **real** session id. If live sim timing is impossible in one sitting, prove the **same graph** on static ended session `game_20260706_215618` and document exactly how Richard triggers a **live** run with Hermes (`SessionId` on director + PIE while sim runs). |
-| **P1 (should)** | Seats **0–1** get visible Fab wardrobe/groom improvement; `Content/TraitorSim/FAB-WARDROBE-MAP.md` lists what you imported vs skipped (top 5 keepers for this show). |
+| **P1 (should)** | **Seat 1** contestant (`MH_Faithful1`) gets visible Fab wardrobe/groom; **presenter** `HostActor` / `MH_Host` looks correct **standing** (not seated)—see `BUILD-STATUS.md` § Host rework. `Content/TraitorSim/FAB-WARDROBE-MAP.md` lists imports vs skipped (top 5 keepers). |
 | **P2 (nice)** | MetaHuman banish uses a **visible** death/fall—not silent skip—on at least one MH seat, without redesigning ceremony logic. |
 
 **Done when:** `BUILD-STATUS.md` has a dated **Production ceremony** section with: session id(s) used, P0 evidence (log path or `Saved/` screenshot), P1 status, P2 status or explicit deferral. Richard knows one sentence: “Press Play with SessionId = ___” and whether to Telegram Hermes for a fresh live game.
@@ -42,11 +42,11 @@ Richard can run **PIE** and see TraitorSim’s **production** sim drive the cast
 
 ## Ground truth (read first; do not invent)
 
-- `BUILD-STATUS.md`, `implementation-notes.md` — debounced phases, `SeatActors`, MH 0–1, host wide shot, audio sting, mock path.
+- `BUILD-STATUS.md`, `implementation-notes.md` — debounced phases, `SeatActors`, **seat 0 = contestant (Manny)**, **seat 1 = MH_Faithful1**, **`HostActor` presenter off-table** (phase show/hide on banish), host wide shot **removed** from seat-0 path.
 - Projection v1 only: `phase`, `players[].seat_index|alive|display_name`, `day`. URL shape: `/api/sessions/{id}/projection/world`.
 - Static ids: `game_20260706_215618` (10p ended), `game_20260706_210532` (6p ended). Live example: `game_20260706_233625` (may be ended—Hermes can start another on request).
-- **Fab (verified Mac):** `docs/fable-prompts/traitorsim3d-fab-mac-verified.md` — **37** MetaHuman listings in Launcher library; project has `Content/Grooms/` + `Content/TraitorSim/MetaHumans/MH_Host`, `MH_Faithful1`. Assets enter `Content/` only via **Add to project** (Launcher Fab or **Window → Fab**). No `Common/Fab` / `FabCache` paths.
-- Cast: seat 0 host male ~40s formal dark; seat 1 female ~30s smart/analytical; no traitor/faithful costume coding in v1.
+- **Fab (verified Mac):** `docs/fable-prompts/traitorsim3d-fab-mac-verified.md` — **37** MetaHuman listings in Launcher library; project has `Content/Grooms/` + `MH_Host` (presenter, **not** `SeatActors[0]`) + `MH_Faithful1` (seat 1). Assets enter `Content/` only via **Add to project** (Launcher Fab or **Window → Fab**). No `Common/Fab` / `FabCache` paths.
+- **Cast (UE, matches sim):** All `players[]` are **contestants** at seats 0–N. **Seat 0** = first contestant at the table (Manny). **Seat 1** = key faithful MH. **Host** = separate `HostActor` / standing `MH_Host` — never in `players[]`, never banished. No traitor/faithful costume coding in v1.
 - `Content/Python/mh_build.py` for MH automation patterns.
 - UE pitfalls: `docs/fable-prompts/` LEGACY files + skill `fable-ue-harness-lessons` in Hermes repo—**read only if blocked** (EditorToolset, Blueprint `create_node`, ghost assets, macOS timer throttle when editor unfocused).
 
