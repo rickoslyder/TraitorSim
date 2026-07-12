@@ -50,8 +50,7 @@ interface GraphLink {
 
 export function TrustGraph({ players, trustMatrix, width, height }: TrustGraphProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const graphRef = useRef<ForceGraphMethods<any, any>>();
+  const graphRef = useRef<ForceGraphMethods<GraphNode, GraphLink>>();
 
   // Responsive sizing
   const containerSize = useContainerSize(containerRef);
@@ -378,7 +377,7 @@ export function TrustGraph({ players, trustMatrix, width, height }: TrustGraphPr
     >
       {graphWidth > 0 && graphHeight > 0 && (
         <ForceGraph2D
-          ref={graphRef as React.MutableRefObject<ForceGraphMethods<any, any> | undefined>}
+          ref={graphRef as React.MutableRefObject<ForceGraphMethods<GraphNode, GraphLink> | undefined>}
           graphData={graphData}
           width={graphWidth}
           height={graphHeight}

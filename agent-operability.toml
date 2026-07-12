@@ -1,0 +1,32 @@
+version = 1
+kit_name = "agent-operability-kit"
+kit_version = "0.1.0"
+kit_path = "/home/hermes/repos/agent-operability-kit"
+
+[commands]
+# Configured checks must be safe on Hermes without starting the full 24-agent simulation.
+# Frontend lint is enabled because this repo now carries a local ESLint config.
+format_check = []
+lint = ["npm", "--prefix", "traitorsim-ui/frontend", "run", "lint"]
+unit = ["python", "-m", "pytest", "tests", "-q"]
+e2e = []
+visual = []
+bench = []
+autofix = []
+
+[policy]
+allow_autofix = false
+command_timeout_seconds = 900
+report_dir = ".agent-operability/reports"
+managed_region_prefix = "AOK"
+
+[review]
+required = false
+timeout_seconds = 600
+primary_env = "AOK_REVIEW_PRIMARY_CMD"
+secondary_env = "AOK_REVIEW_SECONDARY_CMD"
+
+[bench]
+runs = 7
+relative_regression_percent = 10
+absolute_regression_ms = 100

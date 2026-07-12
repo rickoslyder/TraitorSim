@@ -1,0 +1,27 @@
+# Repo-local Crabbox presets (host/user: ~/.config/crabbox/config.yaml on Hermes)
+
+sync:
+  exclude:
+    - research/
+    - archive/
+    - data/memories/
+    - "**/node_modules/"
+    - traitorsim-ui/frontend/dist/
+
+# static.host must match user config OR pass --static-host (repo-only host is blocked for cred safety)
+profiles:
+  traitorsim-smoke:
+    presets:
+      prod-health:
+        command: |
+          set -euo pipefail
+          echo "=== synced checkout ==="
+          pwd
+          test -f traitorsim-ui/docker-compose.yml
+          echo "=== dockerhost prod container ==="
+          docker ps --filter name=traitorsim --format 'name={{.Names}} status={{.Status}}'
+          echo "=== public URL ==="
+          curl -sf -o /dev/null -w 'traitorsim.rbnk.uk HTTP %{http_code}\n' https://traitorsim.rbnk.uk/
+          echo "=== host deploy tree ==="
+          test -f /srv/dockerdata/traitorsim/docker-compose.yml
+          echo OK crabbox traitorsim-smoke

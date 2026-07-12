@@ -1,0 +1,7 @@
+*.json
+*.log
+*.txt
+*.html
+*.png
+*.mp4
+!.gitignore

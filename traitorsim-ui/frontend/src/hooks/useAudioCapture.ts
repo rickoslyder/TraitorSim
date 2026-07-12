@@ -10,7 +10,7 @@
  * Works with the HITL WebSocket server for real-time voice input.
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 
 // ============================================================================
 // Types
@@ -69,12 +69,14 @@ const DEFAULT_CONFIG: Required<AudioCaptureConfig> = {
   autoGainControl: true,
 };
 
+const EMPTY_CONFIG: AudioCaptureConfig = {};
+
 // ============================================================================
 // Hook Implementation
 // ============================================================================
 
-export function useAudioCapture(config: AudioCaptureConfig = {}): UseAudioCaptureReturn {
-  const settings = { ...DEFAULT_CONFIG, ...config };
+export function useAudioCapture(config: AudioCaptureConfig = EMPTY_CONFIG): UseAudioCaptureReturn {
+  const settings = useMemo(() => ({ ...DEFAULT_CONFIG, ...config }), [config]);
 
   // State
   const [hasPermission, setHasPermission] = useState(false);

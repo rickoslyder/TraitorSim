@@ -12,6 +12,8 @@ import os
 import sys
 from pathlib import Path
 
+import pytest
+
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
@@ -20,6 +22,11 @@ from traitorsim.core.enums import Role
 from traitorsim.agents.game_master_interactions import GameMasterInteractions
 
 
+@pytest.mark.integration
+@pytest.mark.skipif(
+    os.getenv("RUN_GEMINI_INTEGRATION") != "1" or not os.getenv("GEMINI_API_KEY"),
+    reason="requires RUN_GEMINI_INTEGRATION=1 and GEMINI_API_KEY",
+)
 async def test_game_master():
     """Test GameMaster with World Bible grounding."""
     print("=" * 60)

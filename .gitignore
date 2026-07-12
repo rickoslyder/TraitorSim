@@ -48,6 +48,9 @@ data/games/
 data/personas/jobs/
 data/personas/reports/
 reports/
+!.agent-operability/reports/
+!.agent-operability/reports/.gitignore
+.crabbox/captures/
 *.log
 
 # Temporary files

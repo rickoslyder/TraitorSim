@@ -8,6 +8,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRunStatus, useStartGame, useStopGame, useSyncGames } from '../../api/hooks';
+import { CastleBroadcastPanel } from '../broadcast/CastleBroadcastPanel';
 
 interface GameRunnerProps {
   isOpen: boolean;
@@ -308,6 +309,12 @@ export function GameRunner({ isOpen, onClose }: GameRunnerProps) {
                 </div>
               </div>
             )}
+
+            <CastleBroadcastPanel
+              sessionId={runStatus?.game_id}
+              isRunning={isRunning}
+              pollWhenIdle={Boolean(runStatus?.game_id)}
+            />
 
             {/* Log output */}
             <div

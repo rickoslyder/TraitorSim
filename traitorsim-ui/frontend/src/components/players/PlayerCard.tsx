@@ -21,6 +21,7 @@ import {
   getPlayerTypeColor,
   BehavioralStats,
 } from '../../utils/behavioralStats';
+import type { PlayerType } from '../../utils/behavioralStats';
 import { usePOVVisibility } from '../../hooks/usePOVVisibility';
 
 interface PlayerCardProps {
@@ -249,13 +250,13 @@ function PlayerTypeBadge({
   label,
   confidence,
 }: {
-  type: string;
+  type: PlayerType;
   label: string;
   confidence: number;
 }) {
   if (type === 'unknown' || confidence < 0.5) return null;
 
-  const colorClass = getPlayerTypeColor(type as any);
+  const colorClass = getPlayerTypeColor(type);
 
   return (
     <span

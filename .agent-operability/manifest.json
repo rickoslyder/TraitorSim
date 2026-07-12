@@ -1,0 +1,178 @@
+{
+  "applied_at": "2026-07-12T01:30:09Z",
+  "kit_path": "/home/hermes/repos/agent-operability-kit",
+  "kit_version": "0.1.0",
+  "managed_files": [
+    {
+      "bytes": 478,
+      "customized": true,
+      "path": ".agent-operability/README.md",
+      "sha256": "af709795f3adec04b30bfaa1b3954f833bd2722529d6e79e9fdc40303819323a",
+      "template": ".agent-operability/README.md",
+      "updated_at": "2026-07-12T02:10:29Z"
+    },
+    {
+      "bytes": 0,
+      "customized": true,
+      "path": ".agent-operability/baselines/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "template": ".agent-operability/baselines/.gitkeep",
+      "updated_at": "2026-07-12T02:10:29Z"
+    },
+    {
+      "bytes": 241,
+      "customized": true,
+      "path": ".agent-operability/feedback-log.md",
+      "sha256": "305e5afcef49719fac13b656267c2760c3eaf46d4c21a0a9edc43e61baf092ad",
+      "template": ".agent-operability/feedback-log.md",
+      "updated_at": "2026-07-12T02:10:29Z"
+    },
+    {
+      "bytes": 50,
+      "customized": true,
+      "path": ".agent-operability/reports/.gitignore",
+      "sha256": "6553ae3bb7a12d07df7d67e40ca83396a840d5fda8aa2b8aeb59482975a28b13",
+      "template": ".agent-operability/reports/.gitignore",
+      "updated_at": "2026-07-12T02:10:29Z"
+    },
+    {
+      "bytes": 34,
+      "customized": true,
+      "path": ".agent-operability/task-queue.json",
+      "sha256": "711a8e2188c1dd40d9b68839dff69fd5bcdcdec1048600803567263d441a33e4",
+      "template": ".agent-operability/task-queue.json",
+      "updated_at": "2026-07-12T02:10:29Z"
+    },
+    {
+      "bytes": 0,
+      "customized": true,
+      "path": ".agent-operability/worksheets/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "template": ".agent-operability/worksheets/.gitkeep",
+      "updated_at": "2026-07-12T02:10:29Z"
+    },
+    {
+      "bytes": 1852,
+      "customized": true,
+      "path": "AGENTS.md",
+      "sha256": "520854b49ee53ff0f9bae1eee6396d1984e4793960c92bf12ce66335c304a72a",
+      "template": "AGENTS.md",
+      "updated_at": "2026-07-12T02:10:29Z"
+    },
+    {
+      "bytes": 830,
+      "customized": true,
+      "path": "agent-operability.toml",
+      "sha256": "6b8a42fd37345d70bc8e3a6479d7d4083cef485afd0717e9618edb262169cdd4",
+      "template": "agent-operability.toml",
+      "updated_at": "2026-07-12T02:10:29Z"
+    },
+    {
+      "bytes": 1295,
+      "customized": true,
+      "path": "docs/agent-workflow.md",
+      "sha256": "9d51d64f9e5d4351712164e56d2549861537c8ad3d4292baeac881197f7362c0",
+      "template": "docs/agent-workflow.md",
+      "updated_at": "2026-07-12T02:10:29Z"
+    },
+    {
+      "bytes": 2242,
+      "customized": true,
+      "path": "docs/commands.md",
+      "sha256": "e3b2048e121e5c94615160b36ba67bb625c33de079f3ad2135102e244d0a53e8",
+      "template": "docs/commands.md",
+      "updated_at": "2026-07-12T02:10:29Z"
+    },
+    {
+      "bytes": 1449,
+      "customized": true,
+      "path": "docs/conventions.md",
+      "sha256": "45ce905bc0621bf74218c229df72c9e583298ab8c67a0a1a351b7311e4de970e",
+      "template": "docs/conventions.md",
+      "updated_at": "2026-07-12T02:10:29Z"
+    },
+    {
+      "bytes": 337,
+      "customized": true,
+      "path": "docs/decisions/ADR-000-template.md",
+      "sha256": "b778d429877757ddb801a599c12b118fd6958b39c473f0406c40727f611b3b32",
+      "template": "docs/decisions/ADR-000-template.md",
+      "updated_at": "2026-07-12T02:10:29Z"
+    },
+    {
+      "bytes": 1008,
+      "customized": true,
+      "path": "docs/e2e.md",
+      "sha256": "71cec183d8f630690b67454e43314229069fed6fe2b2cff4960dade88a06e1f5",
+      "template": "docs/e2e.md",
+      "updated_at": "2026-07-12T02:10:29Z"
+    },
+    {
+      "bytes": 244,
+      "customized": true,
+      "path": "docs/end-of-shift-validation.md",
+      "sha256": "87dfbde3b4777d9416df9f288a5d518a3cfe34c8acabb22dafc9e2a08eb876d3",
+      "template": "docs/end-of-shift-validation.md",
+      "updated_at": "2026-07-12T02:10:29Z"
+    },
+    {
+      "bytes": 303,
+      "customized": true,
+      "path": "docs/false-confidence-test-audit.md",
+      "sha256": "4b3527af7b04d3e640d56dca0de60d06afd6006d8cb9f002a1a8430c7f31f096",
+      "template": "docs/false-confidence-test-audit.md",
+      "updated_at": "2026-07-12T02:10:29Z"
+    },
+    {
+      "bytes": 320,
+      "customized": true,
+      "path": "docs/night-shift.md",
+      "sha256": "b787b28e9b5235463cb7ced313747db8aea495dce8c1dae1f6f803ab9dbd1834",
+      "template": "docs/night-shift.md",
+      "updated_at": "2026-07-12T02:10:29Z"
+    },
+    {
+      "bytes": 180,
+      "customized": true,
+      "path": "docs/performance.md",
+      "sha256": "6fb784987d20fcda91c3d581d91a8c564415be2e3f69b2330581e6f68596e17d",
+      "template": "docs/performance.md",
+      "updated_at": "2026-07-12T02:10:29Z"
+    },
+    {
+      "bytes": 223,
+      "customized": true,
+      "path": "docs/periodic-sweeps.md",
+      "sha256": "621e888a6df99f3602e272e00891a1a9c47a6d7f3295982c0d5a7ffe9f053461",
+      "template": "docs/periodic-sweeps.md",
+      "updated_at": "2026-07-12T02:10:29Z"
+    },
+    {
+      "bytes": 1186,
+      "customized": true,
+      "path": "docs/review.md",
+      "sha256": "ef570fe2bd5e9ab27e385b21dd3e9c317f63581c93c6eac09df9d75482b2f28d",
+      "template": "docs/review.md",
+      "updated_at": "2026-07-12T02:10:29Z"
+    },
+    {
+      "bytes": 1191,
+      "customized": true,
+      "path": "docs/testing.md",
+      "sha256": "317cbf19a180e7bc23b9d2549c6a11a18a7cb9348068e5594c721691e24314f8",
+      "template": "docs/testing.md",
+      "updated_at": "2026-07-12T02:10:29Z"
+    },
+    {
+      "bytes": 211,
+      "customized": true,
+      "path": "docs/visual-regression.md",
+      "sha256": "33dfb113255ed0d1113fd6c37b898c73b66d7bd482c8b075cd408ff9dcb44fe6",
+      "template": "docs/visual-regression.md",
+      "updated_at": "2026-07-12T02:10:29Z"
+    }
+  ],
+  "project_name": "TraitorSim",
+  "updated_at": "2026-07-12T01:35:06Z",
+  "version": 1
+}

@@ -100,6 +100,13 @@ class GameEngineAsync:
         import random
         from ..persona.persona_loader import PersonaLoader
 
+        # Keep this initializer idempotent for tests/tools that rebuild rosters
+        # on an existing engine instance.
+        self.game_state.players = []
+        self.game_state.trust_matrix = None
+        self.player_agents.clear()
+        self.memory_managers.clear()
+
         # Load personas from library
         if self.config.personality_generation == "archetype":
             try:

@@ -8,6 +8,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { gamesApi, analysisApi } from './client';
 import type { GameSession, GameSummary, Phase } from '../types';
+import type { WorldProjection } from '../types/projection';
 
 // ============================================================================
 // Query Keys - centralized for consistency
@@ -463,5 +464,27 @@ export function useStopGame() {
       // Refresh games list to pick up new game
       queryClient.invalidateQueries({ queryKey: queryKeys.games.all });
     },
+  });
+}
+
+/**
+ * Poll world projection for UE ceremony / castle broadcast.
+ */
+export function useWorldProjection(sessionId: string | undefined, enabled: boolean) {
+  return useQuery({
+    queryKey: ['projection', 'world', sessionId],
+    queryFn: async () => {
+      if (!sessionId) throw new Error('No session id');
+      const response = await fetch(
+        `/api/sessions/${encodeURIComponent(sessionId)}/projection/world`
+      );
+      if (!response.ok) {
+        if (response.status === 404) return null;
+        throw new Error('Failed to load projection');
+      }
+      return response.json() as Promise<WorldProjection>;
+    },
+    enabled: Boolean(sessionId && enabled),
+    refetchInterval: enabled && sessionId ? 3000 : false,
   });
 }
